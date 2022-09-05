@@ -31,7 +31,6 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
     423: config.onLocked,
 }[code])
 
-let axios: AxiosInstance = Axios.create()
 
 const resolveConfig = (config: Config) => ({
     ...config,
@@ -55,7 +54,9 @@ const isValidationPayload = (response: any): response is ValidationPayload => {
        })
 }
 
-const request = (config: Config = {}) => axios
+let customAxios: AxiosInstance|undefined;
+
+const request = (config: Config = {}) => (customAxios ?? Axios)
     .request(resolveConfig(config))
     .then(response => {
         if (response.headers.precognition !== 'true') {
@@ -89,8 +90,8 @@ const client = {
     patch: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'patch' }),
     put: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'put' }),
     delete: (url: string, config: Config = {}) => request({ ...config, url, method: 'delete' }),
-    use: (a: AxiosInstance) => {
-        axios = a
+    use: (axios: AxiosInstance) => {
+        customAxios = axios
         return client
     }
 }
