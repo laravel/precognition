@@ -67,7 +67,7 @@ const request = (config: Config = {}) => (customAxios ?? Axios)
 
         return statusHandler ? statusHandler(response) : response
     }, error => {
-        if (! Axios.isAxiosError(error) || Axios.isCancel(error)) {
+        if (! Axios.isAxiosError(error) || Axios.isCancel(error) || typeof error.response?.status !== 'number') {
             return Promise.reject(error)
         }
 

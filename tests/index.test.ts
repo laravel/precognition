@@ -18,7 +18,7 @@ test('success response must have Precognition header', async () => {
 test('error response must have Precognition header', async () => {
     expect.assertions(2)
 
-    axios.request.mockRejectedValueOnce({})
+    axios.request.mockRejectedValueOnce({ response: { status: 500 }})
     axios.isAxiosError.mockReturnValue(true)
 
     await precognition.get('https://laravel.com').catch((e) => {
@@ -46,6 +46,18 @@ test('test canceled request is rejected again', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
     axios.isCancel.mockReturnValueOnce(true)
+
+    await precognition.get('https://laravel.com').catch((e) => {
+        expect(e).toBe(error)
+    })
+})
+
+test('axios error without status is rejected', async () => {
+    expect.assertions(1)
+
+    const error = { expected: 'error' }
+    axios.request.mockRejectedValueOnce(error)
+    axios.isAxiosError.mockReturnValueOnce(true)
 
     await precognition.get('https://laravel.com').catch((e) => {
         expect(e).toBe(error)
