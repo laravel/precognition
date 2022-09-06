@@ -32,7 +32,7 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
 }[code])
 
 
-const resolveConfig = (config: Config) => ({
+const resolveConfig = (config: Config): Config => ({
     ...config,
     headers: {
         ...config.headers,
