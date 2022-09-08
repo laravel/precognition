@@ -25,46 +25,32 @@ type Config = AxiosRequestConfig&{
     requestId?: string|null,
 }
 
-const abortControllers: { [key: string]: AbortController } = {}
+let axiosClient: AxiosInstance = Axios;
+
+const use = (axios: AxiosInstance) => {
+    axiosClient = axios
+    return client
+}
 
 let requestIdResolver = (config: Config, axios: AxiosInstance): string =>
     `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
-const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
-    204: config.onPrecognitionSuccess,
-    401: config.onUnauthorized,
-    403: config.onForbidden,
-    404: config.onNotFound,
-    409: config.onConflict,
-    423: config.onLocked,
-}[code])
-
-const resolveConfig = (config: Config): Config => ({
-    requestId: typeof config.requestId === 'undefined'
-        ? requestIdResolver(config, axiosClient)
-        : config.requestId,
-    ...config,
-    headers: {
-        ...config.headers,
-        Precognition: true,
-        ...config.validate ? {
-            'Precognition-Validate-Only': Array.from(config.validate).join(),
-        } : {}
-    },
-})
-
-const isValidationPayload = (response: any): response is ValidationPayload => {
-    return typeof response === 'object'
-       && typeof response.message === 'string'
-       && typeof response.errors === 'object'
-       && ! Array.isArray(response.errors)
-       && Object.keys(response.errors).every(key => {
-           return Array.isArray(response.errors[key])
-               && response.errors[key].every((error: unknown) => typeof error === 'string')
-       })
+const useRequestIdResolver = (callback: (config: Config, axios: AxiosInstance) => string) => {
+    requestIdResolver = callback
+    return client
 }
 
-let axiosClient: AxiosInstance = Axios;
+const abortControllers: { [key: string]: AbortController } = {}
+
+const client = {
+    get: (url: string, config: Config = {}) => request({ ...config, url, method: 'get' }),
+    post: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'post' }),
+    patch: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'patch' }),
+    put: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'put' }),
+    delete: (url: string, config: Config = {}) => request({ ...config, url, method: 'delete' }),
+    use,
+    useRequestIdResolver,
+}
 
 const request = (userConfig: Config = {}) => {
     const config = resolveConfig(userConfig)
@@ -106,20 +92,38 @@ const request = (userConfig: Config = {}) => {
     })
 }
 
-const client = {
-    get: (url: string, config: Config = {}) => request({ ...config, url, method: 'get' }),
-    post: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'post' }),
-    patch: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'patch' }),
-    put: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'put' }),
-    delete: (url: string, config: Config = {}) => request({ ...config, url, method: 'delete' }),
-    use: (axios: AxiosInstance) => {
-        axiosClient = axios
-        return client
+const resolveConfig = (config: Config): Config => ({
+    requestId: typeof config.requestId === 'undefined'
+        ? requestIdResolver(config, axiosClient)
+        : config.requestId,
+    ...config,
+    headers: {
+        ...config.headers,
+        Precognition: true,
+        ...config.validate ? {
+            'Precognition-Validate-Only': Array.from(config.validate).join(),
+        } : {}
     },
-    useRequestIdResolver: (callback: (config: Config, axios: AxiosInstance) => string) => {
-        requestIdResolver = callback
-        return client
-    },
+})
+
+const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
+    204: config.onPrecognitionSuccess,
+    401: config.onUnauthorized,
+    403: config.onForbidden,
+    404: config.onNotFound,
+    409: config.onConflict,
+    423: config.onLocked,
+}[code])
+
+const isValidationPayload = (response: any): response is ValidationPayload => {
+    return typeof response === 'object'
+       && typeof response.message === 'string'
+       && typeof response.errors === 'object'
+       && ! Array.isArray(response.errors)
+       && Object.keys(response.errors).every(key => {
+           return Array.isArray(response.errors[key])
+               && response.errors[key].every((error: unknown) => typeof error === 'string')
+       })
 }
 
 export { client as default }
