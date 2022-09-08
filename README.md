@@ -138,11 +138,11 @@ It is also possible to specify the unique identifier on a per request basis:
 
 ```js
 precog.post('/projects/5', form.data(), {
-    requestIdentifier: 'unique-id-1',
+    requestId: 'unique-id-1',
 })
 
 precog.post('/projects/5', form.data(), {
-    requestIdentifier: 'unique-id-2',
+    requestId: 'unique-id-2',
 })
 ```
 
@@ -156,7 +156,7 @@ You can also disable to feature on a per request basis by passing `null` as the 
 
 ```js
 precog.post('/projects/5', form.data(), {
-    requestIdentifier: null,
+    requestId: null,
 })
 ```
 

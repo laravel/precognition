@@ -20,7 +20,7 @@ type Config = AxiosRequestConfig&{
     onNotFound?: StatusHandler,
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
-    requestIdentifier?: string|null,
+    requestId?: string|null,
 }
 
 
@@ -29,7 +29,7 @@ const flushAbortControllers = (requestIds?: Array<string>): void => typeof reque
     ? flushAbortControllers(Object.keys(abortControllers))
     : requestIds.forEach(requestId => delete abortControllers[requestId])
 
-let requestIdentifierResolver = (config: Config, axios: AxiosInstance): string =>
+let requestIdResolver = (config: Config, axios: AxiosInstance): string =>
     `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
@@ -43,9 +43,9 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
 
 
 const resolveConfig = (config: Config): Config => ({
-    requestIdentifier: typeof config.requestIdentifier === 'undefined'
-        ? requestIdentifierResolver(config, customAxios)
-        : config.requestIdentifier,
+    requestId: typeof config.requestId === 'undefined'
+        ? requestIdResolver(config, customAxios)
+        : config.requestId,
     ...config,
     headers: {
         ...config.headers,
@@ -72,13 +72,13 @@ const request = (userConfig: Config = {}) => {
     const config = resolveConfig(userConfig)
 
     if (
-        typeof config.requestIdentifier === 'string'
+        typeof config.requestId === 'string'
         && typeof config.signal === 'undefined'
         && typeof config.cancelToken === 'undefined'
     ) {
-        abortControllers[config.requestIdentifier]?.abort()
-        abortControllers[config.requestIdentifier] = new AbortController
-        config.signal = abortControllers[config.requestIdentifier].signal
+        abortControllers[config.requestId]?.abort()
+        abortControllers[config.requestId] = new AbortController
+        config.signal = abortControllers[config.requestId].signal
     }
 
     return customAxios.request(config).then(response => {
@@ -119,7 +119,7 @@ const client = {
         return client
     },
     useRequestIdentifier: (callback: (config: Config, axios: AxiosInstance) => string) => {
-        requestIdentifierResolver = callback
+        requestIdResolver = callback
         return client
     },
     flushAbortControllers,

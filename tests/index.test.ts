@@ -276,7 +276,7 @@ test('it creates request identifier and adds signal', async () => {
 
     await precognition.get('https://laravel.com')
 
-    expect(config.requestIdentifier).toBe('get:https://laravel.com')
+    expect(config.requestId).toBe('get:https://laravel.com')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -292,7 +292,7 @@ test('it uses baseURL from axios in request identifier', async () => {
 
     await precognition.get('/docs')
 
-    expect(config.requestIdentifier).toBe('get:https://laravel.com/docs')
+    expect(config.requestId).toBe('get:https://laravel.com/docs')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -310,7 +310,7 @@ test('it config baseURL takes precedence for request id', async () => {
         baseURL: 'https://forge.laravel.com'
     })
 
-    expect(config.requestIdentifier).toBe('get:https://forge.laravel.com/docs')
+    expect(config.requestId).toBe('get:https://forge.laravel.com/docs')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -324,10 +324,10 @@ test('it can pass request identifier to config', async () => {
     })
 
     await precognition.get('/docs', {
-        requestIdentifier: 'expected-id'
+        requestId: 'expected-id'
     })
 
-    expect(config.requestIdentifier).toBe('expected-id')
+    expect(config.requestId).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -343,11 +343,11 @@ test('it set request identifier resolver', async () => {
 
     await precognition.get('/docs')
 
-    expect(config.requestIdentifier).toBe('expected-id')
+    expect(config.requestId).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it config requestIdentifier takes precedence for request id', async () => {
+test('it config requestId takes precedence for request id', async () => {
     expect.assertions(2)
 
     let config
@@ -358,10 +358,10 @@ test('it config requestIdentifier takes precedence for request id', async () => 
     precognition.useRequestIdentifier(() => 'foo')
 
     await precognition.get('/docs', {
-        requestIdentifier: 'expected-id'
+        requestId: 'expected-id'
     })
 
-    expect(config.requestIdentifier).toBe('expected-id')
+    expect(config.requestId).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -375,10 +375,10 @@ test('it can opt out of signals with `null`', async () => {
     })
 
     await precognition.get('/docs', {
-        requestIdentifier: null
+        requestId: null
     })
 
-    expect(config.requestIdentifier).toBe(null)
+    expect(config.requestId).toBe(null)
     expect(config.signal).toBeUndefined()
 })
 
