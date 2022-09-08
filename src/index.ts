@@ -118,7 +118,7 @@ const client = {
         customAxios = axios
         return client
     },
-    useRequestIdentifier: (callback: (config: Config, axios: AxiosInstance) => string) => {
+    useRequestIdResolver: (callback: (config: Config, axios: AxiosInstance) => string) => {
         requestIdResolver = callback
         return client
     },

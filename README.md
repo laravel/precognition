@@ -126,12 +126,12 @@ precog.post('/projects/5', { name: 'Laravel' })
 precog.post('/repositories/5', { name: 'Laravel' })
 ```
 
-You may customize how the Precognition client identifies requests by passing a callback to `userRequestIdentifier`:
+You may customize how the Precognition client identifies requests by passing a callback to `useRequestIdResolver`:
 
 ```js
 import precog from 'laravel-precognition';
 
-precog.useRequestIdentifier((config, axios) => config.headers['Request-Id'])
+precog.useRequestIdResolver((config, axios) => config.headers['Request-Id'])
 ```
 
 It is also possible to specify the unique identifier on a per request basis:
@@ -146,10 +146,10 @@ precog.post('/projects/5', form.data(), {
 })
 ```
 
-If you would like to disable this feature globally, you should return `null` from the callback passed to `useRequestIdentifier`:
+If you would like to disable this feature globally, you should return `null` from the callback passed to `useRequestIdResolver`:
 
 ```js
-precog.useRequestIdentifier(() => null)
+precog.useRequestIdResolver(() => null)
 ```
 
 You can also disable to feature on a per request basis by passing `null` as the request identifier option:
