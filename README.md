@@ -134,7 +134,7 @@ import precog from 'laravel-precognition';
 precog.useRequestIdResolver((config, axios) => config.headers['Request-Id'])
 ```
 
-It is also possible to specify the unique identifier on a per request basis:
+It is also possible to specify the `uniqueId` on a per request basis:
 
 ```js
 precog.post('/projects/5', form.data(), {

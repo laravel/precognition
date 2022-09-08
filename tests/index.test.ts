@@ -339,7 +339,7 @@ test('it set request identifier resolver', async () => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' }})
     })
-    precognition.useRequestIdentifier(() => 'expected-id')
+    precognition.useRequestIdResolver(() => 'expected-id')
 
     await precognition.get('/docs')
 
@@ -355,7 +355,7 @@ test('it config requestId takes precedence for request id', async () => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' }})
     })
-    precognition.useRequestIdentifier(() => 'foo')
+    precognition.useRequestIdResolver(() => 'foo')
 
     await precognition.get('/docs', {
         requestId: 'expected-id'
