@@ -103,6 +103,62 @@ precog.post(url, data, { /* ... */ })
 
 If the Precognition client receives a server response that does not have the `Precognition: true` header set, it will throw an error. You should ensure that the Precognition middleware is in place for the route.
 
+### Automatically Aborting Stale Request
+
+When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) are not passed in the request configuration, the Precognition client automatically aborts any still in-flight requests when a new request is made, but only if the new request matches a previous request's signature. It identifies requests by combining the request method and URL.
+
+In the following example, because the method and URL match for both requests, if request 1 is still waiting on a response when request 2 is fired, request 1 will be aborted.
+
+```js
+// Request 1
+precog.post('/projects/5', { name: 'Laravel' })
+
+// Request 2
+precog.post('/projects/5', { name: 'Laravel', repo: 'laravel/framework' })
+```
+
+If the URL or the method do not match, then the request would not be aborted:
+
+```js
+precog.post('/projects/5', { name: 'Laravel' })
+
+precog.post('/repositories/5', { name: 'Laravel' })
+```
+
+To customize how the Precognition client identifies requests you should pass a callback to `userRequestIdentifier` that returns a string representing the request:
+
+```js
+import precog from 'laravel-precognition';
+
+precog.useRequestIdentifier((config) => config.headers.Request-Id)
+```
+
+If you would like to disable this feature, return `null` from the callback:
+
+```js
+precog.useRequestIdentifier(() => null)
+```
+
+It is also possible to specify the unique identifier when making the request.
+
+```js
+precog.post('/projects/5', form.data(), {
+    requestIdentifier: 'unique-id-1',
+})
+
+precog.post('/projects/5', form.data(), {
+    requestIdentifier: 'unique-id-2',
+})
+```
+
+You may also disable to feature inline by passing `null` as the request identifier:
+
+```js
+precog.post('/projects/5', form.data(), {
+    requestIdentifier: null,
+})
+```
+
 ### Using An Existing Axios Instance
 
 If your application already configures an Axios instance, you may instruct Precognition to use that instance by calling `precognition.use(axios)`:

@@ -260,7 +260,162 @@ test('it can provide a list of inputs to validate', async () => {
 
     await precognition.get('https://laravel.com', {
         validate: ['username', 'email']
-    });
+    })
 
     expect(config.headers['Precognition-Validate-Only']).toBe('username,email')
+})
+
+test('it creates request identifier and adds signal', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+
+    await precognition.get('https://laravel.com')
+
+    expect(config.requestIdentifier).toBe('get:https://laravel.com')
+    expect(config.signal).toBeInstanceOf(AbortSignal)
+})
+
+test('it uses baseURL from axios in request identifier', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.defaults.baseURL = 'https://laravel.com'
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+
+    await precognition.get('/docs')
+
+    expect(config.requestIdentifier).toBe('get:https://laravel.com/docs')
+    expect(config.signal).toBeInstanceOf(AbortSignal)
+})
+
+test('it config baseURL takes precedence for request id', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.defaults.baseURL = 'https://laravel.com'
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+
+    await precognition.get('/docs', {
+        baseURL: 'https://forge.laravel.com'
+    })
+
+    expect(config.requestIdentifier).toBe('get:https://forge.laravel.com/docs')
+    expect(config.signal).toBeInstanceOf(AbortSignal)
+})
+
+test('it can pass request identifier to config', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+
+    await precognition.get('/docs', {
+        requestIdentifier: 'expected-id'
+    })
+
+    expect(config.requestIdentifier).toBe('expected-id')
+    expect(config.signal).toBeInstanceOf(AbortSignal)
+})
+
+test('it set request identifier resolver', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+    precognition.useRequestIdentifier(() => 'expected-id')
+
+    await precognition.get('/docs')
+
+    expect(config.requestIdentifier).toBe('expected-id')
+    expect(config.signal).toBeInstanceOf(AbortSignal)
+})
+
+test('it config requestIdentifier takes precedence for request id', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+    precognition.useRequestIdentifier(() => 'foo')
+
+    await precognition.get('/docs', {
+        requestIdentifier: 'expected-id'
+    })
+
+    expect(config.requestIdentifier).toBe('expected-id')
+    expect(config.signal).toBeInstanceOf(AbortSignal)
+})
+
+test('it can opt out of signals with `null`', async () => {
+    expect.assertions(2)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+
+    await precognition.get('/docs', {
+        requestIdentifier: null
+    })
+
+    expect(config.requestIdentifier).toBe(null)
+    expect(config.signal).toBeUndefined()
+})
+
+test('it does not create signal when one is provided', async () => {
+    expect.assertions(1)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+    let called = false
+    const controller = new AbortController
+    controller.signal.addEventListener('foo', () => {
+        called = true
+    })
+
+    await precognition.get('/docs', {
+        signal: controller.signal
+    })
+    config.signal.dispatchEvent(new Event('foo'))
+
+    expect(called).toBe(true)
+})
+
+test('it does not create signal when a cancelToken is provided', async () => {
+    expect.assertions(1)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }})
+    })
+
+    await precognition.get('/docs', {
+        cancelToken: { /* ... */ }
+    })
+
+    expect(config.signal).toBeUndefined()
 })

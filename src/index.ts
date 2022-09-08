@@ -20,7 +20,17 @@ type Config = AxiosRequestConfig&{
     onNotFound?: StatusHandler,
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
+    requestIdentifier?: string|null,
 }
+
+
+const abortControllers: { [key: string]: AbortController } = {}
+const flushAbortControllers = (requestIds?: Array<string>): void => typeof requestIds === 'undefined'
+    ? flushAbortControllers(Object.keys(abortControllers))
+    : requestIds.forEach(requestId => delete abortControllers[requestId])
+
+let requestIdentifierResolver = (config: Config, axios: AxiosInstance): string =>
+    `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
     204: config.onPrecognitionSuccess,
@@ -33,6 +43,9 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
 
 
 const resolveConfig = (config: Config): Config => ({
+    requestIdentifier: typeof config.requestIdentifier === 'undefined'
+        ? requestIdentifierResolver(config, customAxios)
+        : config.requestIdentifier,
     ...config,
     headers: {
         ...config.headers,
@@ -54,11 +67,21 @@ const isValidationPayload = (response: any): response is ValidationPayload => {
        })
 }
 
-let customAxios: AxiosInstance|undefined;
+let customAxios: AxiosInstance = Axios;
+const request = (userConfig: Config = {}) => {
+    const config = resolveConfig(userConfig)
 
-const request = (config: Config = {}) => (customAxios ?? Axios)
-    .request(resolveConfig(config))
-    .then(response => {
+    if (
+        typeof config.requestIdentifier === 'string'
+        && typeof config.signal === 'undefined'
+        && typeof config.cancelToken === 'undefined'
+    ) {
+        abortControllers[config.requestIdentifier]?.abort()
+        abortControllers[config.requestIdentifier] = new AbortController
+        config.signal = abortControllers[config.requestIdentifier].signal
+    }
+
+    return customAxios.request(config).then(response => {
         if (response.headers.precognition !== 'true') {
             throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
         }
@@ -83,6 +106,7 @@ const request = (config: Config = {}) => (customAxios ?? Axios)
 
         return statusHandler ? statusHandler(error.response, error) : Promise.reject(error)
     })
+}
 
 const client = {
     get: (url: string, config: Config = {}) => request({ ...config, url, method: 'get' }),
@@ -93,7 +117,12 @@ const client = {
     use: (axios: AxiosInstance) => {
         customAxios = axios
         return client
-    }
+    },
+    useRequestIdentifier: (callback: (config: Config, axios: AxiosInstance) => string) => {
+        requestIdentifierResolver = callback
+        return client
+    },
+    flushAbortControllers,
 }
 
 export { client as default }
