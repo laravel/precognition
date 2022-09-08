@@ -152,7 +152,7 @@ If you would like to disable this feature globally, you should return `null` fro
 precog.useRequestIdResolver(() => null)
 ```
 
-You can also disable to feature on a per request basis by passing `null` as the request identifier option:
+You can also disable to feature on a per request basis by passing `null` as the `requestId` option:
 
 ```js
 precog.post('/projects/5', form.data(), {
