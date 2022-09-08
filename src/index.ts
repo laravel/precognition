@@ -1,7 +1,9 @@
 import {default as Axios, AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance} from 'axios'
 
 type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
+
 type ValidationHandler = (errors: ValidationErrors, axiosError: AxiosError) => unknown
+
 interface ValidationPayload {
     message: string,
     errors: ValidationErrors,
@@ -23,11 +25,7 @@ type Config = AxiosRequestConfig&{
     requestId?: string|null,
 }
 
-
 const abortControllers: { [key: string]: AbortController } = {}
-const flushAbortControllers = (requestIds?: Array<string>): void => typeof requestIds === 'undefined'
-    ? flushAbortControllers(Object.keys(abortControllers))
-    : requestIds.forEach(requestId => delete abortControllers[requestId])
 
 let requestIdResolver = (config: Config, axios: AxiosInstance): string =>
     `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
@@ -41,10 +39,9 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
     423: config.onLocked,
 }[code])
 
-
 const resolveConfig = (config: Config): Config => ({
     requestId: typeof config.requestId === 'undefined'
-        ? requestIdResolver(config, customAxios)
+        ? requestIdResolver(config, axiosClient)
         : config.requestId,
     ...config,
     headers: {
@@ -67,7 +64,8 @@ const isValidationPayload = (response: any): response is ValidationPayload => {
        })
 }
 
-let customAxios: AxiosInstance = Axios;
+let axiosClient: AxiosInstance = Axios;
+
 const request = (userConfig: Config = {}) => {
     const config = resolveConfig(userConfig)
 
@@ -81,7 +79,7 @@ const request = (userConfig: Config = {}) => {
         config.signal = abortControllers[config.requestId].signal
     }
 
-    return customAxios.request(config).then(response => {
+    return axiosClient.request(config).then(response => {
         if (response.headers.precognition !== 'true') {
             throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
         }
@@ -115,14 +113,13 @@ const client = {
     put: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'put' }),
     delete: (url: string, config: Config = {}) => request({ ...config, url, method: 'delete' }),
     use: (axios: AxiosInstance) => {
-        customAxios = axios
+        axiosClient = axios
         return client
     },
     useRequestIdResolver: (callback: (config: Config, axios: AxiosInstance) => string) => {
         requestIdResolver = callback
         return client
     },
-    flushAbortControllers,
 }
 
 export { client as default }
