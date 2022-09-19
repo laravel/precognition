@@ -23,7 +23,7 @@ export const client: Client = {
         return this
     },
     poll(callback: PollCallback) {
-        return createPoll(callback, client)
+        return createPoll(() => callback(this))
     },
 }
 

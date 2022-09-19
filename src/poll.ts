@@ -1,14 +1,13 @@
-import { Client, Poll, PollCallback, PollTimeout } from './types'
+import { Poll, PollTimeout } from './types'
 
-const createPoll = (callback: PollCallback, client: Client): Poll => {
+const createPoll = (callback: () => void): Poll => {
     let timeoutID: NodeJS.Timeout|null = null
     let timeout = 60000 // default: one minute
-    let promiseCallbacks = []
 
     const schedule = () => {
         if (timeout > 0) { // not tested
             timeoutID = setTimeout(() => {
-                callback(client)
+                callback()
                 schedule()
             }, timeout)
         }
