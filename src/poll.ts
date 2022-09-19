@@ -7,9 +7,7 @@ const createPoll = (callback: () => Promise<unknown>): Poll => {
 
     const schedule = () => {
         timeoutID = polling
-            ? setTimeout(() => {
-                callback().finally(schedule)
-            }, timeout)
+            ? setTimeout(() => callback().finally(schedule), timeout)
             : null
     }
 
