@@ -9,7 +9,10 @@ module.exports = {
     plugins: ["@typescript-eslint"],
     extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     rules: {
-        "no-trailing-spaces": "error",
+        "no-trailing-spaces": ["error"],
+        "object-curly-spacing": ["error", "always"],
+        "comma-dangle": ["error", "always-multiline"],
         "@typescript-eslint/no-explicit-any": "off",
+        "semi": ["error", "never"],
     },
 };

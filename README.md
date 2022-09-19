@@ -33,7 +33,7 @@ A `204 No Content` response with an included `Precognition: true` header indicat
 
 ```js
 precog.post(url, data, {
-    onPrecognitionSuccess: (response) => {
+    onPrecognitionSuccess: response => {
         // Precognition was successful...
     },
 });
@@ -92,7 +92,7 @@ You may also handle the above types and additional response types as you normall
 loading = true;
 
 precog.post(url, data, { /* ... */ })
-       .catch((error) => {
+       .catch(error => {
            if (error.response?.status === 418) {
                // ...
            }
@@ -158,6 +158,23 @@ You can also disable to feature on a per request basis by passing `null` as the 
 precog.post('/projects/5', form.data(), {
     requestId: null,
 })
+```
+
+### Polling
+
+```js
+import precog from 'laravel-precognition'
+
+const poll = precog.poll(client => client.post(url, data, { ... }))
+                   .every({ seconds: 15 })
+
+// start polling...
+
+poll.start()
+
+// stop polling...
+
+poll.stop()
 ```
 
 ### Using An Existing Axios Instance

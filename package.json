@@ -22,6 +22,7 @@
     "scripts": {
         "build": "rm -rf dist && tsc",
         "lint": "eslint --ext .ts ./src ./tests",
+        "lint:fix": "eslint --fix --ext .ts ./src ./tests",
         "test": "jest"
     },
     "devDependencies": {

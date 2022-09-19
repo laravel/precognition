@@ -1,8 +1,10 @@
 import axios from 'axios'
-import precognition from '../src/index'
+import precognition, { client, poll } from '../src/index'
 
 jest.mock('axios')
 precognition.use(axios)
+jest.useFakeTimers()
+jest.spyOn(global, 'setTimeout')
 
 test('success response must have Precognition header', async () => {
     expect.assertions(2)
@@ -18,7 +20,7 @@ test('success response must have Precognition header', async () => {
 test('error response must have Precognition header', async () => {
     expect.assertions(2)
 
-    axios.request.mockRejectedValueOnce({ response: { status: 500 }})
+    axios.request.mockRejectedValueOnce({ response: { status: 500 } })
     axios.isAxiosError.mockReturnValue(true)
 
     await precognition.get('https://laravel.com').catch((e) => {
@@ -98,9 +100,9 @@ test('it does not have to provide an error handler', async () => {
             status: 422,
             data: {
                 message: 'expected message',
-                errors: { name: ['expected error'] }
-            }
-        }
+                errors: { name: ['expected error'] },
+            },
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -117,9 +119,9 @@ test('it can provide an onValidationError handler', async () => {
             status: 422,
             data: {
                 message: 'expected message',
-                errors: { name: ['expected error'] }
-            }
-        }
+                errors: { name: ['expected error'] },
+            },
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -141,8 +143,8 @@ test('it can provide an onUnauthorized handler', async () => {
         response: {
             headers: { precognition: 'true' },
             status: 401,
-            data: 'expected data'
-        }
+            data: 'expected data',
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -164,8 +166,8 @@ test('it can provide an onForbidden handler', async () => {
         response: {
             headers: { precognition: 'true' },
             status: 403,
-            data: 'expected data'
-        }
+            data: 'expected data',
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -187,8 +189,8 @@ test('it can provide an onNotFound handler', async () => {
         response: {
             headers: { precognition: 'true' },
             status: 404,
-            data: 'expected data'
-        }
+            data: 'expected data',
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -210,8 +212,8 @@ test('it can provide an onConflict handler', async () => {
         response: {
             headers: { precognition: 'true' },
             status: 409,
-            data: 'expected data'
-        }
+            data: 'expected data',
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -233,8 +235,8 @@ test('it can provide an onLocked handler', async () => {
         response: {
             headers: { precognition: 'true' },
             status: 423,
-            data: 'expected data'
-        }
+            data: 'expected data',
+        },
     }
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
@@ -255,11 +257,11 @@ test('it can provide a list of inputs to validate', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('https://laravel.com', {
-        validate: ['username', 'email']
+        validate: ['username', 'email'],
     })
 
     expect(config.headers['Precognition-Validate-Only']).toBe('username,email')
@@ -271,7 +273,7 @@ test('it creates request identifier and adds signal', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('https://laravel.com')
@@ -287,7 +289,7 @@ test('it uses baseURL from axios in request identifier', async () => {
     axios.defaults.baseURL = 'https://laravel.com'
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('/docs')
@@ -303,11 +305,11 @@ test('it config baseURL takes precedence for request id', async () => {
     axios.defaults.baseURL = 'https://laravel.com'
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('/docs', {
-        baseURL: 'https://forge.laravel.com'
+        baseURL: 'https://forge.laravel.com',
     })
 
     expect(config.requestId).toBe('get:https://forge.laravel.com/docs')
@@ -320,11 +322,11 @@ test('it can pass request identifier to config', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('/docs', {
-        requestId: 'expected-id'
+        requestId: 'expected-id',
     })
 
     expect(config.requestId).toBe('expected-id')
@@ -337,7 +339,7 @@ test('it set request identifier resolver', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
     precognition.useRequestIdResolver(() => 'expected-id')
 
@@ -353,12 +355,12 @@ test('it config requestId takes precedence for request id', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
     precognition.useRequestIdResolver(() => 'foo')
 
     await precognition.get('/docs', {
-        requestId: 'expected-id'
+        requestId: 'expected-id',
     })
 
     expect(config.requestId).toBe('expected-id')
@@ -371,11 +373,11 @@ test('it can opt out of signals with `null`', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('/docs', {
-        requestId: null
+        requestId: null,
     })
 
     expect(config.requestId).toBe(null)
@@ -388,7 +390,7 @@ test('it does not create signal when one is provided', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
     let called = false
     const controller = new AbortController
@@ -397,7 +399,7 @@ test('it does not create signal when one is provided', async () => {
     })
 
     await precognition.get('/docs', {
-        signal: controller.signal
+        signal: controller.signal,
     })
     config.signal.dispatchEvent(new Event('foo'))
 
@@ -410,12 +412,218 @@ test('it does not create signal when a cancelToken is provided', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }})
+        return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
     await precognition.get('/docs', {
-        cancelToken: { /* ... */ }
+        cancelToken: { /* ... */ },
     })
 
     expect(config.signal).toBeUndefined()
+})
+
+test('it can start a poll', async () => {
+    expect.assertions(3)
+    const callback = jest.fn()
+
+    precognition.poll(callback).start()
+
+    jest.advanceTimersByTime(59999)
+    expect(callback).toHaveBeenCalledTimes(0)
+
+    jest.advanceTimersByTime(1)
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    jest.advanceTimersByTime(60000)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toHaveBeenCalledTimes(3)
+})
+
+test('it can stop a poll', async () => {
+    expect.assertions(7)
+    const callback = jest.fn()
+    const poll = precognition.poll(callback)
+
+    poll.start()
+    expect(callback).toHaveBeenCalledTimes(0)
+
+    jest.advanceTimersByTime(60000)
+
+    poll.stop()
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    jest.advanceTimersByTime(60000)
+
+    poll.start()
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    jest.advanceTimersByTime(60000)
+
+    poll.stop()
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    jest.advanceTimersByTime(60000)
+
+    poll.start()
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    jest.advanceTimersByTime(60000)
+
+    poll.stop()
+    expect(callback).toHaveBeenCalledTimes(3)
+
+    jest.advanceTimersByTime(60000)
+
+    expect(callback).toHaveBeenCalledTimes(3)
+})
+
+test('it reports error when starting an already started poll', async () => {
+    expect.assertions(12)
+    console.error = jest.fn()
+    const callback = jest.fn()
+    const poll = precognition.poll(callback)
+
+    poll.start()
+
+    expect(console.error).toBeCalledTimes(0)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(1)
+
+    poll.start()
+
+    expect(console.error).toBeCalledTimes(1)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(2)
+
+    poll.start()
+
+    expect(console.error).toBeCalledTimes(2)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(3)
+
+    poll.stop()
+
+    expect(console.error).toBeCalledTimes(2)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(3)
+
+    poll.start()
+
+    expect(console.error).toBeCalledTimes(2)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(4)
+
+    poll.start()
+
+    expect(console.error).toBeCalledTimes(3)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(5)
+})
+
+test('it reports error when stopping a poll that has not started', async () => {
+    expect.assertions(8)
+    console.error = jest.fn()
+    const callback = jest.fn()
+    const poll = precognition.poll(callback)
+
+    poll.stop()
+
+    expect(console.error).toBeCalledTimes(1)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(0)
+
+    poll.stop()
+
+    expect(console.error).toBeCalledTimes(2)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(0)
+
+    poll.start()
+
+    expect(console.error).toBeCalledTimes(2)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(1)
+
+    poll.stop()
+
+    expect(console.error).toBeCalledTimes(2)
+    jest.advanceTimersByTime(60000)
+    expect(callback).toBeCalledTimes(1)
+})
+
+test('it can configure the timeout', async () => {
+    expect.assertions(8)
+    const callback = jest.fn()
+    const poll = precognition.poll(callback)
+
+    poll.every({
+        milliseconds: 5,
+    }).start()
+
+    jest.advanceTimersByTime(5)
+    expect(callback).toBeCalledTimes(1)
+    jest.advanceTimersByTime(5)
+    expect(callback).toBeCalledTimes(2)
+
+    poll.stop().every({
+        seconds: 5,
+    }).start()
+
+    jest.advanceTimersByTime(5000)
+    expect(callback).toBeCalledTimes(3)
+
+    jest.advanceTimersByTime(5000)
+    expect(callback).toBeCalledTimes(4)
+
+    poll.stop().every({
+        minutes: 5,
+    }).start()
+
+    jest.advanceTimersByTime(300000)
+    expect(callback).toBeCalledTimes(5)
+
+    jest.advanceTimersByTime(300000)
+    expect(callback).toBeCalledTimes(6)
+
+    poll.stop().every({
+        hours: 5,
+    }).start()
+
+    jest.advanceTimersByTime(18000000)
+    expect(callback).toBeCalledTimes(7)
+
+    jest.advanceTimersByTime(18000000)
+    expect(callback).toBeCalledTimes(8)
+})
+
+test('it can change the timeout while running', async () => {
+    expect.assertions(5)
+    const callback = jest.fn()
+
+    const poll = precognition.poll(callback)
+
+    poll.every({
+        milliseconds: 5,
+    }).start()
+
+    jest.advanceTimersByTime(5)
+    expect(callback).toBeCalledTimes(1)
+    jest.advanceTimersByTime(5)
+    expect(callback).toBeCalledTimes(2)
+
+    poll.every({
+        seconds: 5,
+    })
+
+    jest.advanceTimersByTime(5)
+    expect(callback).toBeCalledTimes(3)
+    jest.advanceTimersByTime(5000)
+    expect(callback).toBeCalledTimes(4)
+    jest.advanceTimersByTime(5000)
+    expect(callback).toBeCalledTimes(5)
+})
+
+test('it exports client as default and named', () => {
+    expect(precognition).toBe(client)
+    expect(precognition.poll).toBe(poll)
 })
