@@ -423,146 +423,177 @@ test('it does not create signal when a cancelToken is provided', async () => {
 })
 
 test('it can start a poll', async () => {
-    expect.assertions(3)
-    const callback = jest.fn()
+    expect.assertions(4)
+    const callback = jest.fn().mockResolvedValue({})
+    let promise
 
-    precognition.poll(callback).start()
+    precognition.poll(() => promise = callback()).start()
 
     jest.advanceTimersByTime(59999)
+    await promise
     expect(callback).toHaveBeenCalledTimes(0)
 
     jest.advanceTimersByTime(1)
+    await promise
     expect(callback).toHaveBeenCalledTimes(1)
 
     jest.advanceTimersByTime(60000)
+    await promise
+    expect(callback).toHaveBeenCalledTimes(2)
+
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toHaveBeenCalledTimes(3)
 })
 
 test('it can stop a poll', async () => {
     expect.assertions(7)
-    const callback = jest.fn()
-    const poll = precognition.poll(callback)
+    const callback = jest.fn().mockResolvedValue({})
+    let promise
+    const poll = precognition.poll(() => promise = callback())
 
     poll.start()
+
+    await promise
     expect(callback).toHaveBeenCalledTimes(0)
 
     jest.advanceTimersByTime(60000)
 
     poll.stop()
+    await promise
     expect(callback).toHaveBeenCalledTimes(1)
 
     jest.advanceTimersByTime(60000)
 
     poll.start()
+    await promise
     expect(callback).toHaveBeenCalledTimes(1)
 
     jest.advanceTimersByTime(60000)
 
     poll.stop()
+    await promise
     expect(callback).toHaveBeenCalledTimes(2)
 
     jest.advanceTimersByTime(60000)
 
     poll.start()
+    await promise
     expect(callback).toHaveBeenCalledTimes(2)
 
     jest.advanceTimersByTime(60000)
 
     poll.stop()
+    await promise
     expect(callback).toHaveBeenCalledTimes(3)
 
     jest.advanceTimersByTime(60000)
 
+    await promise
     expect(callback).toHaveBeenCalledTimes(3)
 })
 
 test('it reports error when starting an already started poll', async () => {
     expect.assertions(12)
     console.error = jest.fn()
-    const callback = jest.fn()
-    const poll = precognition.poll(callback)
+    const callback = jest.fn().mockResolvedValue({})
+    let promise
+    const poll = precognition.poll(() => promise = callback())
 
     poll.start()
 
     expect(console.error).toBeCalledTimes(0)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(1)
 
     poll.start()
 
     expect(console.error).toBeCalledTimes(1)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(2)
 
     poll.start()
 
     expect(console.error).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(3)
 
     poll.stop()
 
     expect(console.error).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(3)
 
     poll.start()
 
     expect(console.error).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(4)
 
     poll.start()
 
     expect(console.error).toBeCalledTimes(3)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(5)
 })
 
 test('it reports error when stopping a poll that has not started', async () => {
     expect.assertions(8)
     console.error = jest.fn()
-    const callback = jest.fn()
-    const poll = precognition.poll(callback)
+    const callback = jest.fn().mockResolvedValue({})
+    let promise
+    const poll = precognition.poll(() => promise = callback())
 
     poll.stop()
 
     expect(console.error).toBeCalledTimes(1)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(0)
 
     poll.stop()
 
     expect(console.error).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(0)
 
     poll.start()
 
     expect(console.error).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(1)
 
     poll.stop()
 
     expect(console.error).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
+    await promise
     expect(callback).toBeCalledTimes(1)
 })
 
 test('it can configure the timeout', async () => {
     expect.assertions(8)
-    const callback = jest.fn()
-    const poll = precognition.poll(callback)
+    const callback = jest.fn().mockResolvedValue({})
+    let promise
+    const poll = precognition.poll(() => promise = callback())
 
     poll.every({
         milliseconds: 5,
     }).start()
 
     jest.advanceTimersByTime(5)
+    await promise
     expect(callback).toBeCalledTimes(1)
     jest.advanceTimersByTime(5)
+    await promise
     expect(callback).toBeCalledTimes(2)
 
     poll.stop().every({
@@ -570,9 +601,11 @@ test('it can configure the timeout', async () => {
     }).start()
 
     jest.advanceTimersByTime(5000)
+    await promise
     expect(callback).toBeCalledTimes(3)
 
     jest.advanceTimersByTime(5000)
+    await promise
     expect(callback).toBeCalledTimes(4)
 
     poll.stop().every({
@@ -580,9 +613,11 @@ test('it can configure the timeout', async () => {
     }).start()
 
     jest.advanceTimersByTime(300000)
+    await promise
     expect(callback).toBeCalledTimes(5)
 
     jest.advanceTimersByTime(300000)
+    await promise
     expect(callback).toBeCalledTimes(6)
 
     poll.stop().every({
@@ -590,16 +625,18 @@ test('it can configure the timeout', async () => {
     }).start()
 
     jest.advanceTimersByTime(18000000)
+    await promise
     expect(callback).toBeCalledTimes(7)
 
     jest.advanceTimersByTime(18000000)
+    await promise
     expect(callback).toBeCalledTimes(8)
 })
 
 test('it can change the timeout while running', async () => {
     expect.assertions(5)
-    const callback = jest.fn()
-
+    const callback = jest.fn().mockResolvedValue({})
+    let promise
     const poll = precognition.poll(callback)
 
     poll.every({
@@ -607,8 +644,10 @@ test('it can change the timeout while running', async () => {
     }).start()
 
     jest.advanceTimersByTime(5)
+    await promise
     expect(callback).toBeCalledTimes(1)
     jest.advanceTimersByTime(5)
+    await promise
     expect(callback).toBeCalledTimes(2)
 
     poll.every({
@@ -616,10 +655,13 @@ test('it can change the timeout while running', async () => {
     })
 
     jest.advanceTimersByTime(5)
+    await promise
     expect(callback).toBeCalledTimes(3)
     jest.advanceTimersByTime(5000)
+    await promise
     expect(callback).toBeCalledTimes(4)
     jest.advanceTimersByTime(5000)
+    await promise
     expect(callback).toBeCalledTimes(5)
 })
 

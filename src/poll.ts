@@ -1,14 +1,16 @@
 import { Poll, PollTimeout } from './types'
 
-const createPoll = (callback: () => void): Poll => {
+const createPoll = (callback: () => Promise<unknown>): Poll => {
+    let polling = false
     let timeoutID: NodeJS.Timeout|null = null
     let timeout = 60000 // default: one minute
 
     const schedule = () => {
-        timeoutID = setTimeout(() => {
-            callback()
-            schedule()
-        }, timeout)
+        timeoutID = polling
+            ? setTimeout(() => {
+                callback().finally(schedule)
+            }, timeout)
+            : null
     }
 
     return {
@@ -26,6 +28,8 @@ const createPoll = (callback: () => void): Poll => {
             return this
         },
         start() {
+            polling = true
+
             if (timeoutID !== null) {
                 console.error('Polling has already started. You should stop the poll before calling start().')
                 return this
@@ -36,6 +40,8 @@ const createPoll = (callback: () => void): Poll => {
             return this
         },
         stop() {
+            polling = false
+
             if (timeoutID === null) {
                 console.error('Polling has not yet started. You should start the poll before calling stop().')
                 return this
