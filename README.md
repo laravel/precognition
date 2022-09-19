@@ -177,6 +177,27 @@ poll.start()
 poll.stop()
 ```
 
+To configure the timeout, you specify the duration via the `every` function:
+
+```js
+const poll = precog.poll(() => /* ... */).every({
+    hours: 1,
+    minutes: 10,
+    seconds: 20,
+    milliseconds: 5,
+})
+```
+
+If you adjust the timeout while the poll is running, it will become the timeout after the next tick of the poll. However, if you stop the poll first, it will become the timeout once started:
+
+```js
+const poll = precog.poll(() => /* ... */)
+
+poll.every({ hours: 1 }).start()
+
+poll.stop().every({ hours: 2 }).start()
+```
+
 ### Using An Existing Axios Instance
 
 If your application already configures an Axios instance, you may instruct Precognition to use that instance by calling `precognition.use(axios)`:
