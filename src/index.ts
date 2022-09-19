@@ -25,34 +25,41 @@ type Config = AxiosRequestConfig&{
     requestId?: string|null,
 }
 
+type RequestIdResolver = (config: Config, axios: AxiosInstance) => string
+
+interface Client {
+    get: (url: string, config: Config) => Promise<unknown>,
+    post: (url: string, data: unknown) => Promise<unknown>,
+    patch: (url: string, data: unknown) => Promise<unknown>,
+    put: (url: string, data: unknown) => Promise<unknown>,
+    delete: (url: string, config: Config) => Promise<unknown>,
+    use: (axios: AxiosInstance) => Client,
+    useRequestIdResolver: (callback: RequestIdResolver) => Client,
+}
+
 let axiosClient: AxiosInstance = Axios;
 
-const use = (axios: AxiosInstance) => {
-    axiosClient = axios
-    return client
-}
-
-let requestIdResolver = (config: Config, axios: AxiosInstance): string =>
-    `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
-
-const useRequestIdResolver = (callback: (config: Config, axios: AxiosInstance) => string) => {
-    requestIdResolver = callback
-    return client
-}
+let requestIdResolver: RequestIdResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 const abortControllers: { [key: string]: AbortController } = {}
 
-const client = {
-    get: (url: string, config: Config = {}) => request({ ...config, url, method: 'get' }),
-    post: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'post' }),
-    patch: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'patch' }),
-    put: (url: string, data: unknown = {}, config: Config = {}) => request({ ...config, url, data, method: 'put' }),
-    delete: (url: string, config: Config = {}) => request({ ...config, url, method: 'delete' }),
-    use,
-    useRequestIdResolver,
+const client: Client = {
+    get: (url, config = {}) => request({ ...config, url, method: 'get' }),
+    post: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'post' }),
+    patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
+    put: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'put' }),
+    delete: (url, config = {}) => request({ ...config, url, method: 'delete' }),
+    use: (axios) => {
+        axiosClient = axios
+        return client
+    },
+    useRequestIdResolver: (callback) => {
+        requestIdResolver = callback
+        return client
+    },
 }
 
-const request = (userConfig: Config = {}) => {
+const request = (userConfig: Config = {}): Promise<unknown> => {
     const config = resolveConfig(userConfig)
 
     if (
