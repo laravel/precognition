@@ -495,49 +495,49 @@ test('it can stop a poll', async () => {
 
 test('it reports error when starting an already started poll', async () => {
     expect.assertions(12)
-    console.error = jest.fn()
+    console.warn = jest.fn()
     const callback = jest.fn().mockResolvedValue({})
     let promise
     const poll = precognition.poll(() => promise = callback())
 
     poll.start()
 
-    expect(console.error).toBeCalledTimes(0)
+    expect(console.warn).toBeCalledTimes(0)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(1)
 
     poll.start()
 
-    expect(console.error).toBeCalledTimes(1)
+    expect(console.warn).toBeCalledTimes(1)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(2)
 
     poll.start()
 
-    expect(console.error).toBeCalledTimes(2)
+    expect(console.warn).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(3)
 
     poll.stop()
 
-    expect(console.error).toBeCalledTimes(2)
+    expect(console.warn).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(3)
 
     poll.start()
 
-    expect(console.error).toBeCalledTimes(2)
+    expect(console.warn).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(4)
 
     poll.start()
 
-    expect(console.error).toBeCalledTimes(3)
+    expect(console.warn).toBeCalledTimes(3)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(5)
@@ -545,35 +545,35 @@ test('it reports error when starting an already started poll', async () => {
 
 test('it reports error when stopping a poll that has not started', async () => {
     expect.assertions(8)
-    console.error = jest.fn()
+    console.warn = jest.fn()
     const callback = jest.fn().mockResolvedValue({})
     let promise
     const poll = precognition.poll(() => promise = callback())
 
     poll.stop()
 
-    expect(console.error).toBeCalledTimes(1)
+    expect(console.warn).toBeCalledTimes(1)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(0)
 
     poll.stop()
 
-    expect(console.error).toBeCalledTimes(2)
+    expect(console.warn).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(0)
 
     poll.start()
 
-    expect(console.error).toBeCalledTimes(2)
+    expect(console.warn).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(1)
 
     poll.stop()
 
-    expect(console.error).toBeCalledTimes(2)
+    expect(console.warn).toBeCalledTimes(2)
     jest.advanceTimersByTime(60000)
     await promise
     expect(callback).toBeCalledTimes(1)

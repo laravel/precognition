@@ -29,7 +29,7 @@ const createPoll = (callback: () => Promise<unknown>): Poll => {
             polling = true
 
             if (timeoutID !== null) {
-                console.error('Polling has already started. You should stop the poll before calling start().')
+                console.warn('Polling has already started. You should stop the poll before calling start().')
                 return this
             }
 
@@ -41,7 +41,7 @@ const createPoll = (callback: () => Promise<unknown>): Poll => {
             polling = false
 
             if (timeoutID === null) {
-                console.error('Polling has not yet started. You should start the poll before calling stop().')
+                console.warn('Polling has not yet started. You should start the poll before calling stop().')
                 return this
             }
 
@@ -51,6 +51,7 @@ const createPoll = (callback: () => Promise<unknown>): Poll => {
 
             return this
         },
+        polling: () => polling,
     }
 }
 

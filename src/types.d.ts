@@ -49,6 +49,7 @@ export interface Poll {
     every(timeout: PollTimeout): Poll,
     start(): Poll,
     stop(): Poll,
+    polling(): boolean,
 }
 
 export type PollCallback = (client: Client) => Promise<unknown>
