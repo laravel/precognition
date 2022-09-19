@@ -5,12 +5,10 @@ const createPoll = (callback: () => void): Poll => {
     let timeout = 60000 // default: one minute
 
     const schedule = () => {
-        if (timeout > 0) { // not tested
-            timeoutID = setTimeout(() => {
-                callback()
-                schedule()
-            }, timeout)
-        }
+        timeoutID = setTimeout(() => {
+            callback()
+            schedule()
+        }, timeout)
     }
 
     return {
