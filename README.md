@@ -219,14 +219,14 @@ poll.stop();
 
 ### Timeout
 
-By default, the poll will have a timeout of one minute. To configure the timeout, you should pass the duration to the `every` function:
+By default, the poll will have a timeout of one minute. To configure a different timeout, you should pass the duration to the `every` function:
 
 ```js
 import precognitive, { poll } from 'laravel-precognition';
 
 const poll = poll(() => precognitive.get('/users/me', {
     onUnauthorized: () => /* ... */,
-})).every({ minutes: 10 });
+})).every({ minutes: 10 }).start();
 ```
 
 You may pass hours, minutes, seconds, and milliseconds to the `every` function to configure the required timeout:
