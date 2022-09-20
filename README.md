@@ -164,7 +164,7 @@ import precognitive from 'laravel-precognition';
 
 // Configure Precognition...
 
-precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id']);
+precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Fingerprint']);
 ```
 
 Alternatively, you may pass the `fingerprint` option per request:
