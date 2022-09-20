@@ -167,7 +167,7 @@ import precognitive from 'laravel-precognition';
 precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id']);
 ```
 
-Alternatively, you may pass the `fingerprint` option on a per request:
+Alternatively, you may pass the `fingerprint` option per request:
 
 ```js
 precognitive.post('/projects/5', data, {
