@@ -5,6 +5,10 @@
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/v/laravel-precognition" alt="Latest Stable Version"></a>
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/l/laravel-precognition" alt="License"></a>
 
+## Table of Contents
+
+- [Introduction](#introduction)
+
 ## Introduction
 
 This library provides a wrapper around [Axios](https://axios-http.com/) to make Precognition requests. Every request sent via the helper will be a Precognition request.
@@ -58,7 +62,7 @@ As validation is a common use-case for Precognition, we have included an `onVali
 ```js
 precognitive.post(url, data, {
     onValidationError: (errors, axiosError) => {
-        usernameError = errors.username?[0];
+        emailError = errors.email[0];
     },
 });
 ```
@@ -90,7 +94,7 @@ You may handle additional response types as you normally would with Axios via th
 ```js
 loading = true;
 
-precognitive.post(url, data, { /* ... */ }).catch(error => {
+precognitive.post(url, data).catch(error => {
   if (error.response?.status === 418) {
       // ...
   }
