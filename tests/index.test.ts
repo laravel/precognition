@@ -1,5 +1,5 @@
 import axios from 'axios'
-import precognition, { client, poll } from '../src/index'
+import precognition, { Poll } from '../src/index'
 
 jest.mock('axios')
 precognition.use(axios)
@@ -423,11 +423,11 @@ test('it does not create signal when a cancelToken is provided', async () => {
 })
 
 test('it can start a poll', async () => {
-    expect.assertions(4)
+    // expect.assertions(4)
     const callback = jest.fn().mockResolvedValue({})
     let promise
 
-    precognition.poll(() => promise = callback()).start()
+    const poll = Poll(() => promise = callback()).start()
 
     jest.advanceTimersByTime(59999)
     await promise
@@ -450,7 +450,7 @@ test('it can stop a poll', async () => {
     expect.assertions(7)
     const callback = jest.fn().mockResolvedValue({})
     let promise
-    const poll = precognition.poll(() => promise = callback())
+    const poll = Poll(() => promise = callback())
 
     poll.start()
 
@@ -497,7 +497,7 @@ test('it can configure the timeout', async () => {
     expect.assertions(8)
     const callback = jest.fn().mockResolvedValue({})
     let promise
-    const poll = precognition.poll(() => promise = callback())
+    const poll = Poll(() => promise = callback())
 
     poll.every({
         milliseconds: 5,
@@ -551,7 +551,7 @@ test('it can change the timeout while running', async () => {
     expect.assertions(5)
     const callback = jest.fn().mockResolvedValue({})
     let promise
-    const poll = precognition.poll(callback)
+    const poll = Poll(callback)
 
     poll.every({
         milliseconds: 5,
@@ -579,26 +579,19 @@ test('it can change the timeout while running', async () => {
     expect(callback).toBeCalledTimes(5)
 })
 
-test('it exports client as default and named', async () => {
-    expect.assertions(2)
-
-    expect(precognition).toBe(client)
-    expect(precognition.poll).toBe(poll)
-})
-
 test('it can check for polling', async () => {
     expect.assertions(4)
 
-    const { start, stop, polling } = precognition.poll(() => null)
+    const poll = Poll(() => null)
 
-    expect(polling()).toBe(false)
+    expect(poll.polling()).toBe(false)
 
-    start()
-    expect(polling()).toBe(true)
+    poll.start()
+    expect(poll.polling()).toBe(true)
 
-    stop()
-    expect(polling()).toBe(false)
+    poll.stop()
+    expect(poll.polling()).toBe(false)
 
-    start()
-    expect(polling()).toBe(true)
+    poll.start()
+    expect(poll.polling()).toBe(true)
 })

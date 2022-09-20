@@ -51,5 +51,3 @@ export interface Poll {
     polling(): boolean,
     invocations(): number
 }
-
-export type PollCallback = (client: Client) => Promise<unknown>

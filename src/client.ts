@@ -37,9 +37,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
     }
 
 
-    return axiosClient.request(config)
-    .catch()
-    .then(response => {
+    return axiosClient.request(config).then(response => {
         if (response.headers.precognition !== 'true') {
             throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
         }

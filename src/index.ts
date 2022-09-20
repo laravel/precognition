@@ -1,8 +1,2 @@
-import { client } from './client'
-import { poll } from './poll'
-
-export {
-    client as default,
-    client,
-    poll,
-}
+export { client as default } from './client'
+export { Poll } from './poll'

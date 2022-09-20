@@ -1,10 +1,10 @@
-import { Poll } from './types'
+import { Poll as TPoll } from './types'
 
-export const poll = (callback: () => Promise<unknown>): Poll => {
+export const Poll = (callback: () => Promise<unknown>): TPoll => {
     let polling = false
     let invocations = 0
     let timeoutID: NodeJS.Timeout|undefined
-    let timeoutDuration = 60_000 // default: one minute
+    let timeoutDuration = 60000 // default: one minute
 
     const schedule = (): NodeJS.Timeout|undefined => {
         if (polling) {
@@ -21,8 +21,8 @@ export const poll = (callback: () => Promise<unknown>): Poll => {
                 return this
             }
 
-            timeoutID = schedule()
             polling = true
+            timeoutID = schedule()
 
             return this
         },
@@ -31,9 +31,9 @@ export const poll = (callback: () => Promise<unknown>): Poll => {
                 return this
             }
 
+            polling = false
             clearTimeout(timeoutID)
             timeoutID = undefined
-            polling = false
 
             return this
         },
