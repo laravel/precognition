@@ -239,7 +239,7 @@ poll.every({
     minutes: 20,
     seconds: 11,
     milliseconds: 87,
-})
+}).start();
 ```
 
 ### Checking the Polling Status
@@ -252,7 +252,7 @@ if (poll.polling()) {
 }
 ```
 
-You can also check the number of time the callback has been invoked:
+You can also check the number of times the callback has been invoked:
 
 ```js
 if (poll.invocations() > 1000) {
