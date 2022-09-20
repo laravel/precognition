@@ -101,7 +101,7 @@ precognitive.post(url, data).catch(error => {
 }).finally(() => loading = false);
 ```
 
-## Non-Precognition Responses
+### Non-Precognition Responses
 
 If a response is received that does not have the `Precognition: true` header, an error will be thrown. You should ensure that the Precognition middleware is in place.
 
