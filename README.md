@@ -47,7 +47,7 @@ A `204 No Content` response with an included `Precognition: true` header indicat
 
 ```js
 precognitive.post(url, data, {
-    onPrecognitionSuccess: (response) => {
+    onPrecognitionSuccess: response => {
         // ...
     },
 });
@@ -101,23 +101,24 @@ precognitive.post(url, data).catch(error => {
 }).finally(() => loading = false);
 ```
 
-### Specifying Inputs For Validation
+## Non-Precognition Responses
 
-One of the features of Precognition is the ability to specify the inputs that you would like to run validation rules against. To use this feature you should pass a list of input names to the `validate` option:
+If a response is received that does not have the `Precognition: true` header, an error will be thrown. You should ensure that the Precognition middleware is in place.
+
+## Specifying Inputs For Validation
+
+One of the features of Precognition is the ability to specify which inputs should be validated against. To use this feature you should pass a list of input names to the `validate` option:
 
 ```js
-precognitive.post('/users', { ... }, {
+precognitive.post('/users', data, {
     validate: ['username', 'email'],
-    onValidationError: (errors, axiosError) => {
+    onValidationError: errors => {
         // ...
     },
 });
 ```
 
-
-### Receiving Non-Precognition Responses
-
-If the Precognition client receives a server response that does not have the `Precognition: true` header set, it will throw an error. You should ensure that the Precognition middleware is in place for the route.
+When sending a request with the `validate` option, the back-end will stop execution after validation, even when it passes.
 
 ### Automatically Aborting Stale Request
 
