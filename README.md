@@ -197,7 +197,7 @@ precognitive.post('/projects/5', form.data(), {
 
 ## Polling
 
-As polling with Precognition is a common use-case, the library comes with some handy polling features. To create a "poll" instance, you should call the `poll` function passing through a closure that should be executed while polling:
+As polling with Precognition is a common use-case, the library comes with some handy polling features. To create a "poll" instance, you should call the `poll` function, passing through a closure to be executed while polling:
 
 ```js
 import precognitive, { Poll } from 'laravel-precognition';
@@ -242,7 +242,7 @@ poll.every({
 
 ### Checking the Polling Status
 
-To check if polling is active, you may invoke the `polling` function:
+To check if polling is active, you may use the `polling` function:
 
 ```js
 if (poll.polling()) {
@@ -250,7 +250,7 @@ if (poll.polling()) {
 }
 ```
 
-You can also check the number of times the callback has been invoked:
+You can also check the number of times the callback has been invoked by using the `invocations` function:
 
 ```js
 if (poll.invocations() > 1000) {
