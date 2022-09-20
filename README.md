@@ -73,7 +73,7 @@ The function's `errors` argument is the error object from the [Laravel validatio
 
 ### Error Responses
 
-There are a few additional error responses handlers for common Precognition response codes:
+There are a few additional error response handlers for common Precognition response codes:
 
 ```js
 precognitive.post(url, data, {
