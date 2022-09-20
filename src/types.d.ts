@@ -25,7 +25,7 @@ export type Config = AxiosRequestConfig&{
     fingerprint?: string|null,
 }
 
-export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string
+export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
 
 export interface Client {
     get(url: string, config: Config): Promise<unknown>,
@@ -34,7 +34,7 @@ export interface Client {
     put(url: string, data: unknown): Promise<unknown>,
     delete(url: string, config: Config): Promise<unknown>,
     use(axios: AxiosInstance): Client,
-    fingerprintRequestsUsing(callback: RequestFingerprintResolver): Client,
+    fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
 }
 
 export interface PollTimeout {

@@ -18,7 +18,8 @@ export const client: Client = {
         return this
     },
     fingerprintRequestsUsing(callback) {
-        requestFingerprintResolver = callback
+        requestFingerprintResolver = callback === null ? () => null : callback
+
         return this
     },
 }

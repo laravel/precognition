@@ -177,14 +177,14 @@ precognitive.post('/projects/5', data, {
 });
 ```
 
-A fingerprint of `null` will disable this feature. You may disable it globally via `fingerprintRequestsUsing`:
+A fingerprint of `null` will disable this feature. You may disable it globally by passing `null` to `fingerprintRequestsUsing`:
 
 ```js
 import precognitive from 'laravel-precognition';
 
 // Configure Precognition...
 
-precognitive.fingerprintRequestsUsing(() => null);
+precognitive.fingerprintRequestsUsing(null);
 ```
 
 or by passing `null` to the `fingerprint` option per request:
