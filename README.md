@@ -205,7 +205,7 @@ As polling with Precognition is a common use-case, the library comes with some h
 import precognitive, { poll } from 'laravel-precognition';
 
 const poll = poll(() => precognitive.get('/users/me', {
-    onUnauthorized: () => /* ... */,
+    onUnauthorized: () => poll.stop() && handleUnauthorized(),
 }));
 
 // start polling...
@@ -225,11 +225,11 @@ By default, the poll will have a timeout of one minute. To configure a different
 import precognitive, { poll } from 'laravel-precognition';
 
 const poll = poll(() => precognitive.get('/users/me', {
-    onUnauthorized: () => /* ... */,
+    onUnauthorized: () => poll.stop() && handleUnauthorized(),
 })).every({ minutes: 10 }).start();
 ```
 
-You may pass hours, minutes, seconds, and milliseconds to the `every` function to configure the required timeout:
+You may pass hours, minutes, seconds, and milliseconds to the `every` function to get fine-grained control of the timeout:
 
 ```js
 poll.every({
