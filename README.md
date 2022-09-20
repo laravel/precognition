@@ -35,7 +35,7 @@ The optional `config` argument is the [Axios' configuration](https://axios-http.
 
 ## Handling Responses
 
-The library has baked in some configuration options to make handling common responses for Precognition requests easier.
+The library has baked in configuration options that make handling common Precognition responses easier.
 
 ### Successful Responses
 
