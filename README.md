@@ -160,28 +160,32 @@ precognitive.post('/repositories/5', { name: 'Laravel' })
 You may customize how fingerprints are calculated by passing a callback to `fingerprintRequestsUsing`:
 
 ```js
+import precognitive from 'laravel-precognition';
+
+// Configure Precognition...
+
 precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id'])
 ```
 
-It is also possible to specify the `fingerprint` on a per request basis:
+Alternatively, you may pass the `fingerprint` option on a per request:
 
 ```js
-precognitive.post('/projects/5', form.data(), {
+precognitive.post('/projects/5', data, {
     fingerprint: 'request-1',
 })
 
-precognitive.post('/projects/5', form.data(), {
+precognitive.post('/projects/5', data, {
     fingerprint: 'request-2',
 })
 ```
 
-If you would like to disable this feature, you should return `null` from the callback passed to `fingerprintRequestsUsing`:
+If you would like to disable this feature, you should use a fingerprint of `null` either by returning `null` from the callback passed to `fingerprintRequestsUsing`:
 
 ```js
 precognitive.fingerprintRequestsUsing(() => null)
 ```
 
-You can also disable to feature on a per request basis by passing `null` to the `fingerprint` option:
+or by passing it to the `fingerprint` option per request:
 
 ```js
 precognitive.post('/projects/5', form.data(), {
