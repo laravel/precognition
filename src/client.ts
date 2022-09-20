@@ -32,8 +32,8 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
     if (
         typeof config.requestId === 'string'
-        && typeof config.signal === 'undefined'
-        && typeof config.cancelToken === 'undefined'
+        && config.signal === undefined
+        && config.cancelToken === undefined
     ) {
         abortControllers[config.requestId]?.abort()
         abortControllers[config.requestId] = new AbortController
@@ -71,7 +71,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 }
 
 const resolveConfig = (config: Config): Config => ({
-    requestId: typeof config.requestId === 'undefined'
+    requestId: config.requestId === undefined
         ? requestIdResolver(config, axiosClient)
         : config.requestId,
     ...config,

@@ -1,53 +1,46 @@
-import { Poll, PollTimeout } from './types'
+import { Poll } from './types'
 
 const createPoll = (callback: () => Promise<unknown>): Poll => {
     let polling = false
-    let timeoutID: NodeJS.Timeout|null = null
-    let timeout = 60000 // default: one minute
+    let timeoutID: NodeJS.Timeout|undefined
+    let timeoutDuration = 60_000 // default: one minute
 
-    const schedule = () => {
-        timeoutID = polling
-            ? setTimeout(() => callback().finally(schedule), timeout)
-            : null
+    const schedule = (): NodeJS.Timeout|undefined => {
+        if (polling) {
+            return setTimeout(() => callback().finally(() => timeoutID = schedule()), timeoutDuration)
+        }
     }
 
     return {
         every(t) {
-            const prepared: Required<PollTimeout> = {
-                ...{ milliseconds: 0, seconds: 0, minutes: 0, hours: 0 },
-                ...t,
-            }
-
-            timeout = prepared.milliseconds
-                + (prepared.seconds * 1000)
-                + (prepared.minutes * 60000)
-                + (prepared.hours * 3600000)
+            timeoutDuration = (t.milliseconds ?? 0)
+                + ((t.seconds ?? 0) * 1000)
+                + ((t.minutes ?? 0) * 60000)
+                + ((t.hours ?? 0) * 3600000)
 
             return this
         },
         start() {
-            polling = true
-
-            if (timeoutID !== null) {
-                console.warn('Polling has already started. You should stop the poll before calling start().')
+            if (polling) {
                 return this
             }
 
-            schedule()
+            polling = true
+
+            timeoutID = schedule()
 
             return this
         },
         stop() {
-            polling = false
-
-            if (timeoutID === null) {
-                console.warn('Polling has not yet started. You should start the poll before calling stop().')
+            if (! polling) {
                 return this
             }
 
+            polling = false
+
             clearTimeout(timeoutID)
 
-            timeoutID = null
+            timeoutID = undefined
 
             return this
         },
