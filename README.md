@@ -92,13 +92,10 @@ The function's `response` argument is the [Axios response](https://axios-http.co
 You may handle additional response types as you normally would with Axios via the returned Promise:
 
 ```js
-loading = true;
-
-precognitive.post(url, data).catch(error => {
-  if (error.response?.status === 418) {
-      // ...
-  }
-}).finally(() => loading = false);
+precognitive.post(url, data)
+            .then(() => /* ... */)
+            .catch(() => /* ... */)
+            .finally(() => /* ... */);
 ```
 
 ### Non-Precognition Responses
