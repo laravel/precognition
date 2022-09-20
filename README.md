@@ -117,7 +117,25 @@ precognitive.post('/users', data, {
 
 When sending a request with the `validate` option, the back-end will stop execution after validation, even when it passes.
 
-### Automatically Aborting Stale Request
+## Using An Existing Axios Instance
+
+If your application already configures an Axios instance, you may instruct Precognition to use that instance by calling `precognition.use(axios)`:
+
+```js
+import axios from 'axios';
+import precognition from 'laravel-precognition';
+
+// Configure Axios...
+
+window.axios = axios;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+// Use the configured instance...
+
+window.precog = precognition.use(axios)
+```
+
+## Automatically Aborting Stale Request
 
 When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) is not present in the configuration, when a new request is made any in-flight requests with the same "fingerprint" will be automatically aborted. A request's fingerprint is comprised of the request's method and URL.
 
@@ -171,7 +189,7 @@ precognitive.post('/projects/5', form.data(), {
 })
 ```
 
-### Polling
+## Polling
 
 ```js
 import precog from 'laravel-precognition'
@@ -217,23 +235,6 @@ if (poll.polling()) {
 }
 ```
 
-### Using An Existing Axios Instance
-
-If your application already configures an Axios instance, you may instruct Precognition to use that instance by calling `precognition.use(axios)`:
-
-```js
-import axios from 'axios';
-import precognition from 'laravel-precognition';
-
-// Configure Axios...
-
-window.axios = axios;
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-
-// Use the configured instance...
-
-window.precog = precognition.use(axios)
-```
 
 ## Contributing
 
