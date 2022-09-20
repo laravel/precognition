@@ -100,7 +100,7 @@ precognitive.post(url, data)
 
 ### Non-Precognition Responses
 
-If a response is received that does not have the `Precognition: true` header, an error will be thrown. You should ensure that the Precognition middleware is in place.
+If a response does not have the `Precognition: true` header, an error will be thrown. You should ensure that the Precognition middleware is in place.
 
 ## Specifying Inputs For Validation
 
@@ -137,7 +137,7 @@ window.precognitive = precognitive.use(axios);
 
 ## Aborting Stale Requests
 
-When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) is not present in the configuration, when a new request is made any in-flight requests with the same "fingerprint" will be automatically aborted. A request's fingerprint is comprised of the request's method and URL.
+When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) is not present in the configuration, if a new request is made, any in-flight requests with the same "fingerprint" will be automatically aborted. A request's fingerprint is comprised of the request's method and URL.
 
 In the following example, as the method and URL match for both requests, if request 1 is still waiting on a response when request 2 is fired, request 1 will be automatically aborted.
 
