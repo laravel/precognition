@@ -119,57 +119,55 @@ When sending a request with the `validate` option, the back-end will stop execut
 
 ### Automatically Aborting Stale Request
 
-When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) are not present in the configuration, the Precognition client automatically aborts any in-flight requests when a new request is made, but only the requests share the same "fingerprint". A request's fingerprint is comprised of the request method and URL.
+When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) is not present in the configuration, when a new request is made any in-flight requests with the same "fingerprint" will be automatically aborted. A request's fingerprint is comprised of the request's method and URL.
 
 In the following example, as the method and URL match for both requests, if request 1 is still waiting on a response when request 2 is fired, request 1 will be automatically aborted.
 
 ```js
 // Request 1
-precog.post('/projects/5', { name: 'Laravel' })
+precognitive.post('/projects/5', { name: 'Laravel' })
 
 // Request 2
-precog.post('/projects/5', { name: 'Laravel', repo: 'laravel/framework' })
+precognitive.post('/projects/5', { name: 'Laravel', repo: 'laravel/framework' })
 ```
 
 If the URL or the method do not match, then the request would not be aborted:
 
 ```js
-precog.post('/projects/5', { name: 'Laravel' })
+precognitive.post('/projects/5', { name: 'Laravel' })
 
-precog.post('/repositories/5', { name: 'Laravel' })
+precognitive.post('/repositories/5', { name: 'Laravel' })
 ```
 
-You may customize how the Precognition client fingerprints requests by passing a callback to `fingerprintRequestsUsing`:
+You may customize how fingerprints are calculated by passing a callback to `fingerprintRequestsUsing`:
 
 ```js
-import precog from 'laravel-precognition';
-
-precog.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id'])
+precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id'])
 ```
 
-It is also possible to specify the `uniqueId` on a per request basis:
+It is also possible to specify the `fingerprint` on a per request basis:
 
 ```js
-precog.post('/projects/5', form.data(), {
-    requestId: 'unique-id-1',
+precognitive.post('/projects/5', form.data(), {
+    fingerprint: 'request-1',
 })
 
-precog.post('/projects/5', form.data(), {
-    requestId: 'unique-id-2',
+precognitive.post('/projects/5', form.data(), {
+    fingerprint: 'request-2',
 })
 ```
 
-If you would like to disable this feature globally, you should return `null` from the callback passed to `fingerprintRequestsUsing`:
+If you would like to disable this feature, you should return `null` from the callback passed to `fingerprintRequestsUsing`:
 
 ```js
-precog.fingerprintRequestsUsing(() => null)
+precognitive.fingerprintRequestsUsing(() => null)
 ```
 
-You can also disable to feature on a per request basis by passing `null` as the `requestId` option:
+You can also disable to feature on a per request basis by passing `null` to the `fingerprint` option:
 
 ```js
-precog.post('/projects/5', form.data(), {
-    requestId: null,
+precognitive.post('/projects/5', form.data(), {
+    fingerprint: null,
 })
 ```
 
