@@ -22,10 +22,10 @@ export type Config = AxiosRequestConfig&{
     onNotFound?: StatusHandler,
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
-    requestId?: string|null,
+    fingerprint?: string|null,
 }
 
-export type RequestIdResolver = (config: Config, axios: AxiosInstance) => string
+export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string
 
 export interface Client {
     get(url: string, config: Config): Promise<unknown>,
@@ -34,7 +34,7 @@ export interface Client {
     put(url: string, data: unknown): Promise<unknown>,
     delete(url: string, config: Config): Promise<unknown>,
     use(axios: AxiosInstance): Client,
-    useRequestIdResolver(callback: RequestIdResolver): Client,
+    fingerprintRequestsUsing(callback: RequestFingerprintResolver): Client,
     poll(callback: PollCallback): Poll,
 }
 

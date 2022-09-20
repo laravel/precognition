@@ -278,7 +278,7 @@ test('it creates request identifier and adds signal', async () => {
 
     await precognition.get('https://laravel.com')
 
-    expect(config.requestId).toBe('get:https://laravel.com')
+    expect(config.fingerprint).toBe('get:https://laravel.com')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -294,7 +294,7 @@ test('it uses baseURL from axios in request identifier', async () => {
 
     await precognition.get('/docs')
 
-    expect(config.requestId).toBe('get:https://laravel.com/docs')
+    expect(config.fingerprint).toBe('get:https://laravel.com/docs')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -312,7 +312,7 @@ test('it config baseURL takes precedence for request id', async () => {
         baseURL: 'https://forge.laravel.com',
     })
 
-    expect(config.requestId).toBe('get:https://forge.laravel.com/docs')
+    expect(config.fingerprint).toBe('get:https://forge.laravel.com/docs')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -326,10 +326,10 @@ test('it can pass request identifier to config', async () => {
     })
 
     await precognition.get('/docs', {
-        requestId: 'expected-id',
+        fingerprint: 'expected-id',
     })
 
-    expect(config.requestId).toBe('expected-id')
+    expect(config.fingerprint).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -341,15 +341,15 @@ test('it set request identifier resolver', async () => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
-    precognition.useRequestIdResolver(() => 'expected-id')
+    precognition.fingerprintRequestsUsing(() => 'expected-id')
 
     await precognition.get('/docs')
 
-    expect(config.requestId).toBe('expected-id')
+    expect(config.fingerprint).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it config requestId takes precedence for request id', async () => {
+test('it config fingerprint takes precedence for request id', async () => {
     expect.assertions(2)
 
     let config
@@ -357,13 +357,13 @@ test('it config requestId takes precedence for request id', async () => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
-    precognition.useRequestIdResolver(() => 'foo')
+    precognition.fingerprintRequestsUsing(() => 'foo')
 
     await precognition.get('/docs', {
-        requestId: 'expected-id',
+        fingerprint: 'expected-id',
     })
 
-    expect(config.requestId).toBe('expected-id')
+    expect(config.fingerprint).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
@@ -377,10 +377,10 @@ test('it can opt out of signals with `null`', async () => {
     })
 
     await precognition.get('/docs', {
-        requestId: null,
+        fingerprint: null,
     })
 
-    expect(config.requestId).toBe(null)
+    expect(config.fingerprint).toBe(null)
     expect(config.signal).toBeUndefined()
 })
 

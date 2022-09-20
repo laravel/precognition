@@ -1,10 +1,10 @@
 import { default as Axios, AxiosInstance } from 'axios'
 import { createPoll } from './poll'
-import { Config, Client, RequestIdResolver, PollCallback, StatusHandler, ValidationPayload } from './types'
+import { Config, Client, RequestFingerprintResolver, PollCallback, StatusHandler, ValidationPayload } from './types'
 
 let axiosClient: AxiosInstance = Axios
 
-let requestIdResolver: RequestIdResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
+let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 const abortControllers: { [key: string]: AbortController } = {}
 
@@ -18,8 +18,8 @@ export const client: Client = {
         axiosClient = axios
         return this
     },
-    useRequestIdResolver(callback) {
-        requestIdResolver = callback
+    fingerprintRequestsUsing(callback) {
+        requestFingerprintResolver = callback
         return this
     },
     poll(callback: PollCallback) {
@@ -31,13 +31,13 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
     const config = resolveConfig(userConfig)
 
     if (
-        typeof config.requestId === 'string'
+        typeof config.fingerprint === 'string'
         && config.signal === undefined
         && config.cancelToken === undefined
     ) {
-        abortControllers[config.requestId]?.abort()
-        abortControllers[config.requestId] = new AbortController
-        config.signal = abortControllers[config.requestId].signal
+        abortControllers[config.fingerprint]?.abort()
+        abortControllers[config.fingerprint] = new AbortController
+        config.signal = abortControllers[config.fingerprint].signal
     }
 
 
@@ -71,9 +71,9 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 }
 
 const resolveConfig = (config: Config): Config => ({
-    requestId: config.requestId === undefined
-        ? requestIdResolver(config, axiosClient)
-        : config.requestId,
+    fingerprint: config.fingerprint === undefined
+        ? requestFingerprintResolver(config, axiosClient)
+        : config.fingerprint,
     ...config,
     headers: {
         ...config.headers,

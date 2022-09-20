@@ -119,9 +119,9 @@ When sending a request with the `validate` option, the back-end will stop execut
 
 ### Automatically Aborting Stale Request
 
-When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) are not passed in the request configuration, the Precognition client automatically aborts any still in-flight requests when a new request is made, but only if the new request matches a previous request's signature. It identifies requests by combining the request method and URL.
+When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) are not present in the configuration, the Precognition client automatically aborts any in-flight requests when a new request is made, but only the requests share the same "fingerprint". A request's fingerprint is comprised of the request method and URL.
 
-In the following example, because the method and URL match for both requests, if request 1 is still waiting on a response when request 2 is fired, request 1 will be aborted.
+In the following example, as the method and URL match for both requests, if request 1 is still waiting on a response when request 2 is fired, request 1 will be automatically aborted.
 
 ```js
 // Request 1
@@ -139,12 +139,12 @@ precog.post('/projects/5', { name: 'Laravel' })
 precog.post('/repositories/5', { name: 'Laravel' })
 ```
 
-You may customize how the Precognition client identifies requests by passing a callback to `useRequestIdResolver`:
+You may customize how the Precognition client fingerprints requests by passing a callback to `fingerprintRequestsUsing`:
 
 ```js
 import precog from 'laravel-precognition';
 
-precog.useRequestIdResolver((config, axios) => config.headers['Request-Id'])
+precog.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id'])
 ```
 
 It is also possible to specify the `uniqueId` on a per request basis:
@@ -159,10 +159,10 @@ precog.post('/projects/5', form.data(), {
 })
 ```
 
-If you would like to disable this feature globally, you should return `null` from the callback passed to `useRequestIdResolver`:
+If you would like to disable this feature globally, you should return `null` from the callback passed to `fingerprintRequestsUsing`:
 
 ```js
-precog.useRequestIdResolver(() => null)
+precog.fingerprintRequestsUsing(() => null)
 ```
 
 You can also disable to feature on a per request basis by passing `null` as the `requestId` option:
