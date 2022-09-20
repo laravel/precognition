@@ -7,43 +7,49 @@
 
 ## Introduction
 
-This library provides a thin wrapper around the Axios client to help make Precognition requests. To get started you should install the package:
+This library provides a wrapper around the Axios client to make Precognition requests. Every request sent via the helper will be a Precognition request.
+
+To get started you should install the package:
 
 ```sh
 npm install laravel-precognition
 ```
 
-Every request sent via the helper will be a Precognition request. The available request methods, which all return a `Promise`, are:
+The available request methods, which all return a `Promise`, are:
 
 ```js
-import precog from 'laravel-precognition';
+import precognitive from 'laravel-precognition';
 
-precog.get(url, config);
-precog.post(url, data, config);
-precog.patch(url, data, config);
-precog.put(url, data, config);
-precog.delete(url, config);
+precognitive.get(url, config);
+
+precognitive.post(url, data, config);
+
+precognitive.patch(url, data, config);
+
+precognitive.put(url, data, config);
+
+precognitive.delete(url, config);
 ```
 
-The `config` parameter is the [Axios' configuration](https://axios-http.com/docs/req_config) with some additional Precognition options as outlined below.
+The optional `config` argument is the [Axios' configuration](https://axios-http.com/docs/req_config) with some additional Precognition options outlined below.
 
 ### Handling Successful Responses
 
-A `204 No Content` response with an included `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option can be used to handle these responses:
+A `204 No Content` response with an included `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option is a convenient way to handle these successful responses:
 
 ```js
-precog.post(url, data, {
-    onPrecognitionSuccess: response => {
-        // Precognition was successful...
+precognitive.post(url, data, {
+    onPrecognitionSuccess: (response) => {
+        // ...
     },
 });
 ```
 
-The function receives the [Axios response](https://axios-http.com/docs/res_schema).
+The function's `response` argument is the [Axios response](https://axios-http.com/docs/res_schema) object.
 
 ### Handling Validation Responses
 
-As validation is a common use-case for Precognition, we have included validation specific affordances. To handle a Laravel validation error response, you may use the `onValidationError` option:
+As validation is a common use-case for Precognition, we have included an `onValidationError` option:
 
 ```js
 precog.post(url, data, {
@@ -53,7 +59,9 @@ precog.post(url, data, {
 });
 ```
 
-The function receives the `errors` object from the [validation response](https://laravel.com/docs/validation#validation-error-response-format) and the [Axios error](https://axios-http.com/docs/handling_errors).
+The function's `errors` argument is the error object from the [Laravel validation response](https://laravel.com/docs/validation#validation-error-response-format) and the `axiosError` argument is the [Axios error](https://axios-http.com/docs/handling_errors) object.
+
+> **Note** Unlike the other handlers seen below, this does not receive the standard Axios response object, however it is still available via `axiosError.response`.
 
 ### Specifying Inputs For Validation
 
