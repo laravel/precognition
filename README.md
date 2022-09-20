@@ -226,7 +226,9 @@ import precognitive, { poll } from 'laravel-precognition';
 
 const poll = poll(() => precognitive.get('/users/me', {
     onUnauthorized: () => poll.stop() && handleUnauthorized(),
-})).every({ minutes: 10 }).start();
+}));
+
+poll.every({ minutes: 10 }).start();
 ```
 
 You may pass hours, minutes, seconds, and milliseconds to the `every` function to get fine-grained control of the timeout:
