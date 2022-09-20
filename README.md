@@ -39,7 +39,7 @@ The library has baked in configuration options that make handling common Precogn
 
 ### Successful Responses
 
-A `204 No Content` response with an included `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option is a convenient way to handle these successful responses:
+A `204 No Content` response with an included `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option is a convenient way to handle these responses:
 
 ```js
 precognitive.post(url, data, {
@@ -69,7 +69,7 @@ The function's `errors` argument is the error object from the [Laravel validatio
 
 ### Error Responses
 
-There are a few additional handlers for error codes that are common for Precognition requests:
+There are a few additional error responses handlers for common Precognition response codes:
 
 ```js
 precognitive.post(url, data, {
@@ -81,7 +81,7 @@ precognitive.post(url, data, {
 });
 ```
 
-These functions all receive the [Axios response](https://axios-http.com/docs/res_schema) as their first argument and the [Axios error](https://axios-http.com/docs/handling_errors) as their second.
+The function's `response` argument is the [Axios response](https://axios-http.com/docs/res_schema) object and the `error` argument is the [Axios error](https://axios-http.com/docs/handling_errors) object.
 
 ### Other Responses
 
