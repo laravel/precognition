@@ -7,7 +7,7 @@
 
 ## Introduction
 
-This library provides a wrapper around the Axios client to make Precognition requests. Every request sent via the helper will be a Precognition request.
+This library provides a wrapper around [Axios](https://axios-http.com/) to make Precognition requests. Every request sent via the helper will be a Precognition request.
 
 To get started you should install the package:
 
