@@ -137,19 +137,17 @@ window.precognitive = precognitive.use(axios);
 
 ## Aborting Stale Requests
 
-When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) is not present in the configuration, if a new request is made, any in-flight requests with the same "fingerprint" will be automatically aborted. A request's fingerprint is comprised of the request's method and URL.
+When an [`AbortController` or `CancelToken`](https://axios-http.com/docs/cancellation) is not present in the configuration, if a new request is made, any in-flight request with the same "fingerprint" will be automatically aborted. A request's fingerprint is comprised of the request's method and URL.
 
-In the following example, as the method and URL match for both requests, if request 1 is still waiting on a response when request 2 is fired, request 1 will be automatically aborted.
+In the following example the method and URL match for both requests, so if the first request is still waiting on a response when second request is fired, the first request will be automatically aborted.
 
 ```js
-// Request 1
 precognitive.post('/projects/5', { name: 'Laravel' });
 
-// Request 2
 precognitive.post('/projects/5', { name: 'Laravel', repo: 'laravel/framework' });
 ```
 
-If the URL or the method do not match, then the request would not be aborted:
+If the URL or the method do not match, then the first request would not be aborted:
 
 ```js
 precognitive.post('/projects/5', { name: 'Laravel' });
