@@ -181,9 +181,9 @@ To configure the timeout, you specify the duration via the `every` function:
 
 ```js
 const poll = precog.poll(() => /* ... */).every({
-    hours: 1,
+    hours: 2,
     minutes: 10,
-    seconds: 20,
+    seconds: 24,
     milliseconds: 5,
 })
 ```
@@ -196,6 +196,14 @@ const poll = precog.poll(() => /* ... */)
 poll.every({ hours: 1 }).start()
 
 poll.stop().every({ hours: 2 }).start()
+```
+
+You may also check if polling is active:
+
+```js
+if (poll.polling()) {
+    // ...
+}
 ```
 
 ### Using An Existing Axios Instance
