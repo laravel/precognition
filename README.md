@@ -43,7 +43,7 @@ The library has baked in configuration options that make handling common Precogn
 
 ### Successful Responses
 
-A `204 No Content` response with an included `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option is a convenient way to handle these responses:
+A `204 No Content` response with a `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option is a convenient way to handle these responses:
 
 ```js
 precognitive.post(url, data, {
