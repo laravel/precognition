@@ -427,7 +427,7 @@ test('it can start a poll', async () => {
     const callback = jest.fn().mockResolvedValue({})
     let promise
 
-    const poll = Poll(() => promise = callback()).start()
+    Poll(() => promise = callback()).start()
 
     jest.advanceTimersByTime(59999)
     await promise
