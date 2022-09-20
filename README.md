@@ -119,7 +119,7 @@ When sending a request with the `validate` option, the back-end will stop execut
 
 ## Using An Existing Axios Instance
 
-If your application configures an Axios instance, you may use that instance for Precognition requests by passing it to `use(instance)`:
+If your application configures an Axios instance, you may use that instance for Precognition requests by passing it to the `use` function:
 
 ```js
 import axios from 'axios';
@@ -143,18 +143,18 @@ In the following example, as the method and URL match for both requests, if requ
 
 ```js
 // Request 1
-precognitive.post('/projects/5', { name: 'Laravel' })
+precognitive.post('/projects/5', { name: 'Laravel' });
 
 // Request 2
-precognitive.post('/projects/5', { name: 'Laravel', repo: 'laravel/framework' })
+precognitive.post('/projects/5', { name: 'Laravel', repo: 'laravel/framework' });
 ```
 
 If the URL or the method do not match, then the request would not be aborted:
 
 ```js
-precognitive.post('/projects/5', { name: 'Laravel' })
+precognitive.post('/projects/5', { name: 'Laravel' });
 
-precognitive.post('/repositories/5', { name: 'Laravel' })
+precognitive.post('/repositories/5', { name: 'Laravel' });
 ```
 
 You may customize how fingerprints are calculated by passing a callback to `fingerprintRequestsUsing`:
@@ -164,7 +164,7 @@ import precognitive from 'laravel-precognition';
 
 // Configure Precognition...
 
-precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id'])
+precognitive.fingerprintRequestsUsing((config, axios) => config.headers['Request-Id']);
 ```
 
 Alternatively, you may pass the `fingerprint` option on a per request:
@@ -172,25 +172,29 @@ Alternatively, you may pass the `fingerprint` option on a per request:
 ```js
 precognitive.post('/projects/5', data, {
     fingerprint: 'request-1',
-})
+});
 
 precognitive.post('/projects/5', data, {
     fingerprint: 'request-2',
-})
+});
 ```
 
-If you would like to disable this feature, you should use a fingerprint of `null` either by returning `null` from the callback passed to `fingerprintRequestsUsing`:
+Using a request fingerprint of `null` will disable this feature. You may disable it globally via `fingerprintRequestsUsing`:
 
 ```js
-precognitive.fingerprintRequestsUsing(() => null)
+import precognitive from 'laravel-precognition';
+
+// Configure Precognition...
+
+precognitive.fingerprintRequestsUsing(() => null);
 ```
 
-or by passing it to the `fingerprint` option per request:
+or by passing `null` to the `fingerprint` option per request:
 
 ```js
 precognitive.post('/projects/5', form.data(), {
     fingerprint: null,
-})
+});
 ```
 
 ## Polling
