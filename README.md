@@ -8,6 +8,18 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
+- [Handling Responses](#handling-responses)
+    - [Successful Responses](#successful-responses)
+    - [Validation Responses](#validation-responses)
+    - [Error Responses](#error-responses)
+    - [Other Responses](#other-responses)
+    - [Non-Precognition Responses](#non-precognition-responses)
+- [Specifying Inputs For Validation](#specifying-inputs-for-validation)
+- [Using An Existing Axios Instance](#using-an-existing-axios-instance)
+- [Aborting Stale Requests](#aborting-stale-requests)
+- [Polling](#polling)
+    - [Timeout](#timeout)
+    - [Checking the Status](#checking-the-status)
 
 ## Introduction
 
@@ -240,7 +252,7 @@ poll.every({
 }).start();
 ```
 
-### Checking the Polling Status
+### Checking the Status
 
 To check if polling is active, you may use the `polling` function:
 
