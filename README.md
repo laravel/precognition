@@ -33,7 +33,11 @@ precognitive.delete(url, config);
 
 The optional `config` argument is the [Axios' configuration](https://axios-http.com/docs/req_config) with some additional Precognition options outlined below.
 
-### Handling Successful Responses
+## Handling Responses
+
+There are some custom configuration options that will make it easier to handle common responses for Precognition requests.
+
+### Successful Responses
 
 A `204 No Content` response with an included `Precognition: true` header indicates that a Precognition request was successful. The `onPrecognitionSuccess` option is a convenient way to handle these successful responses:
 
@@ -47,12 +51,12 @@ precognitive.post(url, data, {
 
 The function's `response` argument is the [Axios response](https://axios-http.com/docs/res_schema) object.
 
-### Handling Validation Responses
+### Validation Responses
 
 As validation is a common use-case for Precognition, we have included an `onValidationError` option:
 
 ```js
-precog.post(url, data, {
+precognitive.post(url, data, {
     onValidationError: (errors, axiosError) => {
         usernameError = errors.username?[0];
     },
@@ -61,14 +65,44 @@ precog.post(url, data, {
 
 The function's `errors` argument is the error object from the [Laravel validation response](https://laravel.com/docs/validation#validation-error-response-format) and the `axiosError` argument is the [Axios error](https://axios-http.com/docs/handling_errors) object.
 
-> **Note** Unlike the other handlers seen below, this does not receive the standard Axios response object, however it is still available via `axiosError.response`.
+> **Note** Unlike the other error handlers seen below, `onValidationError` does not receive the standard Axios response object as it's first argument, however it is still available via `axiosError.response`.
+
+### Error Responses
+
+There are a few additional handlers for error codes that are common for Precognition requests:
+
+```js
+precognitive.post(url, data, {
+    onUnauthorized: (response, error) => /* ... */,
+    onForbidden: (response, error) => /* ... */,
+    onNotFound: (response, error) => /* ... */,
+    onConflict: (response, error) => /* ... */,
+    onLocked: (response, error) => /* ... */,
+});
+```
+
+These functions all receive the [Axios response](https://axios-http.com/docs/res_schema) as their first argument and the [Axios error](https://axios-http.com/docs/handling_errors) as their second.
+
+### Other Responses
+
+You may handle additional response types as you normally would with Axios via the returned Promise:
+
+```js
+loading = true;
+
+precognitive.post(url, data, { /* ... */ }).catch(error => {
+  if (error.response?.status === 418) {
+      // ...
+  }
+}).finally(() => loading = false);
+```
 
 ### Specifying Inputs For Validation
 
 One of the features of Precognition is the ability to specify the inputs that you would like to run validation rules against. To use this feature you should pass a list of input names to the `validate` option:
 
 ```js
-precog.post('/users', { ... }, {
+precognitive.post('/users', { ... }, {
     validate: ['username', 'email'],
     onValidationError: (errors, axiosError) => {
         // ...
@@ -76,37 +110,6 @@ precog.post('/users', { ... }, {
 });
 ```
 
-### Handling Error Responses
-
-There are a few common error responses that Precognition requests may return. The following outline some options to handle those responses:
-
-```js
-precog.post(url, data, {
-    onUnauthorized: (response, axiosError) => /* ... */,
-    onForbidden: (response, axiosError) => /* ... */,
-    onNotFound: (response, axiosError) => /* ... */,
-    onConflict: (response, axiosError) => /* ... */,
-    onLocked: (response, axiosError) => /* ... */,
-});
-```
-
-These functions receive the [Axios response](https://axios-http.com/docs/res_schema) and the [Axios error](https://axios-http.com/docs/handling_errors).
-
-### Handling Other Responses
-
-You may also handle the above types and additional response types as you normally would via `.then()`, `.catch()`, and `.finally()`.
-
-```js
-loading = true;
-
-precog.post(url, data, { /* ... */ })
-       .catch(error => {
-           if (error.response?.status === 418) {
-               // ...
-           }
-       })
-       .finally(() => loading = false);
-```
 
 ### Receiving Non-Precognition Responses
 
