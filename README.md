@@ -31,11 +31,11 @@ precognitive.put(url, data, config);
 precognitive.delete(url, config);
 ```
 
-The optional `config` argument is the [Axios' configuration](https://axios-http.com/docs/req_config) with some additional Precognition options outlined below.
+The optional `config` argument is the [Axios' configuration](https://axios-http.com/docs/req_config) object with some additional Precognition options, which are documented below.
 
 ## Handling Responses
 
-There are some custom configuration options that will make it easier to handle common responses for Precognition requests.
+The library has baked in some configuration options to make handling common responses for Precognition requests easier.
 
 ### Successful Responses
 
