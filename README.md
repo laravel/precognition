@@ -202,9 +202,9 @@ precognitive.post('/projects/5', form.data(), {
 As polling with Precognition is a common use-case, the library comes with some handy polling features. To create a "poll" instance, you should call the `poll` function passing through a closure that should be executed while polling:
 
 ```js
-import precognitive, { poll } from 'laravel-precognition';
+import precognitive, { Poll } from 'laravel-precognition';
 
-const poll = poll(() => precognitive.get('/users/me', {
+const poll = Poll(() => precognitive.get('/users/me', {
     onUnauthorized: () => poll.stop() && handleUnauthorized(),
 }));
 
@@ -222,9 +222,9 @@ poll.stop();
 By default, the poll will have a timeout of one minute. To configure a different timeout, you should pass the duration to the `every` function:
 
 ```js
-import precognitive, { poll } from 'laravel-precognition';
+import precognitive, { Poll } from 'laravel-precognition';
 
-const poll = poll(() => precognitive.get('/users/me', {
+const poll = Poll(() => precognitive.get('/users/me', {
     onUnauthorized: () => poll.stop() && handleUnauthorized(),
 }));
 
