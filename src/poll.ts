@@ -1,33 +1,28 @@
 import { Poll } from './types'
 
-const createPoll = (callback: () => Promise<unknown>): Poll => {
+export const poll = (callback: () => Promise<unknown>): Poll => {
     let polling = false
+    let invocations = 0
     let timeoutID: NodeJS.Timeout|undefined
     let timeoutDuration = 60_000 // default: one minute
 
     const schedule = (): NodeJS.Timeout|undefined => {
         if (polling) {
-            return setTimeout(() => callback().finally(() => timeoutID = schedule()), timeoutDuration)
+            return setTimeout(() => callback().finally(() => {
+                invocations++
+                timeoutID = schedule()
+            }), timeoutDuration)
         }
     }
 
     return {
-        every(t) {
-            timeoutDuration = (t.milliseconds ?? 0)
-                + ((t.seconds ?? 0) * 1000)
-                + ((t.minutes ?? 0) * 60000)
-                + ((t.hours ?? 0) * 3600000)
-
-            return this
-        },
         start() {
             if (polling) {
                 return this
             }
 
-            polling = true
-
             timeoutID = schedule()
+            polling = true
 
             return this
         },
@@ -36,16 +31,21 @@ const createPoll = (callback: () => Promise<unknown>): Poll => {
                 return this
             }
 
+            clearTimeout(timeoutID)
+            timeoutID = undefined
             polling = false
 
-            clearTimeout(timeoutID)
-
-            timeoutID = undefined
+            return this
+        },
+        every(t) {
+            timeoutDuration = (t.milliseconds ?? 0)
+                + ((t.seconds ?? 0) * 1000)
+                + ((t.minutes ?? 0) * 60000)
+                + ((t.hours ?? 0) * 3600000)
 
             return this
         },
         polling: () => polling,
+        invocations: () => invocations,
     }
 }
-
-export { createPoll }

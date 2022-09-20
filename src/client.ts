@@ -1,6 +1,5 @@
 import { default as Axios, AxiosInstance } from 'axios'
-import { createPoll } from './poll'
-import { Config, Client, RequestFingerprintResolver, PollCallback, StatusHandler, ValidationPayload } from './types'
+import { Config, Client, RequestFingerprintResolver, StatusHandler, ValidationPayload } from './types'
 
 let axiosClient: AxiosInstance = Axios
 
@@ -21,9 +20,6 @@ export const client: Client = {
     fingerprintRequestsUsing(callback) {
         requestFingerprintResolver = callback
         return this
-    },
-    poll(callback: PollCallback) {
-        return createPoll(() => callback(this))
     },
 }
 

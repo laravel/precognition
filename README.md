@@ -179,7 +179,7 @@ precognitive.post('/projects/5', data, {
 });
 ```
 
-Using a request fingerprint of `null` will disable this feature. You may disable it globally via `fingerprintRequestsUsing`:
+A fingerprint of `null` will disable this feature. You may disable it globally via `fingerprintRequestsUsing`:
 
 ```js
 import precognitive from 'laravel-precognition';
@@ -199,43 +199,50 @@ precognitive.post('/projects/5', form.data(), {
 
 ## Polling
 
-```js
-import precog from 'laravel-precognition'
+As polling with Precognition is a common use-case, the library comes with some handy polling features. To create a "poll" instance, you should call the `poll` function passing through a closure that should be executed while polling:
 
-const poll = precog.poll(client => client.post(url, data, { ... }))
-                   .every({ seconds: 15 })
+```js
+import precognitive, { poll } from 'laravel-precognition';
+
+const poll = poll(() => precognitive.get('/users/me', {
+    onUnauthorized: () => /* ... */,
+}));
 
 // start polling...
 
-poll.start()
+poll.start();
 
 // stop polling...
 
-poll.stop()
+poll.stop();
 ```
 
-To configure the timeout, you specify the duration via the `every` function:
+### Timeout
+
+By default, the poll will have a timeout of one minute. To configure the timeout, you should pass the duration to the `every` function:
 
 ```js
-const poll = precog.poll(() => /* ... */).every({
-    hours: 2,
-    minutes: 10,
-    seconds: 24,
-    milliseconds: 5,
+import precognitive, { poll } from 'laravel-precognition';
+
+const poll = poll(() => precognitive.get('/users/me', {
+    onUnauthorized: () => /* ... */,
+})).every({ minutes: 10 });
+```
+
+You may pass hours, minutes, seconds, and milliseconds to the `every` function to configure the required timeout:
+
+```js
+poll.every({
+    hours: 3,
+    minutes: 20,
+    seconds: 11,
+    milliseconds: 87,
 })
 ```
 
-If you adjust the timeout while the poll is running, it will become the timeout after the next tick of the poll. However, if you stop the poll first, it will become the timeout once started:
+### Checking the Polling Status
 
-```js
-const poll = precog.poll(() => /* ... */)
-
-poll.every({ hours: 1 }).start()
-
-poll.stop().every({ hours: 2 }).start()
-```
-
-You may also check if polling is active:
+To check if polling is active, you may invoke the `polling` function:
 
 ```js
 if (poll.polling()) {
@@ -243,6 +250,13 @@ if (poll.polling()) {
 }
 ```
 
+You can also check the number of time the callback has been invoked:
+
+```js
+if (poll.invocations() > 1000) {
+    poll.stop();
+}
+```
 
 ## Contributing
 

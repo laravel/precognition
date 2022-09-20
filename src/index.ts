@@ -1,6 +1,5 @@
 import { client } from './client'
-
-const { poll } = client
+import { poll } from './poll'
 
 export {
     client as default,
