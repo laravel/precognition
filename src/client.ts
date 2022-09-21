@@ -1,6 +1,7 @@
 import { default as Axios, AxiosInstance } from 'axios'
-import { Poll as poll } from './poll'
-import { Config, Client, RequestFingerprintResolver, StatusHandler, ValidationPayload } from './types'
+import { Poll } from './poll'
+import { Validator } from './validator'
+import { Config, Client, RequestFingerprintResolver, StatusHandler, ValidationPayload, ClientCallback } from './types'
 
 let axiosClient: AxiosInstance = Axios
 
@@ -14,6 +15,12 @@ export const client: Client = {
     patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
     put: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'put' }),
     delete: (url, config = {}) => request({ ...config, url, method: 'delete' }),
+    poll(callback: ClientCallback) {
+        return Poll(() => callback(this))
+    },
+    validate(callback: ClientCallback) {
+        return Validator(this, callback)
+    },
     use(axios) {
         axiosClient = axios
         return this
@@ -23,7 +30,6 @@ export const client: Client = {
 
         return this
     },
-    poll,
 }
 
 const request = (userConfig: Config = {}): Promise<unknown> => {

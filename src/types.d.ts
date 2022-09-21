@@ -29,16 +29,24 @@ export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) 
 
 export interface Client {
     get(url: string, config: Config): Promise<unknown>,
-    post(url: string, data: unknown): Promise<unknown>,
-    patch(url: string, data: unknown): Promise<unknown>,
-    put(url: string, data: unknown): Promise<unknown>,
+    post(url: string, data: unknown, config: Config): Promise<unknown>,
+    patch(url: string, data: unknown, config: Config): Promise<unknown>,
+    put(url: string, data: unknown, config: Config): Promise<unknown>,
     delete(url: string, config: Config): Promise<unknown>,
+    validate(callback: ClientCallback): Validator,
+    poll(callback: ClientCallback): Poll,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
-    poll(callback: PollCallback): Poll,
 }
 
-export interface PollTimeout {
+export interface Validator {
+    changed(): Set<string>,
+    debounce(duration: Timeout): Validator,
+    validate(input: string, value: unknown): Validator,
+    validating(): boolean,
+}
+
+export interface Timeout {
     milliseconds?: number,
     seconds?: number,
     minutes?: number,
@@ -48,9 +56,9 @@ export interface PollTimeout {
 export interface Poll {
     start(): Poll,
     stop(): Poll,
-    every(timeout: PollTimeout): Poll,
+    every(timeout: Timeout): Poll,
     polling(): boolean,
     invocations(): number
 }
 
-export type PollCallback = () => Promise<unknown>
+export type ClientCallback = (client: Pick<Client, 'get'|'post'|'patch'|'put'|'delete'>) => Promise<unknown>
