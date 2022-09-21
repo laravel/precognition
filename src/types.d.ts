@@ -14,6 +14,7 @@ export interface ValidationErrors {
 }
 
 export type Config = AxiosRequestConfig&{
+    before?: () => void,
     validate?: Iterable<string>|ArrayLike<string>,
     onPrecognitionSuccess?: StatusHandler,
     onValidationError?: ValidationHandler,
@@ -41,9 +42,9 @@ export interface Client {
 
 export interface Validator {
     changed(): Set<string>,
-    debounce(duration: Timeout): Validator,
-    validate(input: string, value: unknown): Validator,
+    validate(input: string): Validator,
     validating(): boolean,
+    withTimeout(duration: Timeout): Validator,
 }
 
 export interface Timeout {

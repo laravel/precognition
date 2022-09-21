@@ -45,6 +45,9 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         config.signal = abortControllers[config.fingerprint].signal
     }
 
+    if (config.before !== undefined) {
+        config.before()
+    }
 
     return axiosClient.request(config).then(response => {
         if (response.headers.precognition !== 'true') {

@@ -1,46 +1,56 @@
-import { Client, ClientCallback, Config, Validator as TValidator } from './types'
-
-const withChanged = (config: Config, changed: Set<string>): Config => {
-    if (typeof config.validate === 'undefined') {
-        config.validate = changed
-    }
-
-    return config
-}
+import debounce from 'lodash.debounce'
+import { Client, ClientCallback, Config, Timeout, Validator as TValidator } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
-    let validating = false
-    // const timeout = 1333 // default: 1 + 1/3 of a second
-    const changed: Set<string> = new Set
+    const withChanged = (config: Config): Config => {
+        if (typeof config.validate === 'undefined') {
+            config.validate = changed
+        }
 
-    return {
-        debounce() {
-            // TODO
+        return config
+    }
+
+    const createValidator = () => debounce(function (input) {
+        changed.add(input)
+        validating = true
+
+        callback({
+            get: (url, config = {}) => client.get(url, withChanged(config)),
+            delete: (url, config = {}) => client.delete(url, withChanged(config)),
+            post: (url, data = {}, config) => client.post(url, data, withChanged(config)),
+            patch: (url, data = {}, config) => client.patch(url, data, withChanged(config)),
+            put: (url, data = {}, config) => client.put(url, data, withChanged(config)),
+        }).finally(() => validating = false)
+
+        return validator
+    }, timeoutDuration, { leading: true, trailing: true })
+
+    let validating = false
+    let timeoutDuration = 1333 // default: 1 + 1/3 of a second
+    const changed: Set<string> = new Set
+    let validate = createValidator()
+
+    const validator: TValidator = {
+        // TODO: detect input from the event.target.name
+        validate(input: string) {
+            validate(input)
+
             return this
         },
         changed: () => changed,
         validating: () => validating,
-        validate(input) {
-            changed.add(input)
-            validating = true
+        withTimeout(t: Timeout) {
+            timeoutDuration = (t.milliseconds ?? 0)
+                + ((t.seconds ?? 0) * 1000)
+                + ((t.minutes ?? 0) * 60000)
+                + ((t.hours ?? 0) * 3600000)
 
-            callback(new Proxy(client, {
-                get(target, prop) {
-                    if (typeof prop !== 'string') {
-                        return
-                    }
-
-                    if (prop === 'get' || prop === 'delete') {
-                        return (url: string, config: Config = {}) => target[prop](url, withChanged(config, changed))
-                    }
-
-                    if (prop ==='post' || prop === 'patch' || prop === 'put') {
-                        return (url: string, data: unknown = {}, config: Config = {}) => target.post(url, data, withChanged(config, changed))
-                    }
-                },
-            })).finally(() => validating = false)
+            validate.cancel()
+            validate = createValidator()
 
             return this
         },
     }
+
+    return validator
 }

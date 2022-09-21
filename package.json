@@ -28,7 +28,9 @@
         "node": ">=14"
     },
     "dependencies": {
-        "axios": "^0.27.2"
+        "@types/lodash.debounce": "^4.0.7",
+        "axios": "^0.27.2",
+        "lodash.debounce": "^4.0.8"
     },
     "devDependencies": {
         "@babel/core": "^7.18.13",

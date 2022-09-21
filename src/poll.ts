@@ -1,11 +1,6 @@
 import { Poll as TPoll } from './types'
 
 export const Poll = (callback: () => Promise<unknown>): TPoll => {
-    let polling = false
-    let invocations = 0
-    let timeoutID: NodeJS.Timeout|undefined
-    let timeoutDuration = 60000 // default: one minute
-
     const schedule = (): NodeJS.Timeout|undefined => {
         if (polling) {
             return setTimeout(() => callback().finally(() => {
@@ -14,6 +9,11 @@ export const Poll = (callback: () => Promise<unknown>): TPoll => {
             }), timeoutDuration)
         }
     }
+
+    let polling = false
+    let invocations = 0
+    let timeoutID: NodeJS.Timeout|undefined
+    let timeoutDuration = 60000 // default: one minute
 
     return {
         start() {
