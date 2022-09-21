@@ -35,6 +35,7 @@ export interface Client {
     delete(url: string, config: Config): Promise<unknown>,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
+    poll(callback: PollCallback): Poll,
 }
 
 export interface PollTimeout {
@@ -51,3 +52,5 @@ export interface Poll {
     polling(): boolean,
     invocations(): number
 }
+
+export type PollCallback = () => Promise<unknown>

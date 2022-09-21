@@ -1,6 +1,6 @@
-import { Poll as TPoll } from './types'
+import { Poll as TPoll, PollCallback } from './types'
 
-export const Poll = (callback: () => Promise<unknown>): TPoll => {
+export const Poll = (callback: PollCallback): TPoll => {
     let polling = false
     let invocations = 0
     let timeoutID: NodeJS.Timeout|undefined

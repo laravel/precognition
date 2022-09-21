@@ -1,4 +1,5 @@
 import { default as Axios, AxiosInstance } from 'axios'
+import { Poll as poll } from './poll'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, ValidationPayload } from './types'
 
 let axiosClient: AxiosInstance = Axios
@@ -22,6 +23,7 @@ export const client: Client = {
 
         return this
     },
+    poll,
 }
 
 const request = (userConfig: Config = {}): Promise<unknown> => {
