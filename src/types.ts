@@ -63,3 +63,11 @@ export interface Poll {
 }
 
 export type ClientCallback = (client: Pick<Client, 'get'|'post'|'patch'|'put'|'delete'>) => Promise<unknown>
+
+export interface NamedInputEvent extends Event {
+    readonly target: NamedInputEventTarget;
+}
+
+interface NamedInputEventTarget extends EventTarget {
+    name: string
+}

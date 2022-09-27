@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce'
-import { Client, ClientCallback, Config, Timeout, Validator as TValidator } from './types'
+import { Client, ClientCallback, Config, NamedInputEvent, Timeout, Validator as TValidator } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     const withChanged = (config: Config): Config => {
@@ -31,9 +31,8 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     let validate = createValidator()
 
     const validator: TValidator = {
-        // TODO: detect input from the event.target.name
-        validate(input: string) {
-            validate(input)
+        validate(input: string|NamedInputEvent) {
+            validate(typeof input !== 'string' ? input.target.name : input)
 
             return this
         },
