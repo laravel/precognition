@@ -16,10 +16,10 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
         callback({
             get: (url, config = {}) => client.get(url, withChanged(config)),
-            delete: (url, config = {}) => client.delete(url, withChanged(config)),
             post: (url, data = {}, config) => client.post(url, data, withChanged(config)),
             patch: (url, data = {}, config) => client.patch(url, data, withChanged(config)),
             put: (url, data = {}, config) => client.put(url, data, withChanged(config)),
+            delete: (url, config = {}) => client.delete(url, withChanged(config)),
         }).finally(() => validating = false)
 
         return validator
