@@ -5,6 +5,7 @@ export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) =
 export type ValidationHandler = (errors: ValidationErrors, axiosError: AxiosError) => unknown
 
 export type ValidationErrors = { [key: string]: Array<string> }
+export type SimpleValidationErrors = { [key: string]: string }
 
 export type Config = AxiosRequestConfig&{
     before?: () => void,
@@ -35,13 +36,19 @@ export interface Client {
 }
 
 export interface Validator {
+    validate(input: string|NamedInputEvent): Validator,
     touched(): Array<string>,
+    onTouchedChanged(callback: () => void): Validator,
     passed(): Array<string>,
     errors(): ValidationErrors,
-    validate(input: string): Validator,
+    onErrorsChanged(callback: () => void): Validator,
+    setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
+    clearErrors(): Validator,
     validating(): string|null,
-    withTimeout(duration: Timeout): Validator,
+    onValidatingChanged(callback: () => void): Validator,
     processingValidation(): boolean,
+    onProcessingValidationChanged(callback: () => void): Validator,
+    setTimeout(duration: Timeout): Validator,
 }
 
 export interface Timeout {
@@ -59,7 +66,9 @@ export interface Poll {
     invocations(): number
 }
 
-export type ClientCallback = (client: Pick<Client, 'get'|'post'|'patch'|'put'|'delete'>) => Promise<unknown>
+export type RequestMethods = 'get'|'post'|'patch'|'put'|'delete'
+
+export type ClientCallback = (client: Pick<Client, RequestMethods>) => Promise<unknown>
 
 interface NamedInputEventTarget extends EventTarget {
     name: string
