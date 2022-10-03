@@ -31,6 +31,7 @@ export interface Client {
     poll(callback: ClientCallback): Poll,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
+    axios: AxiosInstance,
 }
 
 export interface Validator {

@@ -1,15 +1,14 @@
-import { default as Axios, AxiosInstance } from 'axios'
+import { default as Axios } from 'axios'
 import { Poll } from './poll'
 import { Validator } from './validator'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, ClientCallback } from './types'
-
-let axiosClient: AxiosInstance = Axios
 
 let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 const abortControllers: { [key: string]: AbortController } = {}
 
 export const client: Client = {
+    axios: Axios,
     get: (url, config = {}) => request({ ...config, url, method: 'get' }),
     post: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'post' }),
     patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
@@ -22,7 +21,7 @@ export const client: Client = {
         return Validator(this, callback)
     },
     use(axios) {
-        axiosClient = axios
+        this.axios = axios
         return this
     },
     fingerprintRequestsUsing(callback) {
@@ -49,7 +48,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         config.before()
     }
 
-    return axiosClient.request(config).then(response => {
+    return client.axios.request(config).then(response => {
         if (response.headers.precognition !== 'true') {
             throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
         }
@@ -82,7 +81,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
 const resolveConfig = (config: Config): Config => ({
     fingerprint: config.fingerprint === undefined
-        ? requestFingerprintResolver(config, axiosClient)
+        ? requestFingerprintResolver(config, client.axios)
         : config.fingerprint,
     ...config,
     headers: {
