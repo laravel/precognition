@@ -134,7 +134,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         setErrors(e: ValidationErrors|SimpleValidationErrors) {
             const prepared: ValidationErrors = Object.keys(e).reduce((carry, key) => ({
                 ...carry,
-                [key]: typeof e[key] === 'string' ? [e[key]] : e[key]
+                [key]: typeof e[key] === 'string' ? [e[key]] : e[key],
             }), {})
 
             if (JSON.stringify(errors) !== JSON.stringify(prepared)) {
