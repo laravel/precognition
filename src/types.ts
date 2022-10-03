@@ -2,16 +2,7 @@ import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "ax
 
 export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
 
-export type ValidationHandler = (errors: ValidationErrors, axiosError: AxiosError) => unknown
-
-export interface ValidationPayload {
-    message: string,
-    errors: ValidationErrors,
-}
-
-export interface ValidationErrors {
-    [key: string]: Array<string>,
-}
+export type ValidationHandler = (errors: { [key: string]: Array<string> }, axiosError: AxiosError) => unknown
 
 export type Config = AxiosRequestConfig&{
     before?: () => void,
@@ -64,10 +55,10 @@ export interface Poll {
 
 export type ClientCallback = (client: Pick<Client, 'get'|'post'|'patch'|'put'|'delete'>) => Promise<unknown>
 
-export interface NamedInputEvent extends Event {
-    readonly target: NamedInputEventTarget;
-}
-
 interface NamedInputEventTarget extends EventTarget {
     name: string
+}
+
+export interface NamedInputEvent extends Event {
+    readonly target: NamedInputEventTarget;
 }
