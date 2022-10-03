@@ -36,6 +36,7 @@ export interface Validator {
     validate(input: string): Validator,
     validating(): string|null,
     withTimeout(duration: Timeout): Validator,
+    processingValidation(): boolean,
 }
 
 export interface Timeout {
