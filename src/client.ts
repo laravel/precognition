@@ -18,7 +18,7 @@ let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => 
 const abortControllers: { [key: string]: AbortController } = {}
 
 /**
- * The precognitive HTTP client.
+ * The precognitive HttHttp client.
  */
 export const client: Client = {
     axios: () => axiosClient,
@@ -54,7 +54,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
     refreshAbortController(config)
 
-    if (config.onBefore !== undefined) {
+    if (config.onBefore) {
         config.onBefore()
     }
 
@@ -97,8 +97,8 @@ const abortMatchingRequests = (config: Config): void => {
 const refreshAbortController = (config: Config): void => {
     if (
         typeof config.fingerprint === 'string'
-        && config.signal === undefined
-        && config.cancelToken === undefined
+        && ! config.signal
+        && ! config.cancelToken
     ) {
         abortControllers[config.fingerprint] = new AbortController
         config.signal = abortControllers[config.fingerprint].signal
