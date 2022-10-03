@@ -34,7 +34,7 @@ export interface Client {
 export interface Validator {
     touched(): Set<string>,
     validate(input: string): Validator,
-    validating(): boolean,
+    validating(): string|null,
     withTimeout(duration: Timeout): Validator,
 }
 

@@ -12,19 +12,19 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         return config
     }
 
-    const createValidator = () => debounce(function (input) {
+    const createValidator = () => debounce(function () {
         callback({
             get: (url, config = {}) => client.get(url, withConfig(config)),
             post: (url, data = {}, config) => client.post(url, data, withConfig(config)),
             patch: (url, data = {}, config) => client.patch(url, data, withConfig(config)),
             put: (url, data = {}, config) => client.put(url, data, withConfig(config)),
             delete: (url, config = {}) => client.delete(url, withConfig(config)),
-        }).finally(() => validating = false)
+        }).finally(() => validating = null)
 
         return validator
     }, timeoutDuration, { leading: true, trailing: true })
 
-    let validating = false
+    let validating: string|null = null
     let timeoutDuration = 1333 // default: 1 + 1/3 of a second
     const touched: Set<string> = new Set
     let validate = createValidator()
@@ -34,9 +34,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
             input = typeof input !== 'string' ? input.target.name : input
 
             touched.add(input)
-            validating = true
+            validating = input
 
-            validate(input)
+            validate()
 
             return this
         },
