@@ -2,12 +2,24 @@ import { AxiosError, AxiosInstance, AxiosResponse, default as Axios } from 'axio
 import { Validator } from './validator'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, ClientCallback } from './types'
 
+/**
+ * The configured axios client.
+ */
 let axiosClient: AxiosInstance = Axios
 
+/**
+ * The request fingerprint resolver.
+ */
 let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
+/**
+ * The abort controller cache.
+ */
 const abortControllers: { [key: string]: AbortController } = {}
 
+/**
+ * The precognitive HTTP client.
+ */
 export const client: Client = {
     axios: () => axiosClient,
     get: (url, config = {}) => request({ ...config, url, method: 'get' }),
@@ -32,6 +44,9 @@ export const client: Client = {
     },
 }
 
+/**
+ * Send and handle a new request.
+ */
 const request = (userConfig: Config = {}): Promise<unknown> => {
     const config = resolveConfig(userConfig)
 
@@ -66,6 +81,9 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
     })
 }
 
+/**
+ * Abort an existing request with the same configured fingerprint.
+ */
 const abortMatchingRequests = (config: Config): void => {
     if (typeof config.fingerprint === 'string') {
         abortControllers[config.fingerprint]?.abort()
@@ -73,6 +91,9 @@ const abortMatchingRequests = (config: Config): void => {
     }
 }
 
+/**
+ * Create and configure the abort controller for a new request.
+ */
 const refreshAbortController = (config: Config): void => {
     if (
         typeof config.fingerprint === 'string'
@@ -84,16 +105,25 @@ const refreshAbortController = (config: Config): void => {
     }
 }
 
-const validatePrecognitionResponse = (response: AxiosResponse|undefined): void => {
-    if (response?.headers?.precognition !== 'true') {
+/**
+ * Ensure that the response is a Precognition response.
+ */
+const validatePrecognitionResponse = (response: AxiosResponse): void => {
+    if (response.headers?.precognition !== 'true') {
         throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     }
 }
 
+/**
+ * Determine if the error was not triggered by a server response.
+ */
 const isNotServerGeneratedError = (error: AxiosError): boolean => {
     return ! Axios.isAxiosError(error) || Axios.isCancel(error) || typeof error.response?.status !== 'number'
 }
 
+/**
+ * Resolve the configuration.
+ */
 const resolveConfig = (config: Config): Config => ({
     fingerprint: config.fingerprint === undefined
         ? requestFingerprintResolver(config, client.axios())
@@ -108,6 +138,9 @@ const resolveConfig = (config: Config): Config => ({
     },
 })
 
+/**
+ * Resolve the handler for the given HTTP response status.
+ */
 const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
     204: config.onPrecognitionSuccess,
     401: config.onUnauthorized,
