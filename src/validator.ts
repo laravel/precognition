@@ -2,7 +2,7 @@ import debounce from 'lodash.debounce'
 import { Client, ClientCallback, Config, NamedInputEvent, Timeout, Validator as TValidator } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
-    const withChanged = (config: Config): Config => {
+    const withConfig = (config: Config): Config => {
         if (typeof config.validate === 'undefined') {
             config.validate = changed
         }
@@ -15,11 +15,11 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         validating = true
 
         callback({
-            get: (url, config = {}) => client.get(url, withChanged(config)),
-            post: (url, data = {}, config) => client.post(url, data, withChanged(config)),
-            patch: (url, data = {}, config) => client.patch(url, data, withChanged(config)),
-            put: (url, data = {}, config) => client.put(url, data, withChanged(config)),
-            delete: (url, config = {}) => client.delete(url, withChanged(config)),
+            get: (url, config = {}) => client.get(url, withConfig(config)),
+            post: (url, data = {}, config) => client.post(url, data, withConfig(config)),
+            patch: (url, data = {}, config) => client.patch(url, data, withConfig(config)),
+            put: (url, data = {}, config) => client.put(url, data, withConfig(config)),
+            delete: (url, config = {}) => client.delete(url, withConfig(config)),
         }).finally(() => validating = false)
 
         return validator
