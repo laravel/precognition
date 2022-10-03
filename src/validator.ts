@@ -57,10 +57,8 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
             return this
         },
         errors: () => errors,
-        passed: () => new Set(
-            Array.from(touched).filter(name => typeof errors[name] === 'undefined' && validating !== name),
-        ),
-        touched: () => touched,
+        passed: () => Array.from(touched).filter(name => typeof errors[name] === 'undefined' && validating !== name),
+        touched: () => Array.from(touched),
         validating: () => validating,
         processingValidation: () => processingValidation,
         withTimeout(t: Timeout) {

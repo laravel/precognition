@@ -34,8 +34,8 @@ export interface Client {
 }
 
 export interface Validator {
-    touched(): Set<string>,
-    passed(): Set<string>,
+    touched(): Array<string>,
+    passed(): Array<string>,
     errors(): ValidationErrors,
     validate(input: string): Validator,
     validating(): string|null,
