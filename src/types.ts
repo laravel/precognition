@@ -2,7 +2,9 @@ import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "ax
 
 export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
 
-export type ValidationHandler = (errors: { [key: string]: Array<string> }, axiosError: AxiosError) => unknown
+export type ValidationHandler = (errors: ValidationErrors, axiosError: AxiosError) => unknown
+
+export type ValidationErrors = { [key: string]: Array<string> }
 
 export type Config = AxiosRequestConfig&{
     before?: () => void,

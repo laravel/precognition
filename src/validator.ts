@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce'
-import { Client, ClientCallback, Config, NamedInputEvent, Timeout, Validator as TValidator } from './types'
+import { Client, ClientCallback, Config, NamedInputEvent, Timeout, ValidationErrors, Validator as TValidator } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     const withConfig = (config: Config|undefined): Config => {
@@ -7,6 +7,16 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
         if (typeof config.validate === 'undefined') {
             config.validate = touched
+        }
+
+        const userValidationHandler = config.onValidationError
+
+        config.onValidationError = (e, axiosError) => {
+            errors = e
+
+            if (userValidationHandler) {
+                return userValidationHandler(e, axiosError)
+            }
         }
 
         return config
@@ -34,6 +44,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     let timeoutDuration = 1333 // default: 1 + 1/3 of a second
     const touched: Set<string> = new Set
     let validate = createValidator()
+    let errors: ValidationErrors = {}
 
     const validator: TValidator = {
         validate(input: string|NamedInputEvent) {
@@ -45,6 +56,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
+        errors: () => errors,
         touched: () => touched,
         validating: () => validating,
         processingValidation: () => processingValidation,
