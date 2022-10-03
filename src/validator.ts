@@ -13,7 +13,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     }
 
     const createValidator = () => debounce(function (input) {
-        touched.add(input)
         validating = true
 
         callback({
@@ -34,7 +33,11 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
     const validator: TValidator = {
         validate(input: string|NamedInputEvent) {
-            validate(typeof input !== 'string' ? input.target.name : input)
+            input = typeof input !== 'string' ? input.target.name : input
+
+            touched.add(input)
+
+            validate(input)
 
             return this
         },
