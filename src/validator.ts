@@ -2,7 +2,9 @@ import debounce from 'lodash.debounce'
 import { Client, ClientCallback, Config, NamedInputEvent, Timeout, Validator as TValidator } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
-    const withConfig = (config: Config): Config => {
+    const withConfig = (config: Config|undefined): Config => {
+        config = config ?? {}
+
         if (typeof config.validate === 'undefined') {
             config.validate = changed
         }
