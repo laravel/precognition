@@ -2,16 +2,16 @@ import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "ax
 
 export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
 
-export type ValidationHandler = (errors: ValidationErrors, axiosError: AxiosError) => unknown
-
 export type ValidationErrors = { [key: string]: Array<string> }
+
 export type SimpleValidationErrors = { [key: string]: string }
 
 export type Config = AxiosRequestConfig&{
-    before?: () => void,
+    onBefore?: () => void,
+    onAfter?: () => void,
     validate?: Iterable<string>|ArrayLike<string>,
     onPrecognitionSuccess?: StatusHandler,
-    onValidationError?: ValidationHandler,
+    onValidationError?: StatusHandler,
     onUnauthorized?: StatusHandler,
     onForbidden?: StatusHandler,
     onNotFound?: StatusHandler,
@@ -29,10 +29,9 @@ export interface Client {
     put(url: string, data?: unknown, config?: Config): Promise<unknown>,
     delete(url: string, config?: Config): Promise<unknown>,
     validate(callback: ClientCallback): Validator,
-    poll(callback: ClientCallback): Poll,
+    axios(): AxiosInstance,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
-    axios: AxiosInstance,
 }
 
 export interface Validator {
@@ -56,14 +55,6 @@ export interface Timeout {
     seconds?: number,
     minutes?: number,
     hours?: number,
-}
-
-export interface Poll {
-    start(): Poll,
-    stop(): Poll,
-    every(timeout: Timeout): Poll,
-    polling(): boolean,
-    invocations(): number
 }
 
 export type RequestMethods = 'get'|'post'|'patch'|'put'|'delete'
