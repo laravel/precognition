@@ -1,7 +1,7 @@
 import { default as Axios, AxiosInstance } from 'axios'
 import { Poll } from './poll'
 import { Validator } from './validator'
-import { Config, Client, RequestFingerprintResolver, StatusHandler, ValidationPayload, ClientCallback } from './types'
+import { Config, Client, RequestFingerprintResolver, StatusHandler, ClientCallback } from './types'
 
 let axiosClient: AxiosInstance = Axios
 
@@ -66,8 +66,12 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
             throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
         }
 
-        if (error.response.status === 422 && config.onValidationError && isValidationPayload(error.response.data)) {
-            return config.onValidationError(error.response.data.errors, error)
+        if (error.response.status === 422 && config.onValidationError) {
+            return config.onValidationError(
+                // @ts-ignore-next-line
+                error.response.data?.errors,
+                error
+            )
         }
 
         const statusHandler = resolveStatusHandler(config, error.response.status)
@@ -98,14 +102,3 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
     409: config.onConflict,
     423: config.onLocked,
 }[code])
-
-const isValidationPayload = (response: any): response is ValidationPayload => {
-    return typeof response === 'object'
-       && typeof response.message === 'string'
-       && typeof response.errors === 'object'
-       && ! Array.isArray(response.errors)
-       && Object.keys(response.errors).every(key => {
-           return Array.isArray(response.errors[key])
-               && response.errors[key].every((error: unknown) => typeof error === 'string')
-       })
-}
