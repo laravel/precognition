@@ -29,11 +29,11 @@ export type Config = AxiosRequestConfig&{
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
 
 export interface Client {
-    get(url: string, config: Config): Promise<unknown>,
-    post(url: string, data: unknown, config: Config): Promise<unknown>,
-    patch(url: string, data: unknown, config: Config): Promise<unknown>,
-    put(url: string, data: unknown, config: Config): Promise<unknown>,
-    delete(url: string, config: Config): Promise<unknown>,
+    get(url: string, config?: Config): Promise<unknown>,
+    post(url: string, data?: unknown, config?: Config): Promise<unknown>,
+    patch(url: string, data?: unknown, config?: Config): Promise<unknown>,
+    put(url: string, data?: unknown, config?: Config): Promise<unknown>,
+    delete(url: string, config?: Config): Promise<unknown>,
     validate(callback: ClientCallback): Validator,
     poll(callback: ClientCallback): Poll,
     use(axios: AxiosInstance): Client,
