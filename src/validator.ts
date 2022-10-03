@@ -6,14 +6,14 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         config = config ?? {}
 
         if (typeof config.validate === 'undefined') {
-            config.validate = changed
+            config.validate = touched
         }
 
         return config
     }
 
     const createValidator = () => debounce(function (input) {
-        changed.add(input)
+        touched.add(input)
         validating = true
 
         callback({
@@ -29,7 +29,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
     let validating = false
     let timeoutDuration = 1333 // default: 1 + 1/3 of a second
-    const changed: Set<string> = new Set
+    const touched: Set<string> = new Set
     let validate = createValidator()
 
     const validator: TValidator = {
@@ -38,7 +38,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
-        changed: () => changed,
+        touched: () => touched,
         validating: () => validating,
         withTimeout(t: Timeout) {
             timeoutDuration = (t.milliseconds ?? 0)

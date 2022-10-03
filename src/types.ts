@@ -32,7 +32,7 @@ export interface Client {
 }
 
 export interface Validator {
-    changed(): Set<string>,
+    touched(): Set<string>,
     validate(input: string): Validator,
     validating(): boolean,
     withTimeout(duration: Timeout): Validator,
