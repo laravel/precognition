@@ -18,7 +18,7 @@ let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => 
 const abortControllers: { [key: string]: AbortController } = {}
 
 /**
- * The precognitive HttHttp client.
+ * The precognitive HTTP client.
  */
 export const client: Client = {
     axios: () => axiosClient,
