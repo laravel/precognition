@@ -1,58 +1,62 @@
 import debounce from 'lodash.debounce'
-import { Client, ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, Timeout, ValidationErrors, Validator as TValidator } from './types'
+import { Client, ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, Timeout, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     /**
-     * Merge the validation configuration with the user configuration.
+     * Resolve the configuration.
      */
-    const mergeConfig = (config: Config|undefined): Config => {
-        config = config ?? {}
-
+    const resolveConfig = (config: Config): Config => {
         if (! config.validate) {
             config.validate = touched
         }
 
-        const userValidationHandler = config.onValidationError
+        const userOnValidationErrorHandler = config.onValidationError
 
-        config.onValidationError = (errors, axiosError) => {
-            validator.setErrors(errors)
+        config.onValidationError = (response, axiosError) => {
+            setErrors(response.data.errors)
 
-            if (userValidationHandler) {
-                return userValidationHandler(errors, axiosError)
-            }
+            return userOnValidationErrorHandler ? userOnValidationErrorHandler(response, axiosError) : Promise.reject(axiosError)
         }
 
-        const userSuccessHandler = config.onPrecognitionSuccess
+        const userOnPrecognitionSuccessHandler = config.onPrecognitionSuccess
 
         config.onPrecognitionSuccess = (response) => {
-            validator.setErrors({})
+            setErrors({})
 
-            if (userSuccessHandler) {
-                return userSuccessHandler(response)
-            }
+            return userOnPrecognitionSuccessHandler ? userOnPrecognitionSuccessHandler(response) : response
         }
 
         return config
     }
 
+    /**
+     * Create a debounced validation callback.
+     */
     const createValidator = () => debounce(function () {
         setProcessingValidation(true)
 
         callback({
-            get: (url, config = {}) => client.get(url, mergeConfig(config)),
-            post: (url, data = {}, config) => client.post(url, data, mergeConfig(config)),
-            patch: (url, data = {}, config) => client.patch(url, data, mergeConfig(config)),
-            put: (url, data = {}, config) => client.put(url, data, mergeConfig(config)),
-            delete: (url, config = {}) => client.delete(url, mergeConfig(config)),
+            get: (url, config = {}) => client.get(url, resolveConfig(config)),
+            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config)),
+            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
+            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
+            delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
         }).finally(() => {
             setValidating(null)
             setProcessingValidation(false)
         })
-
-        return validator
     }, timeoutDuration, { leading: true, trailing: true })
 
+    /*
+     * Validate state.
+     */
+    let validate = createValidator()
+
+    /**
+     * Validating input state.
+     */
     let validating: string|null = null
+
     const setValidating = (v: string|null) => {
         if (v !== validating) {
             validating = v
@@ -61,7 +65,11 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         }
     }
 
+    /**
+     * Processing validation state.
+     */
     let processingValidation = false
+
     const setProcessingValidation = (p: boolean) => {
         if (p !== processingValidation) {
             processingValidation = p
@@ -70,96 +78,103 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         }
     }
 
-    let touched: Set<string> = new Set
+    /**
+     * Touched input state.
+     */
+    let touched: Array<string> = []
+
     const setTouched = (names: Array<string>) => {
-        if (! names.every(name => touched.has(name))) {
-            touched = new Set(names)
+        if (touched.length !== names.length || ! names.every(name => touched.includes(name))) {
+            touched = [...new Set(names)]
 
             listeners.touchedChanged.forEach(callback => callback())
         }
     }
 
-    let timeoutDuration = 1333 // default: 1 + 1/3 of a second
-    let validate = createValidator()
+    /**
+     * Validation errors state.
+     */
     let errors: ValidationErrors = {}
-    const listeners: {
-        errorsChanged: Array<() => void>,
-        validatingChanged: Array<() => void>,
-        touchedChanged: Array<() => void>,
-        processingValidationChanged: Array<() => void>,
-    } = {
-        errorsChanged: [],
-        validatingChanged: [],
-        touchedChanged: [],
-        processingValidationChanged: [],
+
+    const setErrors = (e: ValidationErrors|SimpleValidationErrors) => {
+        const prepared: ValidationErrors = Object.keys(e).reduce((carry, key) => ({
+            ...carry,
+            [key]: typeof e[key] === 'string' ? [e[key]] : e[key],
+        }), {})
+
+        if (JSON.stringify(errors) !== JSON.stringify(prepared)) {
+            errors = prepared
+
+            listeners.errorsChanged.forEach(callback => callback())
+        }
     }
 
-    const validator: TValidator = {
+    /**
+     * Debouncing timeout state.
+     */
+    let timeoutDuration = 1250
+
+    const setTimeout = (t: Timeout) => {
+        timeoutDuration = (t.milliseconds ?? 0)
+            + ((t.seconds ?? 0) * 1000)
+            + ((t.minutes ?? 0) * 60000)
+            + ((t.hours ?? 0) * 3600000)
+
+        validate.cancel()
+        validate = createValidator()
+
+        return this
+    }
+
+    /**
+     * Registered event listeners.
+     */
+    const listeners: ValidatorListeners = {
+        errorsChanged: [],
+        processingValidationChanged: [],
+        touchedChanged: [],
+        validatingChanged: [],
+    }
+
+    /**
+     * The validator instance.
+     */
+     return {
         validate(input: string|NamedInputEvent) {
             input = typeof input !== 'string' ? input.target.name : input
 
             setTouched([input, ...touched])
+
             setValidating(input)
+
             validate()
 
             return this
         },
-        passed: () => Array.from(touched).filter(name => typeof errors[name] === 'undefined' && validating !== name),
-        touched: () => Array.from(touched),
-        onTouchedChanged(callback) {
-            listeners.touchedChanged.push(callback)
-
-            return this
-        },
         validating: () => validating,
-        onValidatingChanged(callback) {
-            listeners.validatingChanged.push(callback)
-
-            return this
-        },
         processingValidation: () => processingValidation,
-        onProcessingValidationChanged(callback) {
-            listeners.processingValidationChanged.push(callback)
-
-            return this
-        },
+        touched: () => touched,
+        passed: () => touched.filter(name => typeof errors[name] === 'undefined' && validating !== name),
         errors: () => errors,
-        onErrorsChanged(callback) {
-            listeners.errorsChanged.push(callback)
-
-            return this
-        },
         clearErrors() {
-            this.setErrors({})
+            setErrors({})
 
             return this
         },
         setErrors(e: ValidationErrors|SimpleValidationErrors) {
-            const prepared: ValidationErrors = Object.keys(e).reduce((carry, key) => ({
-                ...carry,
-                [key]: typeof e[key] === 'string' ? [e[key]] : e[key],
-            }), {})
-
-            if (JSON.stringify(errors) !== JSON.stringify(prepared)) {
-                errors = prepared
-
-                listeners.errorsChanged.forEach(callback => callback())
-            }
+            setErrors(e)
 
             return this
         },
         setTimeout(t: Timeout) {
-            timeoutDuration = (t.milliseconds ?? 0)
-                + ((t.seconds ?? 0) * 1000)
-                + ((t.minutes ?? 0) * 60000)
-                + ((t.hours ?? 0) * 3600000)
+            setTimeout(t)
 
-            validate.cancel()
-            validate = createValidator()
+            return this
+        },
+        on(event: keyof ValidatorListeners, callback) {
+            listeners[event].push(callback)
 
             return this
         },
     }
-
-    return validator
 }

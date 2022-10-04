@@ -37,17 +37,21 @@ export interface Client {
 export interface Validator {
     validate(input: string|NamedInputEvent): Validator,
     touched(): Array<string>,
-    onTouchedChanged(callback: () => void): Validator,
     passed(): Array<string>,
     errors(): ValidationErrors,
-    onErrorsChanged(callback: () => void): Validator,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     clearErrors(): Validator,
     validating(): string|null,
-    onValidatingChanged(callback: () => void): Validator,
     processingValidation(): boolean,
-    onProcessingValidationChanged(callback: () => void): Validator,
     setTimeout(duration: Timeout): Validator,
+    on(event: string, callback: () => void): Validator,
+}
+
+export interface ValidatorListeners {
+    errorsChanged: Array<() => void>,
+    processingValidationChanged: Array<() => void>,
+    touchedChanged: Array<() => void>,
+    validatingChanged: Array<() => void>,
 }
 
 export interface Timeout {
