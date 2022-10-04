@@ -163,7 +163,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         validating: () => validating,
         processingValidation: () => processingValidation,
         touched: () => touched,
-        passed: () => touched.filter(name => typeof errors[name] === 'undefined' && validating !== name),
+        passed: () => touched.filter(name => typeof errors[name] === 'undefined'),
         errors: () => errors,
         hasErrors: () => Object.keys(errors).length > 0,
         setErrors(e) {
