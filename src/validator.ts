@@ -23,7 +23,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (config: Config): Config => {
+    const resolveConfig = (c: Config): Config => {
+        const config = { ...c }
+
         if (! config.validate) {
             config.validate = touched
         }
