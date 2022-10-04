@@ -8,6 +8,7 @@ export type SimpleValidationErrors = { [key: string]: string }
 
 export type Config = AxiosRequestConfig&{
     onBefore?: () => void,
+    onAfter?: (promise: Promise<any>) => Promise<any>,
     validate?: Iterable<string>|ArrayLike<string>,
     onPrecognitionSuccess?: StatusHandler,
     onValidationError?: StatusHandler,

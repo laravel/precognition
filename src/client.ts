@@ -74,6 +74,10 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         const statusHandler = resolveStatusHandler(config, error.response.status)
 
         return statusHandler ? statusHandler(error.response, error) : Promise.reject(error)
+    }).then(response => {
+        config.onAfter ? config.onAfter(Promise.resolve(response)) : response
+    }, error => {
+        return config.onAfter ? config.onAfter(Promise.reject(error)) : Promise.reject(error)
     })
 }
 
