@@ -74,10 +74,6 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         const statusHandler = resolveStatusHandler(config, error.response.status)
 
         return statusHandler ? statusHandler(error.response, error) : Promise.reject(error)
-    }).finally(() => {
-        if (config.onAfter) {
-            config.onAfter()
-        }
     })
 }
 

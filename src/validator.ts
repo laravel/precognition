@@ -5,7 +5,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce(function () {
+    const createValidator = () => debounce(function (): void {
         setProcessingValidation(true)
 
         callback({
@@ -146,7 +146,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     }
 
      return {
-        validate(input: string|NamedInputEvent) {
+        validate(input) {
             input = typeof input !== 'string' ? input.target.name : input
 
             setTouched([input, ...touched])
@@ -167,17 +167,17 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
-        setErrors(e: ValidationErrors|SimpleValidationErrors) {
+        setErrors(e) {
             setErrors(e)
 
             return this
         },
-        setTimeout(t: Timeout) {
+        setTimeout(t) {
             setTimeout(t)
 
             return this
         },
-        on(event: keyof ValidatorListeners, callback) {
+        on(event, callback) {
             listeners[event].push(callback)
 
             return this

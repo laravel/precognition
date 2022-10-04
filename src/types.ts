@@ -8,7 +8,6 @@ export type SimpleValidationErrors = { [key: string]: string }
 
 export type Config = AxiosRequestConfig&{
     onBefore?: () => void,
-    onAfter?: () => void,
     validate?: Iterable<string>|ArrayLike<string>,
     onPrecognitionSuccess?: StatusHandler,
     onValidationError?: StatusHandler,
@@ -44,7 +43,7 @@ export interface Validator {
     validating(): string|null,
     processingValidation(): boolean,
     setTimeout(duration: Timeout): Validator,
-    on(event: string, callback: () => void): Validator,
+    on(event: keyof ValidatorListeners, callback: () => void): Validator,
 }
 
 export interface ValidatorListeners {
