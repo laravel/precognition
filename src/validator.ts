@@ -21,7 +21,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         const userOnPrecognitionSuccessHandler = config.onPrecognitionSuccess
 
         config.onPrecognitionSuccess = (response) => {
-            setErrors({})
+            clearErrors()
 
             return userOnPrecognitionSuccessHandler ? userOnPrecognitionSuccessHandler(response) : response
         }
@@ -109,6 +109,14 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         }
     }
 
+    const clearErrors = () => {
+        if (Object.keys(errors).length > 0) {
+            errors = {}
+
+            listeners.errorsChanged.forEach(callback => callback())
+        }
+    }
+
     /**
      * Debouncing timeout state.
      */
@@ -155,7 +163,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         passed: () => touched.filter(name => typeof errors[name] === 'undefined' && validating !== name),
         errors: () => errors,
         clearErrors() {
-            setErrors({})
+            clearErrors()
 
             return this
         },
