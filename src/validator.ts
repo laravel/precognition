@@ -48,9 +48,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     }, timeoutDuration, { leading: true, trailing: true })
 
     /*
-     * Validate state.
+     * Validator state.
      */
-    let validate = createValidator()
+    let validator = createValidator()
 
     /**
      * Validating input state.
@@ -120,8 +120,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
             + ((t.minutes ?? 0) * 60000)
             + ((t.hours ?? 0) * 3600000)
 
-        validate.cancel()
-        validate = createValidator()
+        validator.cancel()
+
+        validator = createValidator()
 
         return this
     }
@@ -136,9 +137,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         validatingChanged: [],
     }
 
-    /**
-     * The validator instance.
-     */
      return {
         validate(input: string|NamedInputEvent) {
             input = typeof input !== 'string' ? input.target.name : input
@@ -147,7 +145,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             setValidating(input)
 
-            validate()
+            validator()
 
             return this
         },
