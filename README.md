@@ -5,22 +5,6 @@
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/v/laravel-precognition" alt="Latest Stable Version"></a>
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/l/laravel-precognition" alt="License"></a>
 
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Handling Responses](#handling-responses)
-    - [Successful Responses](#successful-responses)
-    - [Validation Responses](#validation-responses)
-    - [Error Responses](#error-responses)
-    - [Other Responses](#other-responses)
-    - [Non-Precognition Responses](#non-precognition-responses)
-- [Specifying Inputs For Validation](#specifying-inputs-for-validation)
-- [Using An Existing Axios Instance](#using-an-existing-axios-instance)
-- [Aborting Stale Requests](#aborting-stale-requests)
-- [Polling](#polling)
-    - [Timeout](#timeout)
-    - [Checking the Status](#checking-the-status)
-
 ## Introduction
 
 Laravel Precognition allows you to anticipate the outcome of a future request. Some ways Precognition may be used include:
