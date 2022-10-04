@@ -3,6 +3,24 @@ import { Client, ClientCallback, Config, NamedInputEvent, SimpleValidationErrors
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     /**
+     * Create a debounced validation callback.
+     */
+    const createValidator = () => debounce(function () {
+        setProcessingValidation(true)
+
+        callback({
+            get: (url, config = {}) => client.get(url, resolveConfig(config)),
+            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config)),
+            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
+            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
+            delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
+        }).finally(() => {
+            setValidating(null)
+            setProcessingValidation(false)
+        })
+    }, timeoutDuration, { leading: true, trailing: true })
+
+    /**
      * Resolve the configuration.
      */
     const resolveConfig = (config: Config): Config => {
@@ -28,24 +46,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
         return config
     }
-
-    /**
-     * Create a debounced validation callback.
-     */
-    const createValidator = () => debounce(function () {
-        setProcessingValidation(true)
-
-        callback({
-            get: (url, config = {}) => client.get(url, resolveConfig(config)),
-            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config)),
-            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
-            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
-            delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
-        }).finally(() => {
-            setValidating(null)
-            setProcessingValidation(false)
-        })
-    }, timeoutDuration, { leading: true, trailing: true })
 
     /*
      * Validator state.
