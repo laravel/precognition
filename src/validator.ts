@@ -2,10 +2,13 @@ import debounce from 'lodash.debounce'
 import { Client, ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, Timeout, ValidationErrors, Validator as TValidator } from './types'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
+    /**
+     * Merge the validation configuration with the user configuration.
+     */
     const mergeConfig = (config: Config|undefined): Config => {
         config = config ?? {}
 
-        if (typeof config.validate === 'undefined') {
+        if (! config.validate) {
             config.validate = touched
         }
 

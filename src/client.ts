@@ -48,11 +48,11 @@ export const client: Client = {
  * Send and handle a new request.
  */
 const request = (userConfig: Config = {}): Promise<unknown> => {
-    const config = resolveConfig(userConfig)
-
-    abortMatchingRequests(config)
-
-    refreshAbortController(config)
+    const config = [
+        resolveConfig,
+        abortMatchingRequests,
+        refreshAbortController,
+    ].reduce((config, f) => f(config), userConfig)
 
     if (config.onBefore) {
         config.onBefore()
@@ -84,17 +84,19 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 /**
  * Abort an existing request with the same configured fingerprint.
  */
-const abortMatchingRequests = (config: Config): void => {
+const abortMatchingRequests = (config: Config): Config => {
     if (typeof config.fingerprint === 'string') {
         abortControllers[config.fingerprint]?.abort()
         delete abortControllers[config.fingerprint]
     }
+
+    return config
 }
 
 /**
  * Create and configure the abort controller for a new request.
  */
-const refreshAbortController = (config: Config): void => {
+const refreshAbortController = (config: Config): Config => {
     if (
         typeof config.fingerprint === 'string'
         && ! config.signal
@@ -103,6 +105,8 @@ const refreshAbortController = (config: Config): void => {
         abortControllers[config.fingerprint] = new AbortController
         config.signal = abortControllers[config.fingerprint].signal
     }
+
+    return config
 }
 
 /**
