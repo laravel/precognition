@@ -47,11 +47,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         return config
     }
 
-    /*
-     * Validator state.
-     */
-    let validator = createValidator()
-
     /**
      * Validating input state.
      */
@@ -84,8 +79,10 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     let touched: Array<string> = []
 
     const setTouched = (names: Array<string>) => {
-        if (touched.length !== names.length || ! names.every(name => touched.includes(name))) {
-            touched = [...new Set(names)]
+        const uniqueNames = [...new Set(names)]
+
+        if (touched.length !== uniqueNames.length || ! uniqueNames.every(name => touched.includes(name))) {
+            touched = uniqueNames
 
             listeners.touchedChanged.forEach(callback => callback())
         }
@@ -104,6 +101,8 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             listeners.errorsChanged.forEach(callback => callback())
         }
+
+        setTouched([...touched, ...Object.keys(errors)])
     }
 
     const clearErrors = () => {
@@ -142,6 +141,11 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         validatingChanged: [],
     }
 
+    /*
+     * Validator state.
+     */
+    let validator = createValidator()
+
      return {
         validate(input) {
             input = typeof input !== 'string' ? input.target.name : input
@@ -159,13 +163,14 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         touched: () => touched,
         passed: () => touched.filter(name => typeof errors[name] === 'undefined' && validating !== name),
         errors: () => errors,
-        clearErrors() {
-            clearErrors()
+        hasErrors: () => Object.keys(errors).length > 0,
+        setErrors(e) {
+            setErrors(e)
 
             return this
         },
-        setErrors(e) {
-            setErrors(e)
+        clearErrors() {
+            clearErrors()
 
             return this
         },

@@ -38,6 +38,7 @@ export interface Validator {
     touched(): Array<string>,
     passed(): Array<string>,
     errors(): ValidationErrors,
+    hasErrors(): boolean,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     clearErrors(): Validator,
     validating(): string|null,
