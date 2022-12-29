@@ -53,7 +53,7 @@ export const client: Client = {
         autoValidateParentKeys = value
 
         return this
-    }
+    },
 }
 
 /**
@@ -155,7 +155,7 @@ const resolveConfig = (config: Config): Config => ({
 })
 
 const resolveKeysToValidate = (config: Config): Array<string> => {
-    const resolveParents = config.autoValidateParentKeys ?? autoValidateParentKeys;
+    const resolveParents = config.autoValidateParentKeys ?? autoValidateParentKeys
 
     if (! resolveParents) {
         return Array.from(config.validate ?? [])
