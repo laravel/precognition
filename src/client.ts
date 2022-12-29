@@ -13,6 +13,13 @@ let axiosClient: AxiosInstance = Axios
 let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 /**
+ * Should nested keys also have their parent keys validated.
+ *
+ * `members.0.name` would resolve to `members,members.0,members.0.name`.
+ */
+let autoValidateParentKeys = false
+
+/**
  * The abort controller cache.
  */
 const abortControllers: { [key: string]: AbortController } = {}
@@ -42,6 +49,11 @@ export const client: Client = {
 
         return this
     },
+    autoValidateParentKeys(value = true) {
+        autoValidateParentKeys = value
+
+        return this
+    }
 }
 
 /**
@@ -137,10 +149,31 @@ const resolveConfig = (config: Config): Config => ({
         ...config.headers,
         Precognition: true,
         ...config.validate ? {
-            'Precognition-Validate-Only': Array.from(config.validate).join(),
+            'Precognition-Validate-Only': resolveKeysToValidate(config).join(),
         } : {},
     },
 })
+
+const resolveKeysToValidate = (config: Config): Array<string> => {
+    const resolveParents = config.autoValidateParentKeys ?? autoValidateParentKeys;
+
+    if (! resolveParents) {
+        return Array.from(config.validate ?? [])
+    }
+
+    const rules = Array.from(config.validate ?? []).flatMap(rule => rule.split(/(?<!\\)\./)
+        .reduce((accumulator: Array<string>, currentValue: string) => {
+            if (accumulator.length === 0) {
+                accumulator.push(currentValue)
+            } else {
+                accumulator.push(`${accumulator[accumulator.length - 1]}.${currentValue}`)
+            }
+
+            return accumulator
+        }, []))
+
+    return Array.from(new Set(rules))
+}
 
 /**
  * Resolve the handler for the given HTTP response status.

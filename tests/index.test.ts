@@ -421,3 +421,39 @@ test('it does not create signal when a cancelToken is provided', async () => {
 
     expect(config.signal).toBeUndefined()
 })
+
+test('it can auto validate parent keys', async () => {
+    expect.assertions(1)
+
+    precognition.autoValidateParentKeys()
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+
+    await precognition.get('https://laravel.com', {
+        validate: ['members.0.name', 'members.1.email', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('members,members.0,members.0.name,members.1,members.1.email,email')
+})
+
+test('it does not split escaped dots when auto validating parent keys', async () => {
+    expect.assertions(1)
+
+    precognition.autoValidateParentKeys()
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+
+    await precognition.get('https://laravel.com', {
+        validate: ['members.0.name', 'members\\.1\\.email', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('members,members.0,members.0.name,members\\.1\\.email,email')
+})

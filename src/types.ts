@@ -18,6 +18,7 @@ export type Config = AxiosRequestConfig&{
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
     fingerprint?: string|null,
+    autoValidateParentKeys?: boolean,
 }
 
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
@@ -32,6 +33,7 @@ export interface Client {
     axios(): AxiosInstance,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
+    autoValidateParentKeys(value?: boolean): Client
 }
 
 export interface Validator {
