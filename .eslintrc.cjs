@@ -13,7 +13,6 @@ module.exports = {
         "no-trailing-spaces": ["error"],
         "object-curly-spacing": ["error", "always"],
         "comma-dangle": ["error", "always-multiline"],
-        "@typescript-eslint/no-explicit-any": "off",
         "semi": ["error", "never"],
     },
 };
