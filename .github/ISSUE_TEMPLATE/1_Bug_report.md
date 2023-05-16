@@ -6,8 +6,8 @@ body:
       value: "Before submitting your report, [please ensure your Laravel version is still supported](https://laravel.com/docs/releases#support-policy)."
   - type: input
     attributes:
-      label: Vite Plugin Version
-      description: Provide the Vite Plugin version that you are using.
+      label: Laravel Precognition Plugin Version
+      description: Provide the Laravel Precognition version that you are using.
       placeholder: 1.6.1
     validations:
       required: true
