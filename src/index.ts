@@ -1,2 +1,2 @@
-export { client as default } from './client'
+export { client } from './client'
 export { toSimpleValidationErrors } from './utils'

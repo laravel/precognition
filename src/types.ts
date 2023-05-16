@@ -7,10 +7,8 @@ export type ValidationErrors = { [key: string]: Array<string> }
 export type SimpleValidationErrors = { [key: string]: string }
 
 export type Config = AxiosRequestConfig&{
-    onBefore?: () => void,
-    onAfter?: (promise: Promise<unknown>) => Promise<unknown>,
     validate?: Iterable<string>|ArrayLike<string>,
-    onPrecognitionSuccess?: StatusHandler,
+    onPrecognitionSuccess?: (response: AxiosResponse) => unknown,
     onValidationError?: StatusHandler,
     onUnauthorized?: StatusHandler,
     onForbidden?: StatusHandler,
@@ -22,16 +20,19 @@ export type Config = AxiosRequestConfig&{
 
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
 
+export type PrecognitionSuccessfulResolver = (response: AxiosResponse) => boolean
+
 export interface Client {
     get(url: string, config?: Config): Promise<unknown>,
     post(url: string, data?: unknown, config?: Config): Promise<unknown>,
     patch(url: string, data?: unknown, config?: Config): Promise<unknown>,
     put(url: string, data?: unknown, config?: Config): Promise<unknown>,
     delete(url: string, config?: Config): Promise<unknown>,
-    validate(callback: ClientCallback): Validator,
+    validator(callback: ClientCallback): Validator,
     axios(): AxiosInstance,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
+    determineSuccesfulPrecognitionUsing(callback: PrecognitionSuccessfulResolver): Client,
 }
 
 export interface Validator {
@@ -62,7 +63,7 @@ export interface Timeout {
     hours?: number,
 }
 
-export type RequestMethods = 'get'|'post'|'patch'|'put'|'delete'
+type RequestMethods = 'get'|'post'|'patch'|'put'|'delete'
 
 export type ClientCallback = (client: Pick<Client, RequestMethods>) => Promise<unknown>
 
@@ -70,6 +71,6 @@ interface NamedInputEventTarget extends EventTarget {
     name: string
 }
 
-export interface NamedInputEvent extends Event {
+interface NamedInputEvent extends Event {
     readonly target: NamedInputEventTarget;
 }

@@ -1,8 +1,8 @@
 import axios from 'axios'
-import precognition from '../src/index'
+import { client } from '../src/index'
 
 jest.mock('axios')
-precognition.use(axios)
+client.use(axios)
 jest.useFakeTimers()
 jest.spyOn(global, 'setTimeout')
 
@@ -11,7 +11,7 @@ test('success response must have Precognition header', async () => {
 
     axios.request.mockResolvedValueOnce({ headers: {} })
 
-    await precognition.get('https://laravel.com').catch((e) => {
+    await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
         expect(e.message).toBe('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     })
@@ -23,7 +23,7 @@ test('error response must have Precognition header', async () => {
     axios.request.mockRejectedValueOnce({ response: { status: 500 } })
     axios.isAxiosError.mockReturnValue(true)
 
-    await precognition.get('https://laravel.com').catch((e) => {
+    await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
         expect(e.message).toBe('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     })
@@ -36,7 +36,7 @@ test('unknown error is rejected again', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(false)
 
-    await precognition.get('https://laravel.com').catch((e) => {
+    await client.get('https://laravel.com').catch((e) => {
         expect(e).toBe(error)
     })
 })
@@ -49,7 +49,7 @@ test('test canceled request is rejected again', async () => {
     axios.isAxiosError.mockReturnValueOnce(true)
     axios.isCancel.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com').catch((e) => {
+    await client.get('https://laravel.com').catch((e) => {
         expect(e).toBe(error)
     })
 })
@@ -61,7 +61,7 @@ test('axios error without status is rejected', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com').catch((e) => {
+    await client.get('https://laravel.com').catch((e) => {
         expect(e).toBe(error)
     })
 })
@@ -72,23 +72,48 @@ test('it does not have to provide a success handler', async () => {
     const response = { headers: { precognition: 'true' }, status: 204, data: 'expected data' }
     axios.request.mockResolvedValueOnce(response)
 
-    await precognition.get('https://laravel.com').then(r => expect(r).toBe(response))
+    await client.get('https://laravel.com').then(r => expect(r).toBe(response))
 })
 
 test('it can provide a onPrecognitionSuccess handler', async () => {
-    expect.assertions(3)
+    expect.assertions(2)
 
     const response = { headers: { precognition: 'true' }, status: 204, data: 'expected data' }
     axios.request.mockResolvedValueOnce(response)
 
-    await precognition.get('https://laravel.com', {
-        onPrecognitionSuccess: (r, e) => {
+    await client.get('https://laravel.com', {
+        onPrecognitionSuccess: (r) => {
             expect(r).toBe(response)
-            expect(e).toBeUndefined()
 
             return 'expected return'
         },
     }).then(value => expect(value).toBe('expected return'))
+})
+
+test('it can provide a procognitionSuccessResolver', async () => {
+    expect.assertions(3)
+
+    let response = { headers: { precognition: 'true' }, status: 999, data: 'expected data' }
+    axios.request.mockResolvedValueOnce(response)
+
+    client.determineSuccesfulPrecognitionUsing((response) => response.status === 999)
+
+    await client.get('https://laravel.com', {
+        onPrecognitionSuccess: (r) => {
+            expect(r).toBe(response)
+
+            return 'expected return'
+        },
+    }).then(value => expect(value).toBe('expected return'))
+
+    response = { headers: { precognition: 'true' }, status: 204, data: 'expected data' }
+    axios.request.mockResolvedValueOnce(response)
+
+    await client.get('https://laravel.com', {
+        onPrecognitionSuccess: () => {
+            return 'expected return'
+        },
+    }).then(value => expect(value).toBe(response))
 })
 
 test('it does not have to provide an error handler', async () => {
@@ -107,7 +132,7 @@ test('it does not have to provide an error handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com').catch(e => expect(e).toBe(error))
+    await client.get('https://laravel.com').catch(e => expect(e).toBe(error))
 })
 
 test('it can provide an onValidationError handler', async () => {
@@ -126,7 +151,7 @@ test('it can provide an onValidationError handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         onValidationError: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -149,7 +174,7 @@ test('it can provide an onUnauthorized handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         onUnauthorized: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -172,7 +197,7 @@ test('it can provide an onForbidden handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         onForbidden: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -195,7 +220,7 @@ test('it can provide an onNotFound handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         onNotFound: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -218,7 +243,7 @@ test('it can provide an onConflict handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         onConflict: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -241,7 +266,7 @@ test('it can provide an onLocked handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         onLocked: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -260,7 +285,7 @@ test('it can provide a list of inputs to validate', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('https://laravel.com', {
+    await client.get('https://laravel.com', {
         validate: ['username', 'email'],
     })
 
@@ -276,7 +301,7 @@ test('it creates request identifier and adds signal', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('https://laravel.com')
+    await client.get('https://laravel.com')
 
     expect(config.fingerprint).toBe('get:https://laravel.com')
     expect(config.signal).toBeInstanceOf(AbortSignal)
@@ -292,7 +317,7 @@ test('it uses baseURL from axios in request identifier', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('/docs')
+    await client.get('/docs')
 
     expect(config.fingerprint).toBe('get:https://laravel.com/docs')
     expect(config.signal).toBeInstanceOf(AbortSignal)
@@ -308,7 +333,7 @@ test('it config baseURL takes precedence for request id', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('/docs', {
+    await client.get('/docs', {
         baseURL: 'https://forge.laravel.com',
     })
 
@@ -325,7 +350,7 @@ test('it can pass request identifier to config', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('/docs', {
+    await client.get('/docs', {
         fingerprint: 'expected-id',
     })
 
@@ -341,9 +366,9 @@ test('it set request identifier resolver', async () => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
-    precognition.fingerprintRequestsUsing(() => 'expected-id')
+    client.fingerprintRequestsUsing(() => 'expected-id')
 
-    await precognition.get('/docs')
+    await client.get('/docs')
 
     expect(config.fingerprint).toBe('expected-id')
     expect(config.signal).toBeInstanceOf(AbortSignal)
@@ -357,9 +382,9 @@ test('it config fingerprint takes precedence for request id', async () => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
-    precognition.fingerprintRequestsUsing(() => 'foo')
+    client.fingerprintRequestsUsing(() => 'foo')
 
-    await precognition.get('/docs', {
+    await client.get('/docs', {
         fingerprint: 'expected-id',
     })
 
@@ -376,7 +401,7 @@ test('it can opt out of signals with `null`', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('/docs', {
+    await client.get('/docs', {
         fingerprint: null,
     })
 
@@ -398,7 +423,7 @@ test('it does not create signal when one is provided', async () => {
         called = true
     })
 
-    await precognition.get('/docs', {
+    await client.get('/docs', {
         signal: controller.signal,
     })
     config.signal.dispatchEvent(new Event('foo'))
@@ -415,7 +440,7 @@ test('it does not create signal when a cancelToken is provided', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await precognition.get('/docs', {
+    await client.get('/docs', {
         cancelToken: { /* ... */ },
     })
 

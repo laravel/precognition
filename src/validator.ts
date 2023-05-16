@@ -1,5 +1,6 @@
 import debounce from 'lodash.debounce'
 import { Client, ClientCallback, Config, SimpleValidationErrors, Timeout, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
+import {toValidationErrors} from './utils'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     /**
@@ -187,11 +188,4 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
             return this
         },
     }
-}
-
-const toValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): ValidationErrors => {
-    return Object.keys(errors).reduce((carry, key) => ({
-        ...carry,
-        [key]: typeof errors[key] === 'string' ? [errors[key]] : errors[key],
-    }), {})
 }

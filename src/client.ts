@@ -1,6 +1,6 @@
-import { AxiosError, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
+import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
 import { Validator } from './validator'
-import { Config, Client, RequestFingerprintResolver, StatusHandler, ClientCallback } from './types'
+import { Config, Client, RequestFingerprintResolver, StatusHandler, ClientCallback, PrecognitionSuccessfulResolver } from './types'
 
 /**
  * The configured axios client.
@@ -11,6 +11,11 @@ let axiosClient: AxiosInstance = Axios
  * The request fingerprint resolver.
  */
 let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
+
+/**
+ * The procognition success resolver.
+ */
+let procognitionSuccessResolver: PrecognitionSuccessfulResolver = (response: AxiosResponse) => response.status === 204
 
 /**
  * The abort controller cache.
@@ -27,7 +32,7 @@ export const client: Client = {
     patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
     put: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'put' }),
     delete: (url, config = {}) => request({ ...config, url, method: 'delete' }),
-    validate(callback: ClientCallback) {
+    validator(callback: ClientCallback) {
         return Validator(this, callback)
     },
     use(client) {
@@ -42,6 +47,11 @@ export const client: Client = {
 
         return this
     },
+    determineSuccesfulPrecognitionUsing(callback) {
+        procognitionSuccessResolver = callback
+
+        return this
+    },
 }
 
 /**
@@ -52,18 +62,19 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         resolveConfig,
         abortMatchingRequests,
         refreshAbortController,
-    ].reduce((config, f) => f(config), userConfig)
-
-    if (config.onBefore) {
-        config.onBefore()
-    }
+    ].reduce((config, callback) => callback(config), userConfig)
 
     return client.axios().request(config).then(response => {
         validatePrecognitionResponse(response)
 
-        const statusHandler = resolveStatusHandler(config, response.status)
+        if (typeof config.onPrecognitionSuccess !== 'undefined' && procognitionSuccessResolver(response)) {
+            return config.onPrecognitionSuccess(response)
+        }
 
-        return statusHandler ? statusHandler(response) : response
+        const statusHandler = resolveStatusHandler(config, response.status)
+            ?? ((response) => response)
+
+        return statusHandler(response)
     }, error => {
         if (isNotServerGeneratedError(error)) {
             return Promise.reject(error)
@@ -72,12 +83,9 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         validatePrecognitionResponse(error.response)
 
         const statusHandler = resolveStatusHandler(config, error.response.status)
+            ?? ((_, error) => Promise.reject(error))
 
-        return statusHandler ? statusHandler(error.response, error) : Promise.reject(error)
-    }).then(response => {
-        return config.onAfter ? config.onAfter(Promise.resolve(response)) : response
-    }, error => {
-        return config.onAfter ? config.onAfter(Promise.reject(error)) : Promise.reject(error)
+        return statusHandler(error.response, error)
     })
 }
 
@@ -87,6 +95,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 const abortMatchingRequests = (config: Config): Config => {
     if (typeof config.fingerprint === 'string') {
         abortControllers[config.fingerprint]?.abort()
+
         delete abortControllers[config.fingerprint]
     }
 
@@ -103,6 +112,7 @@ const refreshAbortController = (config: Config): Config => {
         && ! config.cancelToken
     ) {
         abortControllers[config.fingerprint] = new AbortController
+
         config.signal = abortControllers[config.fingerprint].signal
     }
 
@@ -121,15 +131,15 @@ const validatePrecognitionResponse = (response: AxiosResponse): void => {
 /**
  * Determine if the error was not triggered by a server response.
  */
-const isNotServerGeneratedError = (error: AxiosError): boolean => {
-    return ! Axios.isAxiosError(error) || Axios.isCancel(error) || typeof error.response?.status !== 'number'
+const isNotServerGeneratedError = (error: unknown): boolean => {
+    return ! isAxiosError(error) || typeof error.response?.status !== 'number' || isCancel(error)
 }
 
 /**
  * Resolve the configuration.
  */
 const resolveConfig = (config: Config): Config => ({
-    fingerprint: config.fingerprint === undefined
+    fingerprint: typeof config.fingerprint === 'undefined'
         ? requestFingerprintResolver(config, client.axios())
         : config.fingerprint,
     ...config,
@@ -146,7 +156,6 @@ const resolveConfig = (config: Config): Config => ({
  * Resolve the handler for the given HTTP response status.
  */
 const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
-    204: config.onPrecognitionSuccess,
     401: config.onUnauthorized,
     403: config.onForbidden,
     404: config.onNotFound,
