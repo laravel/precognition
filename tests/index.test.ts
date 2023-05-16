@@ -292,7 +292,7 @@ test('it can provide input names to validate via config', async () => {
     expect(config.headers['Precognition-Validate-Only']).toBe('username,email')
 })
 
-test('it creates a request fingerprint and an abort signal if non are configured', async () => {
+test('it creates a request fingerprint and an abort signal if none are configured', async () => {
     expect.assertions(2)
 
     let config
