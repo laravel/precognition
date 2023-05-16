@@ -113,9 +113,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
     const setTimeout = (t: Timeout) => {
         timeoutDuration = (t.milliseconds ?? 0)
-            + ((t.seconds ?? 0) * 1000)
-            + ((t.minutes ?? 0) * 60000)
-            + ((t.hours ?? 0) * 3600000)
+        + ((t.seconds ?? 0) * 1000)
+        + ((t.minutes ?? 0) * 60000)
+        + ((t.hours ?? 0) * 3600000)
 
         validator.cancel()
 
