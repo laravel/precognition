@@ -156,9 +156,9 @@ test('it can handle a validation response via a config handler', async () => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
 
-            return 'expected return'
+            return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected return'))
+    }).then(value => expect(value).toBe('expected value'))
 })
 
 test('it can handle an unauthorized response via a config handler', async () => {
@@ -179,9 +179,9 @@ test('it can handle an unauthorized response via a config handler', async () => 
             expect(p).toBe(error.response)
             expect(e).toBe(error)
 
-            return 'expected return'
+            return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected return'))
+    }).then(value => expect(value).toBe('expected value'))
 })
 
 test('it can handle a forbidden response via a config handler', async () => {
@@ -202,9 +202,9 @@ test('it can handle a forbidden response via a config handler', async () => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
 
-            return 'expected return'
+            return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected return'))
+    }).then(value => expect(value).toBe('expected value'))
 })
 
 test('it can handle a not found response via a config handler', async () => {
@@ -214,7 +214,7 @@ test('it can handle a not found response via a config handler', async () => {
         response: {
             headers: { precognition: 'true' },
             status: 404,
-            data: 'expected data',
+            data: 'data',
         },
     }
     axios.request.mockRejectedValueOnce(error)
@@ -225,9 +225,9 @@ test('it can handle a not found response via a config handler', async () => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
 
-            return 'expected return'
+            return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected return'))
+    }).then(value => expect(value).toBe('expected value'))
 })
 
 test('it can handle a conflict response via a config handler', async () => {
@@ -248,9 +248,9 @@ test('it can handle a conflict response via a config handler', async () => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
 
-            return 'expected return'
+            return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected return'))
+    }).then(value => expect(value).toBe('expected value'))
 })
 
 test('it can handle a locked response via a config handler', async () => {
@@ -271,9 +271,9 @@ test('it can handle a locked response via a config handler', async () => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
 
-            return 'expected return'
+            return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected return'))
+    }).then(value => expect(value).toBe('expected value'))
 })
 
 test('it can provide input names to validate via config', async () => {
