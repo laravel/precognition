@@ -4,10 +4,87 @@ import { toValidationErrors } from './utils'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     /**
+     * Registered event listeners.
+     */
+    const listeners: ValidatorListeners = {
+        errorsChanged: [],
+        validatingChanged: [],
+        touchedChanged: [],
+    }
+
+    /**
+     * Processing validation state.
+     */
+    let validating = false
+
+    const setValidating = (value: boolean) => {
+        if (value !== validating) {
+            validating = value
+
+            listeners.validatingChanged.forEach(callback => callback())
+        }
+    }
+
+    /**
+     * Touched input state.
+     */
+    let touched: Array<string> = []
+
+    const setTouched = (value: Array<string>) => {
+        const uniqueNames = [...new Set(value)]
+
+        if (touched.length !== uniqueNames.length || ! uniqueNames.every(name => touched.includes(name))) {
+            touched = uniqueNames
+
+            listeners.touchedChanged.forEach(callback => callback())
+        }
+    }
+
+    /**
+     * Validation errors state.
+     */
+    let errors: ValidationErrors = {}
+
+    const setErrors = (value: ValidationErrors|SimpleValidationErrors) => {
+        const prepared = toValidationErrors(value)
+
+        if (JSON.stringify(errors) !== JSON.stringify(prepared)) {
+            errors = prepared
+
+            listeners.errorsChanged.forEach(callback => callback())
+        }
+
+        setTouched([...touched, ...Object.keys(errors)])
+    }
+
+    const clearErrors = () => {
+        if (Object.keys(errors).length > 0) {
+            errors = {}
+
+            listeners.errorsChanged.forEach(callback => callback())
+        }
+    }
+
+    /**
+     * Debouncing timeout state.
+     */
+    let timeoutDuration = 1250
+
+    const setTimeout = (value: number) => {
+        timeoutDuration = value
+
+        validator.cancel()
+
+        validator = createValidator()
+
+        return this
+    }
+
+    /**
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(function (): void {
-        setProcessingValidation(true)
+        setValidating(true)
 
         callback({
             get: (url, config = {}) => client.get(url, resolveConfig(config)),
@@ -16,15 +93,20 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
             put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
             delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
         }).finally(() => {
-            setProcessingValidation(false)
+            setValidating(false)
         })
     }, timeoutDuration, { leading: true, trailing: true })
 
     /**
+     * Validator state.
+     */
+    let validator = createValidator()
+
+    /**
      * Resolve the configuration.
      */
-    const resolveConfig = (c: Config): Config => {
-        const config = { ...c }
+    const resolveConfig = (userConfig: Config): Config => {
+        const config = { ...userConfig }
 
         if (! config.validate) {
             config.validate = touched
@@ -53,91 +135,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         return config
     }
 
-    /**
-     * Processing validation state.
-     */
-    let processingValidation = false
-
-    const setProcessingValidation = (p: boolean) => {
-        if (p !== processingValidation) {
-            processingValidation = p
-
-            listeners.processingValidationChanged.forEach(callback => callback())
-        }
-    }
-
-    /**
-     * Touched input state.
-     */
-    let touched: Array<string> = []
-
-    const setTouched = (names: Array<string>) => {
-        const uniqueNames = [...new Set(names)]
-
-        if (touched.length !== uniqueNames.length || ! uniqueNames.every(name => touched.includes(name))) {
-            touched = uniqueNames
-
-            listeners.touchedChanged.forEach(callback => callback())
-        }
-    }
-
-    /**
-     * Validation errors state.
-     */
-    let errors: ValidationErrors = {}
-
-    const setErrors = (e: ValidationErrors|SimpleValidationErrors) => {
-        const prepared = toValidationErrors(e)
-
-        if (JSON.stringify(errors) !== JSON.stringify(prepared)) {
-            errors = prepared
-
-            listeners.errorsChanged.forEach(callback => callback())
-        }
-
-        setTouched([...touched, ...Object.keys(errors)])
-    }
-
-    const clearErrors = () => {
-        if (Object.keys(errors).length > 0) {
-            errors = {}
-
-            listeners.errorsChanged.forEach(callback => callback())
-        }
-    }
-
-    /**
-     * Debouncing timeout state.
-     */
-    let timeoutDuration = 1250
-
-    const setTimeout = (t: Timeout) => {
-        timeoutDuration = (t.milliseconds ?? 0)
-        + ((t.seconds ?? 0) * 1000)
-        + ((t.minutes ?? 0) * 60000)
-        + ((t.hours ?? 0) * 3600000)
-
-        validator.cancel()
-
-        validator = createValidator()
-
-        return this
-    }
-
-    /**
-     * Registered event listeners.
-     */
-    const listeners: ValidatorListeners = {
-        errorsChanged: [],
-        processingValidationChanged: [],
-        touchedChanged: [],
-    }
-
-    /**
-     * Validator state.
-     */
-    let validator = createValidator()
-
     return {
         validate(input) {
             input = typeof input !== 'string'
@@ -150,13 +147,13 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
-        processingValidation: () => processingValidation,
+        processingValidation: () => validating,
         touched: () => touched,
         passed: () => touched.filter(name => typeof errors[name] === 'undefined'),
         errors: () => errors,
         hasErrors: () => Object.keys(errors).length > 0,
-        setErrors(e) {
-            setErrors(e)
+        setErrors(value) {
+            setErrors(value)
 
             return this
         },
@@ -165,8 +162,8 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
-        setTimeout(t) {
-            setTimeout(t)
+        setTimeout(value) {
+            setTimeout(value)
 
             return this
         },

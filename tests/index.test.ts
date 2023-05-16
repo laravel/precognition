@@ -6,10 +6,10 @@ client.use(axios)
 jest.useFakeTimers()
 jest.spyOn(global, 'setTimeout')
 
-test('success response must have Precognition header', async () => {
+test('it throws an error if the precognition header is not present on a success response', async () => {
     expect.assertions(2)
 
-    axios.request.mockResolvedValueOnce({ headers: {} })
+    axios.request.mockResolvedValueOnce({ headers: { status: 204 } })
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
@@ -17,7 +17,7 @@ test('success response must have Precognition header', async () => {
     })
 })
 
-test('error response must have Precognition header', async () => {
+test('it throws an error if the precognition header is not present on an error response', async () => {
     expect.assertions(2)
 
     axios.request.mockRejectedValueOnce({ response: { status: 500 } })
@@ -29,7 +29,7 @@ test('error response must have Precognition header', async () => {
     })
 })
 
-test('unknown error is rejected again', async () => {
+test('it returns a non-axios error via a rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -41,7 +41,7 @@ test('unknown error is rejected again', async () => {
     })
 })
 
-test('test canceled request is rejected again', async () => {
+test('returns a canceled request error via a rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -54,7 +54,7 @@ test('test canceled request is rejected again', async () => {
     })
 })
 
-test('axios error without status is rejected', async () => {
+test('an axios error without a "status" property returns a rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -66,57 +66,16 @@ test('axios error without status is rejected', async () => {
     })
 })
 
-test('it does not have to provide a success handler', async () => {
+test('it can handle a success response via a fulfilled promise', async () => {
     expect.assertions(1)
 
-    const response = { headers: { precognition: 'true' }, status: 204, data: 'expected data' }
+    const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
     await client.get('https://laravel.com').then(r => expect(r).toBe(response))
 })
 
-test('it can provide a onPrecognitionSuccess handler', async () => {
-    expect.assertions(2)
-
-    const response = { headers: { precognition: 'true' }, status: 204, data: 'expected data' }
-    axios.request.mockResolvedValueOnce(response)
-
-    await client.get('https://laravel.com', {
-        onPrecognitionSuccess: (r) => {
-            expect(r).toBe(response)
-
-            return 'expected return'
-        },
-    }).then(value => expect(value).toBe('expected return'))
-})
-
-test('it can provide a precognitionSuccessResolver', async () => {
-    expect.assertions(3)
-
-    let response = { headers: { precognition: 'true' }, status: 999, data: 'expected data' }
-    axios.request.mockResolvedValueOnce(response)
-
-    client.determineSuccesfulPrecognitionUsing((response) => response.status === 999)
-
-    await client.get('https://laravel.com', {
-        onPrecognitionSuccess: (r) => {
-            expect(r).toBe(response)
-
-            return 'expected return'
-        },
-    }).then(value => expect(value).toBe('expected return'))
-
-    response = { headers: { precognition: 'true' }, status: 204, data: 'expected data' }
-    axios.request.mockResolvedValueOnce(response)
-
-    await client.get('https://laravel.com', {
-        onPrecognitionSuccess: () => {
-            return 'expected return'
-        },
-    }).then(value => expect(value).toBe(response))
-})
-
-test('it does not have to provide an error handler', async () => {
+test('it can handle error responses via a rejected promise', async () => {
     expect.assertions(1)
 
     const error = {
@@ -135,7 +94,48 @@ test('it does not have to provide an error handler', async () => {
     await client.get('https://laravel.com').catch(e => expect(e).toBe(error))
 })
 
-test('it can provide an onValidationError handler', async () => {
+test('it can handle a successful precognition response via config handler', async () => {
+    expect.assertions(2)
+
+    const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
+    axios.request.mockResolvedValueOnce(response)
+
+    await client.get('https://laravel.com', {
+        onPrecognitionSuccess: (r) => {
+            expect(r).toBe(response)
+
+            return 'expected value'
+        },
+    }).then(value => expect(value).toBe('expected value'))
+})
+
+test('it can customize how it determines a successful precognition response', async () => {
+    expect.assertions(3)
+
+    let response = { headers: { precognition: 'true' }, status: 999, data: 'data' }
+    axios.request.mockResolvedValueOnce(response)
+
+    client.determineSuccessUsing((response) => response.status === 999)
+
+    await client.get('https://laravel.com', {
+        onPrecognitionSuccess: (r) => {
+            expect(r).toBe(response)
+
+            return 'expected value'
+        },
+    }).then(value => expect(value).toBe('expected value'))
+
+    response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
+    axios.request.mockResolvedValueOnce(response)
+
+    await client.get('https://laravel.com', {
+        onPrecognitionSuccess: () => {
+            return 'xxxx'
+        },
+    }).then(value => expect(value).toBe(response))
+})
+
+test('it can handle a validation response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -161,7 +161,7 @@ test('it can provide an onValidationError handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide an onUnauthorized handler', async () => {
+test('it can handle an unauthorized response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -184,7 +184,7 @@ test('it can provide an onUnauthorized handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide an onForbidden handler', async () => {
+test('it can handle a forbidden response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -207,7 +207,7 @@ test('it can provide an onForbidden handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide an onNotFound handler', async () => {
+test('it can handle a not found response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -230,7 +230,7 @@ test('it can provide an onNotFound handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide an onConflict handler', async () => {
+test('it can handle a conflict response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -253,7 +253,7 @@ test('it can provide an onConflict handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide an onLocked handler', async () => {
+test('it can handle a locked response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -276,7 +276,7 @@ test('it can provide an onLocked handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide a list of inputs to validate', async () => {
+test('it can provide input names to validate via config', async () => {
     expect.assertions(1)
 
     let config
@@ -292,7 +292,7 @@ test('it can provide a list of inputs to validate', async () => {
     expect(config.headers['Precognition-Validate-Only']).toBe('username,email')
 })
 
-test('it creates request identifier and adds signal', async () => {
+test('it creates a request fingerprint and an abort signal if non are configured', async () => {
     expect.assertions(2)
 
     let config
@@ -307,7 +307,7 @@ test('it creates request identifier and adds signal', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it uses baseURL from axios in request identifier', async () => {
+test('it uses the default axios baseURL in the request fingerprint', async () => {
     expect.assertions(2)
 
     let config
@@ -323,7 +323,7 @@ test('it uses baseURL from axios in request identifier', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it config baseURL takes precedence for request id', async () => {
+test('the configured baseURL takes precedence over the axios default baseURL for request id', async () => {
     expect.assertions(2)
 
     let config
@@ -341,7 +341,7 @@ test('it config baseURL takes precedence for request id', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it can pass request identifier to config', async () => {
+test('it can specify the request fingerprint via config', async () => {
     expect.assertions(2)
 
     let config
@@ -358,7 +358,7 @@ test('it can pass request identifier to config', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it set request identifier resolver', async () => {
+test('it can customize how the request fingerprint is created', async () => {
     expect.assertions(2)
 
     let config
@@ -374,7 +374,7 @@ test('it set request identifier resolver', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it config fingerprint takes precedence for request id', async () => {
+test('the config fingerprint takes precedence over the global fingerprint for request id', async () => {
     expect.assertions(2)
 
     let config
@@ -392,7 +392,7 @@ test('it config fingerprint takes precedence for request id', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it can opt out of signals with `null`', async () => {
+test('it can opt out of automatic request aborting', async () => {
     expect.assertions(2)
 
     let config
@@ -409,7 +409,7 @@ test('it can opt out of signals with `null`', async () => {
     expect(config.signal).toBeUndefined()
 })
 
-test('it does not create signal when one is provided', async () => {
+test('it can specify the abort controller via config', async () => {
     expect.assertions(1)
 
     let config
@@ -431,7 +431,7 @@ test('it does not create signal when one is provided', async () => {
     expect(called).toBe(true)
 })
 
-test('it does not create signal when a cancelToken is provided', async () => {
+test('it does not create an abort controller when a cancelToken is provided', async () => {
     expect.assertions(1)
 
     let config

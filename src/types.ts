@@ -2,9 +2,9 @@ import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'ax
 
 export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
 
-export type ValidationErrors = { [key: string]: Array<string> }
+export type ValidationErrors = Record<string, Array<string>>
 
-export type SimpleValidationErrors = { [key: string]: string }
+export type SimpleValidationErrors = Record<string, string>
 
 export type Config = AxiosRequestConfig&{
     validate?: Iterable<string>|ArrayLike<string>,
@@ -20,7 +20,7 @@ export type Config = AxiosRequestConfig&{
 
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
 
-export type PrecognitionSuccessfulResolver = (response: AxiosResponse) => boolean
+export type SuccessResolver = (response: AxiosResponse) => boolean
 
 export interface Client {
     get(url: string, config?: Config): Promise<unknown>,
@@ -29,10 +29,9 @@ export interface Client {
     put(url: string, data?: unknown, config?: Config): Promise<unknown>,
     delete(url: string, config?: Config): Promise<unknown>,
     validator(callback: ClientCallback): Validator,
-    axios(): AxiosInstance,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
-    determineSuccesfulPrecognitionUsing(callback: PrecognitionSuccessfulResolver): Client,
+    determineSuccessUsing(callback: SuccessResolver): Client,
 }
 
 export interface Validator {
@@ -44,31 +43,29 @@ export interface Validator {
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     clearErrors(): Validator,
     processingValidation(): boolean,
-    setTimeout(duration: Timeout): Validator,
+    setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
 }
 
 export interface ValidatorListeners {
     errorsChanged: Array<() => void>,
-    processingValidationChanged: Array<() => void>,
+    validatingChanged: Array<() => void>,
     touchedChanged: Array<() => void>,
 }
 
 export interface Timeout {
     milliseconds?: number,
     seconds?: number,
-    minutes?: number,
-    hours?: number,
 }
 
-type RequestMethods = 'get'|'post'|'patch'|'put'|'delete'
+type RequestMethod = 'get'|'post'|'patch'|'put'|'delete'
 
-export type ClientCallback = (client: Pick<Client, RequestMethods>) => Promise<unknown>
+export type ClientCallback = (client: Pick<Client, RequestMethod>) => Promise<unknown>
 
-interface NamedInputEventTarget extends EventTarget {
+interface NamedEventTarget extends EventTarget {
     name: string
 }
 
-interface NamedInputEvent extends Event {
-    readonly target: NamedInputEventTarget;
+interface NamedInputEvent extends InputEvent {
+    readonly target: NamedEventTarget;
 }
