@@ -90,7 +90,7 @@ test('it can provide a onPrecognitionSuccess handler', async () => {
     }).then(value => expect(value).toBe('expected return'))
 })
 
-test('it can provide a procognitionSuccessResolver', async () => {
+test('it can provide a precognitionSuccessResolver', async () => {
     expect.assertions(3)
 
     let response = { headers: { precognition: 'true' }, status: 999, data: 'expected data' }

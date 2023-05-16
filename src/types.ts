@@ -43,7 +43,6 @@ export interface Validator {
     hasErrors(): boolean,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     clearErrors(): Validator,
-    validating(): string|null,
     processingValidation(): boolean,
     setTimeout(duration: Timeout): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
@@ -53,7 +52,6 @@ export interface ValidatorListeners {
     errorsChanged: Array<() => void>,
     processingValidationChanged: Array<() => void>,
     touchedChanged: Array<() => void>,
-    validatingChanged: Array<() => void>,
 }
 
 export interface Timeout {

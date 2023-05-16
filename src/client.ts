@@ -13,9 +13,9 @@ let axiosClient: AxiosInstance = Axios
 let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
 
 /**
- * The procognition success resolver.
+ * The precognition success resolver.
  */
-let procognitionSuccessResolver: PrecognitionSuccessfulResolver = (response: AxiosResponse) => response.status === 204
+let precognitionSuccessResolver: PrecognitionSuccessfulResolver = (response: AxiosResponse) => response.status === 204
 
 /**
  * The abort controller cache.
@@ -48,7 +48,7 @@ export const client: Client = {
         return this
     },
     determineSuccesfulPrecognitionUsing(callback) {
-        procognitionSuccessResolver = callback
+        precognitionSuccessResolver = callback
 
         return this
     },
@@ -67,7 +67,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
     return client.axios().request(config).then(response => {
         validatePrecognitionResponse(response)
 
-        if (typeof config.onPrecognitionSuccess !== 'undefined' && procognitionSuccessResolver(response)) {
+        if (typeof config.onPrecognitionSuccess !== 'undefined' && precognitionSuccessResolver(response)) {
             return config.onPrecognitionSuccess(response)
         }
 

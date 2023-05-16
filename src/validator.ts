@@ -1,6 +1,6 @@
 import debounce from 'lodash.debounce'
 import { Client, ClientCallback, Config, SimpleValidationErrors, Timeout, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
-import {toValidationErrors} from './utils'
+import { toValidationErrors } from './utils'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
     /**
@@ -16,7 +16,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
             put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
             delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
         }).finally(() => {
-            setValidating(null)
             setProcessingValidation(false)
         })
     }, timeoutDuration, { leading: true, trailing: true })
@@ -36,7 +35,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         config.onValidationError = (response, axiosError) => {
             setErrors(response.data.errors)
 
-            return userOnValidationErrorHandler ? userOnValidationErrorHandler(response, axiosError) : Promise.reject(axiosError)
+            return userOnValidationErrorHandler
+                ? userOnValidationErrorHandler(response, axiosError)
+                : Promise.reject(axiosError)
         }
 
         const userOnPrecognitionSuccessHandler = config.onPrecognitionSuccess
@@ -44,23 +45,12 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         config.onPrecognitionSuccess = (response) => {
             clearErrors()
 
-            return userOnPrecognitionSuccessHandler ? userOnPrecognitionSuccessHandler(response) : response
+            return userOnPrecognitionSuccessHandler
+                ? userOnPrecognitionSuccessHandler(response)
+                : response
         }
 
         return config
-    }
-
-    /**
-     * Validating input state.
-     */
-    let validating: string|null = null
-
-    const setValidating = (v: string|null) => {
-        if (v !== validating) {
-            validating = v
-
-            listeners.validatingChanged.forEach(callback => callback())
-        }
     }
 
     /**
@@ -141,27 +131,25 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         errorsChanged: [],
         processingValidationChanged: [],
         touchedChanged: [],
-        validatingChanged: [],
     }
 
-    /*
+    /**
      * Validator state.
      */
     let validator = createValidator()
 
-     return {
+    return {
         validate(input) {
-            input = typeof input !== 'string' ? input.target.name : input
+            input = typeof input !== 'string'
+                ? input.target.name
+                : input
 
             setTouched([input, ...touched])
-
-            setValidating(input)
 
             validator()
 
             return this
         },
-        validating: () => validating,
         processingValidation: () => processingValidation,
         touched: () => touched,
         passed: () => touched.filter(name => typeof errors[name] === 'undefined'),

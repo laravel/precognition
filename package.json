@@ -6,8 +6,8 @@
         "laravel",
         "precognition"
     ],
-    "type": "module",
     "homepage": "https://github.com/laravel/precognition",
+    "type": "module",
     "repository": {
         "type": "git",
         "url": "https://github.com/laravel/precognition"
