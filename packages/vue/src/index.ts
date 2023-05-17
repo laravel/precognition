@@ -95,6 +95,7 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     }
 
     return Object.assign(form, {
+        data,
         submit,
         validating,
         passed,
@@ -114,16 +115,13 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
             return this
         },
         clearErrors() {
-            validator.clearErrors()
-
-            return this
+            return this.setErrors({})
         },
-        setValidationTimeout(timeout: number) {
+        setValidationTimeout(timeout) {
             validator.setTimeout(timeout)
 
             return this
         },
-        data,
         reset(...keys: string[]) {
             const clonedDefaults = cloneDeep(defaults)
 
