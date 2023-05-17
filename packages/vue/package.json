@@ -1,0 +1,37 @@
+{
+    "name": "laravel-precognition-vue",
+    "version": "0.1.0",
+    "description": "Laravel Precognition (Vue).",
+    "keywords": [
+        "laravel",
+        "precognition",
+        "vue"
+    ],
+    "homepage": "https://github.com/laravel/precognition",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/laravel/precognition"
+    },
+    "license": "MIT",
+    "author": "Laravel",
+    "main": "dist/index.js",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "build": "rm -rf dist && tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "engines": {
+        "node": ">=14"
+    },
+    "dependencies": {
+        "laravel-precognition": "0.1.0",
+        "lodash.clonedeep": "^4.5.0"
+    },
+    "devDependencies": {
+        "@types/lodash.clonedeep": "^4.5.7",
+        "typescript": "^5.0.0"
+    }
+}
