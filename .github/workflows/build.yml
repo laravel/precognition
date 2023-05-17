@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        package: ['core', 'vue']
+        package: ['vue']
 
     steps:
       - name: Checkout code
@@ -30,4 +30,6 @@ jobs:
         run: npm install
 
       - name: Run build
-        run: cd packages/${{ matrix.package }} && npm run build
+        run: |
+          cd packages/core && npm run build
+          cd ../${{ matrix.package }} && npm run build
