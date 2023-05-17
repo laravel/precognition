@@ -1,4 +1,4 @@
-name: tests
+name: build
 
 on:
   push:
@@ -10,8 +10,12 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-  tests:
+  build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        package: ['core', 'vue']
 
     steps:
       - name: Checkout code
@@ -25,5 +29,5 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Execute tests
-        run: cd packages/core && npm test
+      - name: Run build
+        run: cd packages/${{ matrix.package }} && npm run build
