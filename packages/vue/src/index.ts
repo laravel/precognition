@@ -14,7 +14,7 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     /**
      * The form instance.
      */
-    let form = reactive(defaults)
+    const form = reactive(defaults)
 
     /**
      * The form's data.
@@ -95,7 +95,7 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
                 return userConfig.onValidationError
                     ? userConfig.onValidationError(response)
                     : Promise.reject(error)
-            }
+            },
         }
 
         return method === 'get' || method === 'delete'
@@ -133,6 +133,6 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
             reset(keys)
 
             return this
-        }
+        },
     })
 }

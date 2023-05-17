@@ -1,5 +1,5 @@
-import {SimpleValidationErrors, ValidationErrors} from "laravel-precognition"
-import {Ref} from "vue"
+import { SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
+import { Ref } from 'vue'
 
 export interface Form<Data> {
     data(): Data,
