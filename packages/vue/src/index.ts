@@ -1,8 +1,9 @@
-import { Config, RequestMethod, client, toSimpleValidationErrors } from 'laravel-precognition'
+import { Config, RequestMethod, client, toSimpleValidationErrors, ValidationErrors, SimpleValidationErrors, NamedInputEvent } from 'laravel-precognition'
+import { Form } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
-export const useForm = (method: RequestMethod, url: string, input: Record<string, unknown> = {}, config: Config = {}): any => {
+export const useForm = (method: RequestMethod, url: string, input: Record<string, unknown> = {}, config: Config = {}): Form<typeof input> => {
     method = method.toLowerCase() as RequestMethod
 
     /**
@@ -70,19 +71,16 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     /**
      * The form reset helper.
      */
-    const reset = (...keys: string[]) => {
+    const reset = (keys: string[]) => {
         const clonedDefaults = cloneDeep(defaults)
 
         keys = keys.length === 0
             ? Object.keys(defaults)
             : keys
 
-        keys.forEach(key => {
-            form[key] = clonedDefaults[key]
-        })
+        keys.forEach(key => (form[key] = clonedDefaults[key]))
 
-        validator.setErrors({})
-        validator.
+        validator.setErrors({}).setTouched([])
     }
 
     /**
@@ -105,7 +103,6 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
             : client[method](url, data(), config)
     }
 
-
     return Object.assign(form, {
         data,
         submit,
@@ -114,12 +111,12 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
         hasErrors,
         valid,
         invalid,
-        validate(input) {
+        validate(input: string|NamedInputEvent) {
             validator.validate(input)
 
             return this
         },
-        setErrors(errors) {
+        setErrors(errors: ValidationErrors|SimpleValidationErrors) {
             validator.setErrors(errors)
 
             return this
@@ -127,22 +124,15 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
         clearErrors() {
             return this.setErrors({})
         },
-        setValidationTimeout(timeout) {
-            validator.setTimeout(timeout)
+        setValidationTimeout(duration: number) {
+            validator.setTimeout(duration)
 
             return this
         },
         reset(...keys: string[]) {
-            const clonedDefaults = cloneDeep(defaults)
-
-            keys = keys.length === 0
-                ? Object.keys(defaults)
-                : keys
-
-            keys.forEach(key => {
-                form[key] = clonedDefaults[key]
-            })
+            reset(keys)
 
             return this
-        },
+        }
+    })
 }
