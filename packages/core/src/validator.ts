@@ -163,11 +163,6 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
-        clearErrors() {
-            setErrors({})
-
-            return this
-        },
         setTimeout(value) {
             setTimeout(value)
 

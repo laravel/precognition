@@ -38,6 +38,22 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     validator.on('validatingChanged', () => validating.value = validator.validating())
 
     /**
+     * Reactive passed validation state.
+     */
+    const passed = ref(validator.passed())
+
+    validator.on('touchedChanged', () => passed.value = validator.passed())
+
+    validator.on('errorsChanged', () => passed.value = validator.passed())
+
+    /**
+     * The valid / invalid helpers.
+     */
+    const valid = (name: string) => passed.value.includes(name)
+
+    const invalid = (name: string) => typeof errors.value[name] !== 'undefined'
+
+    /**
      * Reactive touched inputs state.
      */
     const touched = ref(validator.touched())
@@ -54,15 +70,13 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     /**
      * Reactive hasErrors state.
      */
-    const hasErrors = computed(() => Object.keys(errors.value).length > 0)
+    const hasErrors = ref(validator.hasErrors())
+
+    validator.on('errorsChanged', () => hasErrors.value = validator.hasErrors())
 
     /**
-     * Reactive passed validation state.
+     * Submit the form.
      */
-    const passed = computed(() => touched.value.filter(
-        (name: string) => typeof errors.value[name] === 'undefined'
-    ))
-
     const submit = async (userConfig: Config = {}): Promise<unknown> => {
         const config: Config = {
             ...userConfig,
@@ -82,17 +96,19 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
 
     return Object.assign(form, {
         submit,
-        validate(input: string|NamedInputEvent) {
-            validator.validate(input)
-
-            return this
-        },
         validating,
         passed,
         touched,
         errors,
         hasErrors,
-        setErrors(errors: ValidationErrors|SimpleValidationErrors) {
+        valid,
+        invalid,
+        validate(input) {
+            validator.validate(input)
+
+            return this
+        },
+        setErrors(errors) {
             validator.setErrors(errors)
 
             return this
