@@ -1,9 +1,9 @@
-import { Config, RequestMethod, client, toSimpleValidationErrors, ValidationErrors, SimpleValidationErrors, NamedInputEvent } from 'laravel-precognition'
-import { Form } from './types'
+import { Config, RequestMethod, client, toSimpleValidationErrors, NamedInputEvent, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
+import { Form, StringKeyOf } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
-export const useForm = (method: RequestMethod, url: string, input: Record<string, unknown> = {}, config: Config = {}): Form<typeof input> => {
+export const useForm = <TData extends Record<string, unknown>>(method: RequestMethod, url: string, input: TData, config: Config = {}): TData & Form<TData> => {
     method = method.toLowerCase() as RequestMethod
 
     /**
@@ -12,127 +12,111 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     const defaults = cloneDeep(input)
 
     /**
-     * The form instance.
-     */
-    const form = reactive(defaults)
-
-    /**
-     * The form's data.
-     */
-    const data = () => Object.keys(defaults).reduce((carry, key) => ({
-        ...carry,
-        [key]: form[key],
-    }), {})
-
-    /**
      * The validator instance.
      */
     const validator = client.validator(client => method === 'get' || method === 'delete'
         ? client[method](url, config)
-        : client[method](url, data(), config))
-
-    /**
-     * Reactive validating state.
-     */
-    const validating = ref(validator.validating())
-
-    validator.on('validatingChanged', () => validating.value = validator.validating())
+        : client[method](url, form.data(), config))
 
     /**
      * Reactive passed validation state.
      */
     const passed = ref(validator.passed())
 
+    /**
+     * The event listeners.
+     */
     validator.on('touchedChanged', () => passed.value = validator.passed())
 
-    validator.on('errorsChanged', () => passed.value = validator.passed())
+    validator.on('validatingChanged', () => form.validating = validator.validating())
+
+    validator.on('errorsChanged', () => {
+        form.hasErrors = validator.hasErrors()
+
+        passed.value = validator.passed()
+
+        const errors = toSimpleValidationErrors(validator.errors())
+
+        const keys = Object.keys(errors) as StringKeyOf<TData>[]
+
+        keys.forEach((key) => {
+            form.errors[key] = errors[key]
+        })
+    })
 
     /**
-     * The valid / invalid helpers.
+     * The form instance.
      */
-    const valid = (name: string) => passed.value.includes(name)
 
-    const invalid = (name: string) => typeof errors.value[name] !== 'undefined'
-
-    /**
-     * Reactive errors state.
-     */
-    const errors = ref(toSimpleValidationErrors(validator.errors()))
-
-    validator.on('errorsChanged', () => errors.value = toSimpleValidationErrors(validator.errors()))
-
-    /**
-     * Reactive hasErrors state.
-     */
-    const hasErrors = ref(validator.hasErrors())
-
-    validator.on('errorsChanged', () => hasErrors.value = validator.hasErrors())
-
-    /**
-     * The form reset helper.
-     */
-    const reset = (keys: string[]) => {
-        const clonedDefaults = cloneDeep(defaults)
-
-        keys = keys.length === 0
-            ? Object.keys(defaults)
-            : keys
-
-        keys.forEach(key => (form[key] = clonedDefaults[key]))
-
-        validator.setErrors({}).setTouched([])
-    }
-
-    /**
-     * Submit the form.
-     */
-    const submit = async (userConfig: Config = {}): Promise<unknown> => {
-        const config: Config = {
-            ...userConfig,
-            onValidationError: (response, error) => {
-                validator.setErrors(response.data.errors)
-
-                return userConfig.onValidationError
-                    ? userConfig.onValidationError(response)
-                    : Promise.reject(error)
-            },
-        }
-
-        return method === 'get' || method === 'delete'
-            ? client[method](url, config)
-            : client[method](url, data(), config)
-    }
-
-    return Object.assign(form, {
-        data,
-        submit,
-        validating,
-        errors,
-        hasErrors,
-        valid,
-        invalid,
+    const form = reactive({
+        ...defaults,
+        data() {
+            return Object.keys(defaults).reduce((carry, key) => ({
+                ...carry,
+                [key]: this[key],
+            }), {})
+        },
+        validating: false,
+        errors: {} as Record<StringKeyOf<TData>, string>,
+        hasErrors: false,
+        valid(value: StringKeyOf<TData>) {
+            return passed.value.includes(value)
+        },
+        invalid(name: StringKeyOf<TData>) {
+            return typeof this.errors[name] !== 'undefined'
+        },
         validate(input: string|NamedInputEvent) {
             validator.validate(input)
 
             return this
         },
-        setErrors(errors: ValidationErrors|SimpleValidationErrors) {
+        setErrors(errors: SimpleValidationErrors|ValidationErrors) {
             validator.setErrors(errors)
 
             return this
         },
         clearErrors() {
-            return this.setErrors({})
+            validator.setErrors({})
+
+            return this
         },
         setValidationTimeout(duration: number) {
             validator.setTimeout(duration)
 
             return this
         },
-        reset(...keys: string[]) {
-            reset(keys)
+        async submit(userConfig: Config = {}): Promise<unknown> {
+            const config: Config = {
+                ...userConfig,
+                onValidationError: (response, error) => {
+                    validator.setErrors(response.data.errors)
+
+                    return userConfig.onValidationError
+                        ? userConfig.onValidationError(response)
+                        : Promise.reject(error)
+                },
+            }
+
+            return method === 'get' || method === 'delete'
+                ? client[method](url, config)
+                : client[method](url, this.data(), config)
+        },
+        reset(...keys: (StringKeyOf<TData>)[]) {
+            const clonedDefaults = cloneDeep(defaults)
+
+            keys = keys.length === 0
+                ? Object.keys(defaults) as StringKeyOf<TData>[]
+                : keys
+
+            keys.forEach(key => {
+                this[key] = clonedDefaults[key]
+            })
+
+            validator.setErrors({}).setTouched([])
 
             return this
         },
-    })
+    }) as Form<TData> & TData
+
+    return form
 }

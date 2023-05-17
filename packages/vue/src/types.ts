@@ -1,17 +1,18 @@
 import { SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
-import { Ref } from 'vue'
 
-export interface Form<Data> {
+export type StringKeyOf<Type> = Extract<Type, string>
+
+export interface Form<Data extends Record<string, unknown>> {
     data(): Data,
-    submit(): Promise<unknown>,
-    validating: Ref<boolean>,
-    errors: Ref<Record<keyof Data, string>>,
-    hasErrors: Ref<boolean>,
-    valid(name: string): boolean,
-    invalid(name: string): boolean,
-    validate(name: string): Form<Data>,
+    validating: boolean,
+    errors: Record<StringKeyOf<Data>, string>,
+    hasErrors: boolean,
+    valid(name: StringKeyOf<Data>): boolean,
+    invalid(name: StringKeyOf<Data>): boolean,
+    validate(name: StringKeyOf<Data>): Form<Data>,
     setErrors(errors: SimpleValidationErrors|ValidationErrors): Form<Data>,
     clearErrors(): Form<Data>,
     setValidationTimeout(duration: number): Form<Data>,
-    reset(...keys: string[]): Form<Data>,
+    submit(): Promise<unknown>,
+    reset(...keys: (StringKeyOf<Data>)[]): Form<Data>,
 }
