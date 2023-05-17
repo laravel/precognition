@@ -42,7 +42,7 @@ export interface Validator {
     hasErrors(): boolean,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     clearErrors(): Validator,
-    processingValidation(): boolean,
+    validating(): boolean,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
 }
@@ -53,12 +53,7 @@ export interface ValidatorListeners {
     touchedChanged: Array<() => void>,
 }
 
-export interface Timeout {
-    milliseconds?: number,
-    seconds?: number,
-}
-
-type RequestMethod = 'get'|'post'|'patch'|'put'|'delete'
+export type RequestMethod = 'get'|'post'|'patch'|'put'|'delete'
 
 export type ClientCallback = (client: Pick<Client, RequestMethod>) => Promise<unknown>
 
@@ -66,6 +61,6 @@ interface NamedEventTarget extends EventTarget {
     name: string
 }
 
-interface NamedInputEvent extends InputEvent {
+export interface NamedInputEvent extends InputEvent {
     readonly target: NamedEventTarget;
 }

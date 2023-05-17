@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce'
-import { Client, ClientCallback, Config, SimpleValidationErrors, Timeout, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
+import { Client, ClientCallback, Config, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
 import { toValidationErrors } from './utils'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
@@ -8,8 +8,8 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
      */
     const listeners: ValidatorListeners = {
         errorsChanged: [],
-        validatingChanged: [],
         touchedChanged: [],
+        validatingChanged: [],
     }
 
     /**
@@ -147,7 +147,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
 
             return this
         },
-        processingValidation: () => validating,
+        validating: () => validating,
         touched: () => touched,
         passed: () => touched.filter(name => typeof errors[name] === 'undefined'),
         errors: () => errors,
