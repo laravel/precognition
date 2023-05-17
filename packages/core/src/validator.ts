@@ -150,16 +150,21 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     return {
         validating: () => validating,
         touched: () => touched,
+        setTouched(inputs) {
+            setTouched(inputs)
+
+            return this
+        },
         errors: () => errors,
+        setErrors(value) {
+            setErrors(value)
+
+            return this
+        },
         hasErrors,
         passed,
         validate(input) {
             validate(input)
-
-            return this
-        },
-        setErrors(value) {
-            setErrors(value)
 
             return this
         },

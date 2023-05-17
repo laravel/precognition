@@ -37,6 +37,7 @@ export interface Client {
 export interface Validator {
     validate(input: string|NamedInputEvent): Validator,
     touched(): Array<string>,
+    setTouched(inputs: Array<string>): Validator,
     passed(): Array<string>,
     errors(): ValidationErrors,
     hasErrors(): boolean,

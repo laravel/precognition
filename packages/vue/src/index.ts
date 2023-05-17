@@ -1,5 +1,5 @@
-import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, ValidationErrors, client, toSimpleValidationErrors } from 'laravel-precognition'
-import { computed, reactive, ref } from 'vue'
+import { Config, RequestMethod, client, toSimpleValidationErrors } from 'laravel-precognition'
+import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
 export const useForm = (method: RequestMethod, url: string, input: Record<string, unknown> = {}, config: Config = {}): any => {
@@ -54,13 +54,6 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     const invalid = (name: string) => typeof errors.value[name] !== 'undefined'
 
     /**
-     * Reactive touched inputs state.
-     */
-    const touched = ref(validator.touched())
-
-    validator.on('touchedChanged', () => touched.value = validator.touched())
-
-    /**
      * Reactive errors state.
      */
     const errors = ref(toSimpleValidationErrors(validator.errors()))
@@ -73,6 +66,24 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
     const hasErrors = ref(validator.hasErrors())
 
     validator.on('errorsChanged', () => hasErrors.value = validator.hasErrors())
+
+    /**
+     * The form reset helper.
+     */
+    const reset = (...keys: string[]) => {
+        const clonedDefaults = cloneDeep(defaults)
+
+        keys = keys.length === 0
+            ? Object.keys(defaults)
+            : keys
+
+        keys.forEach(key => {
+            form[key] = clonedDefaults[key]
+        })
+
+        validator.setErrors({})
+        validator.
+    }
 
     /**
      * Submit the form.
@@ -94,12 +105,11 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
             : client[method](url, data(), config)
     }
 
+
     return Object.assign(form, {
         data,
         submit,
         validating,
-        passed,
-        touched,
         errors,
         hasErrors,
         valid,
