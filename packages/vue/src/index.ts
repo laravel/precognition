@@ -1,68 +1,80 @@
-import precognitive, {toSimpleValidationErrors} from 'laravel-precognition'
-import { Config, NamedInputEvent, RequestMethods, SimpleValidationErrors, Timeout, ValidationErrors } from 'laravel-precognition'
+import { client, toSimpleValidationErrors} from 'laravel-precognition'
+import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition/dist/types'
 import { computed, reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
-import {PrecognitiveForm} from './types'
 
-export const useForm = <TForm extends Record<string, unknown>>(method: RequestMethods, url: string, data?: TForm, config?: Config): PrecognitiveForm => {
+export const useForm = (method: RequestMethod, url: string, input: Record<string, unknown> = {}, config: Config = {}): any => {
+    method = method.toLowerCase() as RequestMethod
+
     /**
      * The original user supplied data.
      */
-    const defaults = cloneDeep(data ?? {})
+    const defaults = cloneDeep(input)
 
     /**
-     * The form instance...
+     * The form instance.
      */
-    let form: Partial<PrecognitiveForm<TForm>> = reactive(defaults ?? {})
+    let form = reactive(defaults)
 
     /**
-     * Base validator.
+     * The form's data.
      */
-    const validator = precognitive.validate(client => {
-        const m = method.toLowerCase() as RequestMethods
+    const data = () => Object.keys(defaults).reduce((carry, key) => ({
+        ...carry,
+        [key]: form[key],
+    }), {})
 
-        return m === 'get' || m === 'delete' ? client[m](url, config) : client[m](url, form.data(), config)
-    })
+    /**
+     * The validator instance.
+     */
+    const validator = client.validator(client => method === 'get' || method === 'delete'
+        ? client[method](url, config)
+        : client[method](url, data(), config))
 
     /**
      * Reactive validating state.
      */
-    const validating = ref<string|null>(validator.validating())
+    const validating = ref(validator.validating())
 
     validator.on('validatingChanged', () => validating.value = validator.validating())
 
     /**
-     * Reactive processing validation state.
-     */
-    const processingValidation = ref<boolean>(validator.processingValidation())
-
-    validator.on('processingValidationChanged', () => processingValidation.value = validator.processingValidation())
-
-    /**
      * Reactive touched inputs state.
      */
-    const touched = ref<Array<string>>(validator.touched())
+    const touched = ref(validator.touched())
 
     validator.on('touchedChanged', () => touched.value = validator.touched())
 
     /**
-     * Reactive passed validation state.
-     */
-    const passed = computed<Array<string>>(() => touched.value.filter(
-        (name: string) => typeof form.errors[name] === 'undefined'
-    ))
-
-    /**
      * Reactive errors state.
      */
-    const errors = ref<SimpleValidationErrors>(toSimpleValidationErrors(validator.errors()))
+    const errors = ref(toSimpleValidationErrors(validator.errors()))
 
     validator.on('errorsChanged', () => errors.value = toSimpleValidationErrors(validator.errors()))
 
     /**
      * Reactive hasErrors state.
      */
-    const hasErrors = computed<boolean>(() => Object.keys(errors.value).length > 0)
+    const hasErrors = computed(() => Object.keys(errors.value).length > 0)
+
+    /**
+     * Reactive passed validation state.
+     */
+    const passed = computed(() => touched.value.filter(
+        (name: string) => typeof errors.value[name] === 'undefined'
+    ))
+
+    const submit = async (config?: any): Promise<unknown> => (method === 'get' || method === 'delete'
+        ? client[method](url, {
+            ..config,
+            onValidationError: (response, error) => {
+                validator.setErrors(response.data.errors)
+
+                return config.onValidationError
+                    ? config.onValidationError(response)
+                    : Promise.reject(error)
+            }
+        })
 
     return Object.assign(form, {
         validate(input: string|NamedInputEvent) {
@@ -70,15 +82,7 @@ export const useForm = <TForm extends Record<string, unknown>>(method: RequestMe
 
             return this
         },
-        validating(name?: string) {
-            if (typeof name !== 'string') {
-                return
-                // touched diff passed
-            }
-
-            return this.touched.value.includes(name) && this.
-        },
-        processingValidation,
+        validating,
         passed,
         touched,
         errors,
@@ -93,17 +97,12 @@ export const useForm = <TForm extends Record<string, unknown>>(method: RequestMe
 
             return this
         },
-        setValidationTimeout(timeout: Timeout) {
+        setValidationTimeout(timeout: number) {
             validator.setTimeout(timeout)
 
             return this
         },
-        data(): TForm {
-            return (Object.keys(defaults) as Array<keyof TForm>).reduce((carry, key) => ({
-                ...carry,
-                [key]: this[key],
-            }), {} as Partial<TForm>) as TForm
-        },
+        data,
         reset(...keys: string[]) {
             const clonedDefaults = cloneDeep(defaults)
 
@@ -117,14 +116,12 @@ export const useForm = <TForm extends Record<string, unknown>>(method: RequestMe
 
             return this
         },
-        submit: async (config?: any): Promise<unknown> => precognitive.axios()[method](url, this.data(), config)
+        submit: async (config?: any): Promise<unknown> => client.axios()[method](url, data(), config)
             .catch((error: any) => {
                 if (error.response?.status === 422) {
-                    this.setErrors(error.response.data.errors)
+                    validator.setErrors(error.response.data.errors)
                 }
 
                 return Promise.reject(error)
             })
 }
-
-export { precognitive as default }

@@ -62,3 +62,4 @@ export const patchVueForm = (method: RequestMethods, url: string, defaults: Reco
         },
     })
 }
+
