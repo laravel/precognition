@@ -1,5 +1,5 @@
 import debounce from 'lodash.debounce'
-import { Client, ClientCallback, Config, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
+import { Client, ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
 import { toValidationErrors } from './utils'
 
 export const Validator = (client: Client, callback: ClientCallback): TValidator => {
@@ -57,13 +57,15 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         setTouched([...touched, ...Object.keys(errors)])
     }
 
-    const clearErrors = () => {
-        if (Object.keys(errors).length > 0) {
-            errors = {}
+    /**
+     * Has errors state.
+     */
+    const hasErrors = () => Object.keys(errors).length > 0
 
-            listeners.errorsChanged.forEach(callback => callback())
-        }
-    }
+    /**
+     * Passed validation state.
+     */
+    const passed = () => touched.filter(name => typeof errors[name] === 'undefined')
 
     /**
      * Debouncing timeout state.
@@ -125,7 +127,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         const userOnPrecognitionSuccessHandler = config.onPrecognitionSuccess
 
         config.onPrecognitionSuccess = (response) => {
-            clearErrors()
+            setErrors({})
 
             return userOnPrecognitionSuccessHandler
                 ? userOnPrecognitionSuccessHandler(response)
@@ -135,30 +137,34 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
         return config
     }
 
-    return {
-        validate(input) {
-            input = typeof input !== 'string'
-                ? input.target.name
-                : input
+    const validate = (input: string|NamedInputEvent) => {
+        input = typeof input !== 'string'
+            ? input.target.name
+            : input
 
             setTouched([input, ...touched])
 
             validator()
+    }
+
+    return {
+        validating: () => validating,
+        touched: () => touched,
+        errors: () => errors,
+        hasErrors,
+        passed,
+        validate(input) {
+            validate(input)
 
             return this
         },
-        validating: () => validating,
-        touched: () => touched,
-        passed: () => touched.filter(name => typeof errors[name] === 'undefined'),
-        errors: () => errors,
-        hasErrors: () => Object.keys(errors).length > 0,
         setErrors(value) {
             setErrors(value)
 
             return this
         },
         clearErrors() {
-            clearErrors()
+            setErrors({})
 
             return this
         },

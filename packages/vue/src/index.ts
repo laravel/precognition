@@ -1,5 +1,4 @@
-import { client, toSimpleValidationErrors} from 'laravel-precognition'
-import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition/dist/types'
+import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, ValidationErrors, client, toSimpleValidationErrors } from 'laravel-precognition'
 import { computed, reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
@@ -64,19 +63,25 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
         (name: string) => typeof errors.value[name] === 'undefined'
     ))
 
-    const submit = async (config?: any): Promise<unknown> => (method === 'get' || method === 'delete'
-        ? client[method](url, {
-            ..config,
+    const submit = async (userConfig: Config = {}): Promise<unknown> => {
+        const config: Config = {
+            ...userConfig,
             onValidationError: (response, error) => {
                 validator.setErrors(response.data.errors)
 
-                return config.onValidationError
-                    ? config.onValidationError(response)
+                return userConfig.onValidationError
+                    ? userConfig.onValidationError(response)
                     : Promise.reject(error)
             }
-        })
+        }
+
+        return method === 'get' || method === 'delete'
+            ? client[method](url, config)
+            : client[method](url, data(), config)
+    }
 
     return Object.assign(form, {
+        submit,
         validate(input: string|NamedInputEvent) {
             validator.validate(input)
 
@@ -116,12 +121,4 @@ export const useForm = (method: RequestMethod, url: string, input: Record<string
 
             return this
         },
-        submit: async (config?: any): Promise<unknown> => client.axios()[method](url, data(), config)
-            .catch((error: any) => {
-                if (error.response?.status === 422) {
-                    validator.setErrors(error.response.data.errors)
-                }
-
-                return Promise.reject(error)
-            })
 }
