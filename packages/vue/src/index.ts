@@ -1,5 +1,5 @@
 import { Config, RequestMethod, client, toSimpleValidationErrors } from 'laravel-precognition'
-import { Form, StringKeyOf } from './types'
+import { Form } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
@@ -14,7 +14,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The original input names.
      */
-    const originalInputs = Object.keys(originalData) as StringKeyOf<Data>[]
+    const originalInputs = Object.keys(originalData) as (keyof Data)[]
 
     /**
      * The validator instance.
@@ -51,6 +51,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
         const errors = toSimpleValidationErrors(validator.errors())
 
+        // @ts-ignore
         originalInputs.forEach((name) => (form.errors[name] = errors[name]))
     })
 
@@ -59,13 +60,15 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      */
     const createForm = (): Data&Form<Data> => ({
         ...cloneDeep(originalData),
+        processing: false,
         data() {
             return originalInputs.reduce((carry, name) => ({
                 ...carry,
+                // @ts-ignore
                 [name]: this[name],
             }), ({} as Partial<Data>)) as Data
         },
-        errors: {} as Record<StringKeyOf<Data>, string>,
+        errors: {} as Record<keyof Data, string>,
         hasErrors: false,
         setErrors(errors) {
             validator.setErrors(errors)
@@ -80,6 +83,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             names = (names.length === 0 ? originalInputs : names)
 
+            // @ts-ignore
             names.forEach(name => (this[name] = data[name]))
 
             validator.reset()
@@ -89,15 +93,18 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
         validating: false,
         touched(name) {
+            // @ts-ignore
             return touched.value.includes(name)
         },
-        valid(value) {
-            return valid.value.includes(value)
+        valid(name) {
+            // @ts-ignore
+            return valid.value.includes(name)
         },
         invalid(name) {
             return typeof this.errors[name] !== 'undefined'
         },
         validate(input) {
+            // @ts-ignore
             validator.validate(input)
 
             return this
@@ -110,6 +117,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         async submit(userConfig = {}): Promise<unknown> {
             const config: Config = {
                 ...userConfig,
+                precognitive: false,
+                onStart: () => (this.processing = true),
+                onFinish: () => (this.processing = false),
                 onValidationError: (response, error) => {
                     validator.setErrors(response.data.errors)
 
@@ -119,9 +129,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 },
             }
 
-            return method === 'get' || method === 'delete'
+            return (method === 'get' || method === 'delete'
                 ? client[method](url, config)
-                : client[method](url, this.data(), config)
+                : client[method](url, this.data(), config))
         },
     })
 

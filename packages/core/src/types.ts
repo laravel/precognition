@@ -15,7 +15,10 @@ export type Config = AxiosRequestConfig&{
     onNotFound?: StatusHandler,
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
+    onStart?: () => unknown,
+    onFinish?: () => unknown,
     fingerprint?: string|null,
+    precognitive?: false,
 }
 
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null

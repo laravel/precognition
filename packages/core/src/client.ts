@@ -63,10 +63,16 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         refreshAbortController,
     ].reduce((config, callback) => callback(config), userConfig)
 
-    return axiosClient.request(config).then(response => {
-        validatePrecognitionResponse(response)
+    if (config.onStart) {
+        config.onStart()
+    }
 
-        if (typeof config.onPrecognitionSuccess !== 'undefined' && successResolver(response)) {
+    return axiosClient.request(config).then(response => {
+        if (config.precognitive !== false) {
+            validatePrecognitionResponse(response)
+        }
+
+        if (config.precognitive !== false && typeof config.onPrecognitionSuccess !== 'undefined' && successResolver(response)) {
             return config.onPrecognitionSuccess(response)
         }
 
@@ -79,12 +85,18 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
             return Promise.reject(error)
         }
 
-        validatePrecognitionResponse(error.response)
+        if (config.precognitive !== false) {
+            validatePrecognitionResponse(error.response)
+        }
 
         const statusHandler = resolveStatusHandler(config, error.response.status)
             ?? ((_, error) => Promise.reject(error))
 
         return statusHandler(error.response, error)
+    }).finally(() => {
+        if (config.onFinish) {
+            config.onFinish()
+        }
     })
 }
 
@@ -98,7 +110,9 @@ const resolveConfig = (config: Config): Config => ({
     ...config,
     headers: {
         ...config.headers,
-        Precognition: true,
+        ...config.precognitive !== false ? {
+            Precognition: true
+        } : {},
         ...config.validate ? {
             'Precognition-Validate-Only': Array.from(config.validate).join(),
         } : {},
