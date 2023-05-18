@@ -1,4 +1,4 @@
-import { Config, RequestMethod, client, toSimpleValidationErrors } from 'laravel-precognition'
+import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
 import { Form } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
@@ -19,19 +19,19 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = client.validator(client => method === 'get' || method === 'delete'
+    const validator = createValidator(client => method === 'get' || method === 'delete'
         ? client[method](url, config)
         : client[method](url, form.data(), config))
 
     /**
      * Reactive valid state.
      */
-    const valid = ref<string[]>([])
+    const valid = ref<(keyof Data)[]>([])
 
     /**
      * Reactive touched state.
      */
-    const touched = ref<string[]>([])
+    const touched = ref([] as (keyof Data)[])
 
     /**
      * The event listeners.
@@ -39,14 +39,17 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     validator.on('validatingChanged', () => form.validating = validator.validating())
 
     validator.on('touchedChanged', () => {
-        touched.value = validator.touched()
+        // @ts-ignore
+        touched.value = validator.touched() as (keyof Data)[]
 
-        valid.value = validator.valid()
+        // @ts-ignore
+        valid.value = validator.valid() as (keyof Data)[]
     })
 
     validator.on('errorsChanged', () => {
         form.hasErrors = validator.hasErrors()
 
+        // @ts-ignore
         valid.value = validator.valid()
 
         const errors = toSimpleValidationErrors(validator.errors())
@@ -71,12 +74,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         errors: {} as Record<keyof Data, string>,
         hasErrors: false,
         setErrors(errors) {
-            validator.setErrors(errors)
+            validator.setErrors(errors as SimpleValidationErrors|ValidationErrors)
 
             return this
         },
         clearErrors() {
-            return this.setErrors({})
+            return this.setErrors({} as Record<keyof Data, string>)
         },
         reset(...names) {
             const data = cloneDeep(originalData)
@@ -92,7 +95,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
 
         validating: false,
-        touched(name) {
+        touched(name: keyof Data) {
             // @ts-ignore
             return touched.value.includes(name)
         },
@@ -109,6 +112,13 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
+        validateWhenTouched(input) {
+            if (this.touched(input)) {
+                this.validate(input)
+            }
+
+            return this
+        },
         setValidationTimeout(duration) {
             validator.setTimeout(duration)
 
@@ -118,8 +128,20 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             const config: Config = {
                 ...userConfig,
                 precognitive: false,
-                onStart: () => (this.processing = true),
-                onFinish: () => (this.processing = false),
+                onStart: () => {
+                    this.processing = true
+
+                    if (userConfig.onStart) {
+                        userConfig.onStart()
+                    }
+                },
+                onFinish: () => {
+                    this.processing = false
+
+                    if (userConfig.onFinish) {
+                        userConfig.onFinish()
+                    }
+                },
                 onValidationError: (response, error) => {
                     validator.setErrors(response.data.errors)
 

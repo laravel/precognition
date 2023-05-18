@@ -1,6 +1,5 @@
 import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
-import { Validator } from './validator'
-import { Config, Client, RequestFingerprintResolver, StatusHandler, ClientCallback, SuccessResolver } from './types'
+import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver } from './types'
 
 /**
  * The configured axios client.
@@ -31,9 +30,6 @@ export const client: Client = {
     patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
     put: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'put' }),
     delete: (url, config = {}) => request({ ...config, url, method: 'delete' }),
-    validator(callback: ClientCallback) {
-        return Validator(this, callback)
-    },
     use(client) {
         axiosClient = client
 

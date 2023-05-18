@@ -1,8 +1,9 @@
 import debounce from 'lodash.debounce'
-import { Client, ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
+import { ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
 import { toValidationErrors } from './utils'
+import { client } from './client'
 
-export const Validator = (client: Client, callback: ClientCallback): TValidator => {
+export const createValidator = (callback: ClientCallback): TValidator => {
     /**
      * Registered event listeners.
      */
@@ -70,7 +71,7 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     /**
      * Debouncing timeout state.
      */
-    let timeoutDuration = 1250
+    let timeoutDuration = 1500
 
     const setTimeout = (value: number) => {
         timeoutDuration = value
@@ -86,16 +87,12 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(function (): void {
-        setValidating(true)
-
         callback({
             get: (url, config = {}) => client.get(url, resolveConfig(config)),
             post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config)),
             patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
             put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
             delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
-        }).finally(() => {
-            setValidating(false)
         })
     }, timeoutDuration, { leading: true, trailing: true })
 
@@ -134,6 +131,22 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
                 : response
         }
 
+        const userOnStart = config.onStart ?? (() => null)
+
+        config.onStart = () => {
+            setValidating(true)
+
+            userOnStart()
+        }
+
+        const userOnFinish = config.onFinish ?? (() => null)
+
+        config.onFinish = () => {
+            setValidating(true)
+
+            userOnFinish()
+        }
+
         return config
     }
 
@@ -148,23 +161,16 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     }
 
     return {
-        // getters...
         validating: () => validating,
         touched: () => touched,
         errors: () => errors,
-
-        // computed...
         valid,
         hasErrors,
-
-        // setters...
         setErrors(value) {
             setErrors(value)
 
             return this
         },
-
-        // methods...
         validate(input) {
             validate(input)
 

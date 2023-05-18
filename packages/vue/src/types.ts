@@ -1,16 +1,17 @@
-import { Config, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
+import { Config } from 'laravel-precognition'
 
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
     validating: boolean,
-    touched(name: keyof Data): boolean,
+    touched(name?: keyof Data): boolean,
     data(): Data,
     errors: Record<keyof Data, string>,
     hasErrors: boolean,
     valid(name: keyof Data): boolean,
     invalid(name: keyof Data): boolean,
     validate(name: keyof Data): Form<Data>,
-    setErrors(errors: SimpleValidationErrors|ValidationErrors): Form<Data>,
+    validateWhenTouched(name: keyof Data): Form<Data>,
+    setErrors(errors: Record<Partial<keyof Data>, string|string[]>): Form<Data>
     clearErrors(): Form<Data>,
     setValidationTimeout(duration: number): Form<Data>,
     submit(config?: Config): Promise<unknown>,

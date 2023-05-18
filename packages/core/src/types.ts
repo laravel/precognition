@@ -31,7 +31,6 @@ export interface Client {
     patch(url: string, data?: unknown, config?: Config): Promise<unknown>,
     put(url: string, data?: unknown, config?: Config): Promise<unknown>,
     delete(url: string, config?: Config): Promise<unknown>,
-    validator(callback: ClientCallback): Validator,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,
