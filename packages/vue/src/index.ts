@@ -3,13 +3,18 @@ import { Form, StringKeyOf } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
-export const useForm = <TData extends Record<string, unknown>>(method: RequestMethod, url: string, input: TData, config: Config = {}): TData & Form<TData> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Data&Form<Data> => {
     method = method.toLowerCase() as RequestMethod
 
     /**
-     * The original user supplied data.
+     * The original data.
      */
-    const defaults = cloneDeep(input)
+    const originalData = cloneDeep(input)
+
+    /**
+     * The original input names.
+     */
+    const originalInputs = Object.keys(originalData) as StringKeyOf<Data>[]
 
     /**
      * The validator instance.
@@ -37,32 +42,29 @@ export const useForm = <TData extends Record<string, unknown>>(method: RequestMe
 
         const errors = toSimpleValidationErrors(validator.errors())
 
-        const keys = Object.keys(errors) as StringKeyOf<TData>[]
-
-        keys.forEach((key) => {
-            form.errors[key] = errors[key]
+        originalInputs.forEach((name) => {
+            form.errors[name] = errors[name]
         })
     })
 
     /**
-     * The form instance.
+     * Create a new form instance.
      */
-
-    const form = reactive({
-        ...defaults,
+    const createForm = (): Data&Form<Data> => ({
+        ...cloneDeep(originalData),
         data() {
-            return Object.keys(defaults).reduce((carry, key) => ({
+            return originalInputs.reduce((carry, name) => ({
                 ...carry,
-                [key]: this[key],
-            }), {})
+                [name]: this[name],
+            }), ({} as Partial<Data>)) as Data
         },
         validating: false,
-        errors: {} as Record<StringKeyOf<TData>, string>,
+        errors: {} as Record<StringKeyOf<Data>, string>,
         hasErrors: false,
-        valid(value: StringKeyOf<TData>) {
+        valid(value: StringKeyOf<Data>) {
             return passed.value.includes(value)
         },
-        invalid(name: StringKeyOf<TData>) {
+        invalid(name: StringKeyOf<Data>) {
             return typeof this.errors[name] !== 'undefined'
         },
         validate(input: string|NamedInputEvent) {
@@ -101,22 +103,25 @@ export const useForm = <TData extends Record<string, unknown>>(method: RequestMe
                 ? client[method](url, config)
                 : client[method](url, this.data(), config)
         },
-        reset(...keys: (StringKeyOf<TData>)[]) {
-            const clonedDefaults = cloneDeep(defaults)
+        reset(...names: (StringKeyOf<Data>)[]) {
+            const clonedDefaults = cloneDeep(originalData)
 
-            keys = keys.length === 0
-                ? Object.keys(defaults) as StringKeyOf<TData>[]
-                : keys
+            names = (names.length === 0 ? originalInputs : names)
 
-            keys.forEach(key => {
-                this[key] = clonedDefaults[key]
+            names.forEach(name => {
+                this[name] = clonedDefaults[name]
             })
 
             validator.setErrors({}).setTouched([])
 
             return this
         },
-    }) as Form<TData> & TData
+    })
+
+    /**
+     * The form instance.
+     */
+    const form = reactive(createForm()) as Data&Form<Data>
 
     return form
 }
