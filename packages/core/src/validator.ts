@@ -63,9 +63,9 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     const hasErrors = () => Object.keys(errors).length > 0
 
     /**
-     * Passed validation state.
+     * Valid validation state.
      */
-    const passed = () => touched.filter(name => typeof errors[name] === 'undefined')
+    const valid = () => touched.filter(name => typeof errors[name] === 'undefined')
 
     /**
      * Debouncing timeout state.
@@ -148,23 +148,31 @@ export const Validator = (client: Client, callback: ClientCallback): TValidator 
     }
 
     return {
+        // getters...
         validating: () => validating,
         touched: () => touched,
-        setTouched(inputs) {
-            setTouched(inputs)
-
-            return this
-        },
         errors: () => errors,
+
+        // computed...
+        valid,
+        hasErrors,
+
+        // setters...
         setErrors(value) {
             setErrors(value)
 
             return this
         },
-        hasErrors,
-        passed,
+
+        // methods...
         validate(input) {
             validate(input)
+
+            return this
+        },
+        reset() {
+            setTouched([])
+            setErrors({})
 
             return this
         },

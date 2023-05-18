@@ -1,4 +1,4 @@
-import { Config, RequestMethod, client, toSimpleValidationErrors, NamedInputEvent, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
+import { Config, RequestMethod, client, toSimpleValidationErrors } from 'laravel-precognition'
 import { Form, StringKeyOf } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
@@ -24,27 +24,34 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         : client[method](url, form.data(), config))
 
     /**
-     * Reactive passed validation state.
+     * Reactive valid state.
      */
-    const passed = ref(validator.passed())
+    const valid = ref<string[]>([])
+
+    /**
+     * Reactive touched state.
+     */
+    const touched = ref<string[]>([])
 
     /**
      * The event listeners.
      */
-    validator.on('touchedChanged', () => passed.value = validator.passed())
-
     validator.on('validatingChanged', () => form.validating = validator.validating())
+
+    validator.on('touchedChanged', () => {
+        touched.value = validator.touched()
+
+        valid.value = validator.valid()
+    })
 
     validator.on('errorsChanged', () => {
         form.hasErrors = validator.hasErrors()
 
-        passed.value = validator.passed()
+        valid.value = validator.valid()
 
         const errors = toSimpleValidationErrors(validator.errors())
 
-        originalInputs.forEach((name) => {
-            form.errors[name] = errors[name]
-        })
+        originalInputs.forEach((name) => (form.errors[name] = errors[name]))
     })
 
     /**
@@ -58,36 +65,49 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 [name]: this[name],
             }), ({} as Partial<Data>)) as Data
         },
-        validating: false,
         errors: {} as Record<StringKeyOf<Data>, string>,
         hasErrors: false,
-        valid(value: StringKeyOf<Data>) {
-            return passed.value.includes(value)
-        },
-        invalid(name: StringKeyOf<Data>) {
-            return typeof this.errors[name] !== 'undefined'
-        },
-        validate(input: string|NamedInputEvent) {
-            validator.validate(input)
-
-            return this
-        },
-        setErrors(errors: SimpleValidationErrors|ValidationErrors) {
+        setErrors(errors) {
             validator.setErrors(errors)
 
             return this
         },
         clearErrors() {
-            validator.setErrors({})
+            return this.setErrors({})
+        },
+        reset(...names) {
+            const data = cloneDeep(originalData)
+
+            names = (names.length === 0 ? originalInputs : names)
+
+            names.forEach(name => (this[name] = data[name]))
+
+            validator.reset()
 
             return this
         },
-        setValidationTimeout(duration: number) {
+
+        validating: false,
+        touched(name) {
+            return touched.value.includes(name)
+        },
+        valid(value) {
+            return valid.value.includes(value)
+        },
+        invalid(name) {
+            return typeof this.errors[name] !== 'undefined'
+        },
+        validate(input) {
+            validator.validate(input)
+
+            return this
+        },
+        setValidationTimeout(duration) {
             validator.setTimeout(duration)
 
             return this
         },
-        async submit(userConfig: Config = {}): Promise<unknown> {
+        async submit(userConfig = {}): Promise<unknown> {
             const config: Config = {
                 ...userConfig,
                 onValidationError: (response, error) => {
@@ -102,19 +122,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return method === 'get' || method === 'delete'
                 ? client[method](url, config)
                 : client[method](url, this.data(), config)
-        },
-        reset(...names: (StringKeyOf<Data>)[]) {
-            const clonedDefaults = cloneDeep(originalData)
-
-            names = (names.length === 0 ? originalInputs : names)
-
-            names.forEach(name => {
-                this[name] = clonedDefaults[name]
-            })
-
-            validator.setErrors({}).setTouched([])
-
-            return this
         },
     })
 

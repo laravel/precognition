@@ -35,14 +35,14 @@ export interface Client {
 }
 
 export interface Validator {
-    validate(input: string|NamedInputEvent): Validator,
+    validating(): boolean,
     touched(): Array<string>,
-    setTouched(inputs: Array<string>): Validator,
-    passed(): Array<string>,
     errors(): ValidationErrors,
+    valid(): Array<string>,
     hasErrors(): boolean,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
-    validating(): boolean,
+    validate(input: string|NamedInputEvent): Validator,
+    reset(): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
 }
