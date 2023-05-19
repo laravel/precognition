@@ -12,7 +12,6 @@ export interface Form<Data extends Record<string, unknown>> {
     validate(name: keyof Data): Form<Data>,
     validateWhenTouched(name: keyof Data): Form<Data>,
     setErrors(errors: Record<Partial<keyof Data>, string|string[]>): Form<Data>
-    clearErrors(): Form<Data>,
     setValidationTimeout(duration: number): Form<Data>,
     submit(config?: Config): Promise<unknown>,
     reset(...keys: (keyof Data)[]): Form<Data>,

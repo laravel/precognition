@@ -34,26 +34,55 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         : client[method](url, form.data(), config))
 
     /**
-     * The event listeners.
+     * Register event listeners...
      */
     validator.on('validatingChanged', () => form.validating = validator.validating())
 
     validator.on('touchedChanged', () => {
-        // @ts-ignore
+        // @ts-expect-error
         touched.value = validator.touched() as (keyof Data)[]
 
-        // @ts-ignore
+        // @ts-expect-error
         valid.value = validator.valid() as (keyof Data)[]
     })
 
     validator.on('errorsChanged', () => {
         form.hasErrors = validator.hasErrors()
 
-        // @ts-ignore
+        // @ts-expect-error
         valid.value = validator.valid()
 
-        // @ts-ignore
+        // @ts-expect-error
         form.errors = toSimpleValidationErrors(validator.errors())
+    })
+
+    /**
+     * Resolve the config for a form submission.
+     */
+    const resolveSubmitConfig = (userConfig: Config): Config => ({
+        ...userConfig,
+        precognitive: false,
+        onStart: () => {
+            form.processing = true
+
+            if (userConfig.onStart) {
+                userConfig.onStart()
+            }
+        },
+        onFinish: () => {
+            form.processing = false
+
+            if (userConfig.onFinish) {
+                userConfig.onFinish()
+            }
+        },
+        onValidationError: (response, error) => {
+            validator.setErrors(response.data.errors)
+
+            return userConfig.onValidationError
+                ? userConfig.onValidationError(response)
+                : Promise.reject(error)
+        },
     })
 
     /**
@@ -61,13 +90,30 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      */
     const createForm = (): Data&Form<Data> => ({
         ...cloneDeep(originalData),
-        processing: false,
         data() {
             return originalInputs.reduce((carry, name) => ({
                 ...carry,
-                // @ts-ignore
+                // @ts-expect-error
                 [name]: this[name],
             }), ({} as Partial<Data>)) as Data
+        },
+        touched(name: keyof Data) {
+            // @ts-expect-error
+            return touched.value.includes(name)
+        },
+        validate(name) {
+            // @ts-expect-error
+            validator.validate(name)
+
+            return this
+        },
+        validating: false,
+        valid(name) {
+            // @ts-expect-error
+            return valid.value.includes(name)
+        },
+        invalid(name) {
+            return typeof this.errors[name] !== 'undefined'
         },
         errors: {} as Record<keyof Data, string>,
         hasErrors: false,
@@ -76,44 +122,15 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
-        clearErrors() {
-            return this.setErrors({} as Record<keyof Data, string>)
-        },
         reset(...names) {
             const data = cloneDeep(originalData)
 
             names = (names.length === 0 ? originalInputs : names)
 
-            // @ts-ignore
+            // @ts-expect-error
             names.forEach(name => (this[name] = data[name]))
 
             validator.reset()
-
-            return this
-        },
-
-        validating: false,
-        touched(name: keyof Data) {
-            // @ts-ignore
-            return touched.value.includes(name)
-        },
-        valid(name) {
-            // @ts-ignore
-            return valid.value.includes(name)
-        },
-        invalid(name) {
-            return typeof this.errors[name] !== 'undefined'
-        },
-        validate(input) {
-            // @ts-ignore
-            validator.validate(input)
-
-            return this
-        },
-        validateWhenTouched(input) {
-            if (this.touched(input)) {
-                this.validate(input)
-            }
 
             return this
         },
@@ -122,36 +139,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
-        async submit(userConfig = {}): Promise<unknown> {
-            const config: Config = {
-                ...userConfig,
-                precognitive: false,
-                onStart: () => {
-                    this.processing = true
-
-                    if (userConfig.onStart) {
-                        userConfig.onStart()
-                    }
-                },
-                onFinish: () => {
-                    this.processing = false
-
-                    if (userConfig.onFinish) {
-                        userConfig.onFinish()
-                    }
-                },
-                onValidationError: (response, error) => {
-                    validator.setErrors(response.data.errors)
-
-                    return userConfig.onValidationError
-                        ? userConfig.onValidationError(response)
-                        : Promise.reject(error)
-                },
-            }
-
+        processing: false,
+        async submit(config = {}): Promise<unknown> {
             return (method === 'get' || method === 'delete'
-                ? client[method](url, config)
-                : client[method](url, this.data(), config))
+                ? client[method](url, resolveSubmitConfig(config))
+                : client[method](url, this.data(), resolveSubmitConfig(config)))
         },
     })
 
