@@ -64,11 +64,11 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
     }
 
     return axiosClient.request(config).then(response => {
-        if (config.precognitive !== false) {
+        if (config.precognitive) {
             validatePrecognitionResponse(response)
         }
 
-        if (config.precognitive !== false && typeof config.onPrecognitionSuccess !== 'undefined' && successResolver(response)) {
+        if (config.precognitive && typeof config.onPrecognitionSuccess !== 'undefined' && successResolver(response)) {
             return config.onPrecognitionSuccess(response)
         }
 
@@ -81,7 +81,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
             return Promise.reject(error)
         }
 
-        if (config.precognitive !== false) {
+        if (config.precognitive) {
             validatePrecognitionResponse(error.response)
         }
 
@@ -100,6 +100,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
  * Resolve the configuration.
  */
 const resolveConfig = (config: Config): Config => ({
+    precognitive: config.precognitive ?? true,
     fingerprint: typeof config.fingerprint === 'undefined'
         ? requestFingerprintResolver(config, axiosClient)
         : config.fingerprint,
@@ -139,7 +140,10 @@ const refreshAbortController = (config: Config): Config => {
     ) {
         abortControllers[config.fingerprint] = new AbortController
 
-        config.signal = abortControllers[config.fingerprint].signal
+        return {
+            ...config,
+            signal: abortControllers[config.fingerprint].signal
+        }
     }
 
     return config

@@ -17,13 +17,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const originalInputs = Object.keys(originalData) as (keyof Data)[]
 
     /**
-     * The validator instance.
-     */
-    const validator = createValidator(client => method === 'get' || method === 'delete'
-        ? client[method](url, config)
-        : client[method](url, form.data(), config))
-
-    /**
      * Reactive valid state.
      */
     const valid = ref<(keyof Data)[]>([])
@@ -32,6 +25,13 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * Reactive touched state.
      */
     const touched = ref([] as (keyof Data)[])
+
+    /**
+     * The validator instance.
+     */
+    const validator = createValidator(client => method === 'get' || method === 'delete'
+        ? client[method](url, config)
+        : client[method](url, form.data(), config))
 
     /**
      * The event listeners.
@@ -52,10 +52,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         // @ts-ignore
         valid.value = validator.valid()
 
-        const errors = toSimpleValidationErrors(validator.errors())
-
         // @ts-ignore
-        originalInputs.forEach((name) => (form.errors[name] = errors[name]))
+        form.errors = toSimpleValidationErrors(validator.errors())
     })
 
     /**

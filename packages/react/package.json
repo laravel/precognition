@@ -35,6 +35,7 @@
     },
     "devDependencies": {
         "@types/lodash.clonedeep": "^4.5.7",
+        "@types/react": "^18.2.6",
         "typescript": "^5.0.0"
     }
 }

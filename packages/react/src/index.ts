@@ -1,166 +1,119 @@
-import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
-import { Form } from './types'
-import { reactive, ref } from 'vue'
+import {isAxiosError } from 'axios'
+import { createValidator, Config, RequestMethod, SimpleValidationErrors, Validator, toSimpleValidationErrors } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
+import { useRef, useState } from 'react'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Data&Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}) => {
     method = method.toLowerCase() as RequestMethod
 
     /**
      * The original data.
      */
-    const originalData = cloneDeep(input)
+    const originalData = useRef<Record<string, unknown>|null>(null)
+
+    if (originalData.current === null) {
+        originalData.current = cloneDeep(input)
+    }
 
     /**
      * The original input names.
      */
-    const originalInputs = Object.keys(originalData) as (keyof Data)[]
+    const originalInputs = useRef<(keyof Data)[]|null>(null)
+
+    if (originalInputs.current === null) {
+        originalInputs.current = Object.keys(originalData) as (keyof Data)[]
+    }
+
+    /**
+     * The current payload.
+     */
+    const payload = useRef(originalData.current)
+
+    /**
+     * The reactive valid state.
+     */
+    const [valid, setValid] = useState([] as (keyof Data)[])
+
+    /**
+     * The reactive touched state.
+     */
+    const [touched, setTouched] = useState([] as (keyof Data)[])
+
+    /**
+     * The reactive validating state.
+     */
+    const [validating, setValidating] = useState(false)
+
+    /**
+     * The reactive validating state.
+     */
+    const [processing, setProcessing] = useState(false)
+
+    /**
+     * The reactive errors state.
+     */
+    const [errors, setErrors] = useState<SimpleValidationErrors>({})
+
+    /**
+     * The reactive hasErrors state.
+     */
+    const [hasErrors, setHasErrors] = useState(false)
+
+    /**
+     * The reactive data state.
+     */
+    const [data, setData] = useState(() => cloneDeep(originalData))
+
 
     /**
      * The validator instance.
      */
-    const validator = createValidator(client => method === 'get' || method === 'delete'
-        ? client[method](url, config)
-        : client[method](url, form.data(), config))
+    const validator = useRef<Validator|null>(null)
 
-    /**
-     * Reactive valid state.
-     */
-    const valid = ref<(keyof Data)[]>([])
+    if (validator.current === null) {
+        validator.current = createValidator(client => method === 'get' || method === 'delete'
+            ? client[method](url, config)
+            : client[method](url, data, config))
 
-    /**
-     * Reactive touched state.
-     */
-    const touched = ref([] as (keyof Data)[])
+        validator.current.on('validatingChanged', () => setValidating(validator.current!.validating()))
 
-    /**
-     * The event listeners.
-     */
-    validator.on('validatingChanged', () => form.validating = validator.validating())
+        validator.current.on('touchedChanged', () => {
+            setTouched(validator.current!.touched())
 
-    validator.on('touchedChanged', () => {
-        // @ts-ignore
-        touched.value = validator.touched() as (keyof Data)[]
+            setValid(validator.current!.valid())
+        })
 
-        // @ts-ignore
-        valid.value = validator.valid() as (keyof Data)[]
-    })
+        validator.current.on('errorsChanged', () => {
+            setHasErrors(validator.current!.hasErrors())
 
-    validator.on('errorsChanged', () => {
-        form.hasErrors = validator.hasErrors()
+            setValid(validator.current!.valid())
 
-        // @ts-ignore
-        valid.value = validator.valid()
+            setErrors(toSimpleValidationErrors(validator.current!.errors()))
+        })
+    }
 
-        const errors = toSimpleValidationErrors(validator.errors())
+    return {
+        data,
+        setData: (key: keyof Data, value: unknown) => setData(payload.current = {
+            ...data,
+            [key]: value,
+        }),
+        processing,
+        errors,
+        hasErrors,
+        setErrors(errors)
 
-        // @ts-ignore
-        originalInputs.forEach((name) => (form.errors[name] = errors[name]))
-    })
-
-    /**
-     * Create a new form instance.
-     */
-    const createForm = (): Data&Form<Data> => ({
-        ...cloneDeep(originalData),
-        processing: false,
-        data() {
-            return originalInputs.reduce((carry, name) => ({
-                ...carry,
-                // @ts-ignore
-                [name]: this[name],
-            }), ({} as Partial<Data>)) as Data
+        validate(input: string) {
+            validator.current!.validate(input)
         },
-        errors: {} as Record<keyof Data, string>,
-        hasErrors: false,
-        setErrors(errors) {
-            validator.setErrors(errors as SimpleValidationErrors|ValidationErrors)
+        setValidatorTimeout: validator.current.setTimeout,
+        submit: async (config?: any): Promise<unknown> => precognition.axios()[method](url, data, config)
+            .catch((error: any) => {
+                if (isAxiosError(error) && error.response?.status === 422) {
+                    validator.current?.setErrors(error.response.data.errors)
+                }
 
-            return this
-        },
-        clearErrors() {
-            return this.setErrors({} as Record<keyof Data, string>)
-        },
-        reset(...names) {
-            const data = cloneDeep(originalData)
-
-            names = (names.length === 0 ? originalInputs : names)
-
-            // @ts-ignore
-            names.forEach(name => (this[name] = data[name]))
-
-            validator.reset()
-
-            return this
-        },
-
-        validating: false,
-        touched(name: keyof Data) {
-            // @ts-ignore
-            return touched.value.includes(name)
-        },
-        valid(name) {
-            // @ts-ignore
-            return valid.value.includes(name)
-        },
-        invalid(name) {
-            return typeof this.errors[name] !== 'undefined'
-        },
-        validate(input) {
-            // @ts-ignore
-            validator.validate(input)
-
-            return this
-        },
-        validateWhenTouched(input) {
-            if (this.touched(input)) {
-                this.validate(input)
-            }
-
-            return this
-        },
-        setValidationTimeout(duration) {
-            validator.setTimeout(duration)
-
-            return this
-        },
-        async submit(userConfig = {}): Promise<unknown> {
-            const config: Config = {
-                ...userConfig,
-                precognitive: false,
-                onStart: () => {
-                    this.processing = true
-
-                    if (userConfig.onStart) {
-                        userConfig.onStart()
-                    }
-                },
-                onFinish: () => {
-                    this.processing = false
-
-                    if (userConfig.onFinish) {
-                        userConfig.onFinish()
-                    }
-                },
-                onValidationError: (response, error) => {
-                    validator.setErrors(response.data.errors)
-
-                    return userConfig.onValidationError
-                        ? userConfig.onValidationError(response)
-                        : Promise.reject(error)
-                },
-            }
-
-            return (method === 'get' || method === 'delete'
-                ? client[method](url, config)
-                : client[method](url, this.data(), config))
-        },
-    })
-
-    /**
-     * The form instance.
-     */
-    const form = reactive(createForm()) as Data&Form<Data>
-
-    return form
+                return Promise.reject(error)
+            })
+    };
 }

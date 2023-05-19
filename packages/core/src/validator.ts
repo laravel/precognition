@@ -5,7 +5,7 @@ import { client } from './client'
 
 export const createValidator = (callback: ClientCallback): TValidator => {
     /**
-     * Registered event listeners.
+     * Event listener state.
      */
     const listeners: ValidatorListeners = {
         errorsChanged: [],
@@ -111,23 +111,23 @@ export const createValidator = (callback: ClientCallback): TValidator => {
             config.validate = touched
         }
 
-        const userOnValidationErrorHandler = config.onValidationError
+        const userOnValidationError = config.onValidationError
 
         config.onValidationError = (response, axiosError) => {
             setErrors(response.data.errors)
 
-            return userOnValidationErrorHandler
-                ? userOnValidationErrorHandler(response, axiosError)
+            return userOnValidationError
+                ? userOnValidationError(response, axiosError)
                 : Promise.reject(axiosError)
         }
 
-        const userOnPrecognitionSuccessHandler = config.onPrecognitionSuccess
+        const userOnPrecognitionSuccess = config.onPrecognitionSuccess
 
         config.onPrecognitionSuccess = (response) => {
             setErrors({})
 
-            return userOnPrecognitionSuccessHandler
-                ? userOnPrecognitionSuccessHandler(response)
+            return userOnPrecognitionSuccess
+                ? userOnPrecognitionSuccess(response)
                 : response
         }
 
@@ -155,24 +155,24 @@ export const createValidator = (callback: ClientCallback): TValidator => {
             ? input.target.name
             : input
 
-            setTouched([input, ...touched])
+        setTouched([input, ...touched])
 
-            validator()
+        validator()
     }
 
     return {
-        validating: () => validating,
         touched: () => touched,
-        errors: () => errors,
-        valid,
-        hasErrors,
-        setErrors(value) {
-            setErrors(value)
+        validate(input) {
+            validate(input)
 
             return this
         },
-        validate(input) {
-            validate(input)
+        validating: () => validating,
+        valid,
+        errors: () => errors,
+        hasErrors,
+        setErrors(value) {
+            setErrors(value)
 
             return this
         },
