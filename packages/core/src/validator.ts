@@ -2,6 +2,7 @@ import debounce from 'lodash.debounce'
 import { ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
 import { toValidationErrors } from './utils'
 import { client } from './client'
+import {isAxiosError} from 'axios'
 
 export const createValidator = (callback: ClientCallback): TValidator => {
     /**
@@ -93,7 +94,7 @@ export const createValidator = (callback: ClientCallback): TValidator => {
             patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
             put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
             delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
-        }).catch(() => null)
+        }).catch((error) => ! isAxiosError(error) ? Promise.reject(error) : null)
     }, timeoutDuration, { leading: true, trailing: true })
 
     /**

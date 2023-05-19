@@ -148,9 +148,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         validate(input) {
             // Due to the way that react works, we do this so that "onBlur" may
-            // mimick the "onChange" functionality found in the Vue plugin. If
-            // this becomes problematic we could consider adding a "force" flag
-            // or function.
+            // mimick the "onChange" functionality found in the Vue plugin.
             if (previousPayload.current == payload.current) {
                 return this
             }
