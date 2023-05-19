@@ -90,8 +90,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         data() {
             return originalInputs.reduce<Partial<Data>>((carry, name) => ({
                 ...carry,
-                // @ts-expect-error
-                [name]: this[name],
+                [name]: form[name],
             }), {}) as Data
         },
         touched(name) {
@@ -102,7 +101,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             validator.validate(name)
 
-            return this
+            return form
         },
         validating: false,
         valid(name) {
@@ -110,7 +109,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return valid.value.includes(name)
         },
         invalid(name) {
-            return typeof this.errors[name] !== 'undefined'
+            return typeof form.errors[name] !== 'undefined'
         },
         errors: {},
         hasErrors: false,
@@ -118,7 +117,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             validator.setErrors(errors)
 
-            return this
+            return form
         },
         reset(...names) {
             const data = cloneDeep(originalData)
@@ -126,22 +125,22 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             names = (names.length === 0 ? originalInputs : names)
 
             // @ts-expect-error
-            names.forEach(name => (this[name] = data[name]))
+            names.forEach(name => (form[name] = data[name]))
 
             validator.reset()
 
-            return this
+            return form
         },
         setValidationTimeout(duration) {
             validator.setTimeout(duration)
 
-            return this
+            return form
         },
         processing: false,
         async submit(config = {}) {
             return (method === 'get' || method === 'delete'
                 ? client[method](url, resolveSubmitConfig(config))
-                : client[method](url, this.data(), resolveSubmitConfig(config)))
+                : client[method](url, form.data(), resolveSubmitConfig(config)))
         },
     })
 
