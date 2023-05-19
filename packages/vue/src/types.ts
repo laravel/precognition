@@ -3,7 +3,7 @@ import { Config, NamedInputEvent } from 'laravel-precognition'
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
     validating: boolean,
-    touched(name?: keyof Data): boolean,
+    touched(name: keyof Data): boolean,
     data(): Data,
     errors: Record<keyof Data, string>,
     hasErrors: boolean,

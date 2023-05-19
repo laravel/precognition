@@ -1,15 +1,15 @@
-import {isAxiosError } from 'axios'
-import { createValidator, Config, RequestMethod, SimpleValidationErrors, Validator, toSimpleValidationErrors } from 'laravel-precognition'
+import { client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
 import { useRef, useState } from 'react'
+import { Form } from './types'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}) => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Form<Data> => {
     method = method.toLowerCase() as RequestMethod
 
     /**
      * The original data.
      */
-    const originalData = useRef<Record<string, unknown>|null>(null)
+    const originalData = useRef<Data|null>(null)
 
     if (originalData.current === null) {
         originalData.current = cloneDeep(input)
@@ -52,7 +52,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The reactive errors state.
      */
-    const [errors, setErrors] = useState<SimpleValidationErrors>({})
+    const [errors, setErrors] = useState({} as Record<keyof Data, string>)
 
     /**
      * The reactive hasErrors state.
@@ -62,8 +62,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The reactive data state.
      */
-    const [data, setData] = useState(() => cloneDeep(originalData))
-
+    const [data, setData] = useState(() => cloneDeep(originalData.current!))
 
     /**
      * The validator instance.
@@ -75,6 +74,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             ? client[method](url, config)
             : client[method](url, data, config))
 
+        /**
+         * Register event listeners...
+         */
         validator.current.on('validatingChanged', () => setValidating(validator.current!.validating()))
 
         validator.current.on('touchedChanged', () => {
@@ -88,32 +90,102 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             setValid(validator.current!.valid())
 
+            // @ts-expect-error
             setErrors(toSimpleValidationErrors(validator.current!.errors()))
         })
     }
 
+    /**
+     * Resolve the config for a form submission.
+     */
+    const resolveSubmitConfig = (config: Config): Config => ({
+        ...config,
+        precognitive: false,
+        onStart: () => {
+            setProcessing(true);
+
+            (config.onStart ?? (() => null))()
+        },
+        onFinish: () => {
+            setProcessing(false);
+
+            (config.onFinish ?? (() => null))()
+        },
+        onValidationError: (response, error) => {
+            validator.current!.setErrors(response.data.errors)
+
+            return config.onValidationError
+                ? config.onValidationError(response)
+                : Promise.reject(error)
+        },
+    })
+
+    /**
+     * The form instance.
+     */
     return {
         data,
-        setData: (key: keyof Data, value: unknown) => setData(payload.current = {
-            ...data,
-            [key]: value,
-        }),
-        processing,
+        setData(key, value) {
+            const newData = {
+                ...data!,
+                [key]: value,
+            }
+
+            payload.current = newData
+
+            setData(newData)
+
+            return this
+        },
+        touched(name) {
+            return touched.includes(name)
+        },
+        validate(input) {
+            // @ts-expect-error
+            validator.current!.validate(input)
+
+            return this
+        },
+        validating,
+        valid(name) {
+            return valid.includes(name)
+        },
+        invalid(name) {
+            return typeof errors[name] !== 'undefined'
+        },
         errors,
         hasErrors,
-        setErrors(errors)
+        setErrors(errors) {
+            // @ts-expect-error
+            validator.current!.setErrors(errors)
 
-        validate(input: string) {
-            validator.current!.validate(input)
+            return this
         },
-        setValidatorTimeout: validator.current.setTimeout,
-        submit: async (config?: any): Promise<unknown> => precognition.axios()[method](url, data, config)
-            .catch((error: any) => {
-                if (isAxiosError(error) && error.response?.status === 422) {
-                    validator.current?.setErrors(error.response.data.errors)
-                }
+        reset(...names) {
+            const original = cloneDeep(originalData.current!)
 
-                return Promise.reject(error)
-            })
-    };
+            const newData = {} as Partial<Data>
+
+            names = (names.length === 0 ? originalInputs.current! : names)
+
+            names.forEach(name => (newData[name] = original[name]))
+
+            setData(newData as Data)
+
+            validator.current!.reset()
+
+            return this
+        },
+        setValidationTimeout(duration) {
+            validator.current!.setTimeout(duration)
+
+            return this
+        },
+        processing,
+        async submit(config = {}): Promise<unknown> {
+            return (method === 'get' || method === 'delete'
+                ? client[method](url, resolveSubmitConfig(config))
+                : client[method](url, data, resolveSubmitConfig(config)))
+        },
+    }
 }

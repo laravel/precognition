@@ -57,18 +57,16 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         resolveConfig,
         abortMatchingRequests,
         refreshAbortController,
-    ].reduce((config, callback) => callback(config), userConfig)
+    ].reduce((config, callback) => callback(config), userConfig);
 
-    if (config.onStart) {
-        config.onStart()
-    }
+    (config.onStart ?? (() => null))()
 
     return axiosClient.request(config).then(response => {
         if (config.precognitive) {
             validatePrecognitionResponse(response)
         }
 
-        if (config.precognitive && typeof config.onPrecognitionSuccess !== 'undefined' && successResolver(response)) {
+        if (config.precognitive && config.onPrecognitionSuccess && successResolver(response)) {
             return config.onPrecognitionSuccess(response)
         }
 
@@ -89,11 +87,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
             ?? ((_, error) => Promise.reject(error))
 
         return statusHandler(error.response, error)
-    }).finally(() => {
-        if (config.onFinish) {
-            config.onFinish()
-        }
-    })
+    }).finally(config.onFinish ?? (() => null))
 }
 
 /**
@@ -108,7 +102,7 @@ const resolveConfig = (config: Config): Config => ({
     headers: {
         ...config.headers,
         ...config.precognitive !== false ? {
-            Precognition: true
+            Precognition: true,
         } : {},
         ...config.validate ? {
             'Precognition-Validate-Only': Array.from(config.validate).join(),
@@ -120,11 +114,13 @@ const resolveConfig = (config: Config): Config => ({
  * Abort an existing request with the same configured fingerprint.
  */
 const abortMatchingRequests = (config: Config): Config => {
-    if (typeof config.fingerprint === 'string') {
-        abortControllers[config.fingerprint]?.abort()
-
-        delete abortControllers[config.fingerprint]
+    if (typeof config.fingerprint !== 'string') {
+        return config
     }
+
+    abortControllers[config.fingerprint]?.abort()
+
+    delete abortControllers[config.fingerprint]
 
     return config
 }
@@ -134,19 +130,19 @@ const abortMatchingRequests = (config: Config): Config => {
  */
 const refreshAbortController = (config: Config): Config => {
     if (
-        typeof config.fingerprint === 'string'
-        && ! config.signal
-        && ! config.cancelToken
+        typeof config.fingerprint !== 'string'
+        || config.signal
+        || config.cancelToken
     ) {
-        abortControllers[config.fingerprint] = new AbortController
-
-        return {
-            ...config,
-            signal: abortControllers[config.fingerprint].signal
-        }
+        return config
     }
 
-    return config
+    abortControllers[config.fingerprint] = new AbortController
+
+    return {
+        ...config,
+        signal: abortControllers[config.fingerprint].signal,
+    }
 }
 
 /**

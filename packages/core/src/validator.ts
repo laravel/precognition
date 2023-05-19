@@ -104,51 +104,36 @@ export const createValidator = (callback: ClientCallback): TValidator => {
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (userConfig: Config): Config => {
-        const config = { ...userConfig }
-
-        if (! config.validate) {
-            config.validate = touched
-        }
-
-        const userOnValidationError = config.onValidationError
-
-        config.onValidationError = (response, axiosError) => {
+    const resolveConfig = (config: Config): Config => ({
+        ...config,
+        validate: config.validate
+            ? config.validate
+            : touched,
+        onValidationError: (response, axiosError) => {
             setErrors(response.data.errors)
 
-            return userOnValidationError
-                ? userOnValidationError(response, axiosError)
+            return config.onValidationError
+                ? config.onValidationError(response, axiosError)
                 : Promise.reject(axiosError)
-        }
-
-        const userOnPrecognitionSuccess = config.onPrecognitionSuccess
-
-        config.onPrecognitionSuccess = (response) => {
+        },
+        onPrecognitionSuccess: (response) => {
             setErrors({})
 
-            return userOnPrecognitionSuccess
-                ? userOnPrecognitionSuccess(response)
+            return config.onPrecognitionSuccess
+                ? config.onPrecognitionSuccess(response)
                 : response
-        }
+        },
+        onStart: () => {
+            setValidating(true);
 
-        const userOnStart = config.onStart ?? (() => null)
+            (config.onStart ?? (() => null))()
+        },
+        onFinish: () => {
+            setValidating(false);
 
-        config.onStart = () => {
-            setValidating(true)
-
-            userOnStart()
-        }
-
-        const userOnFinish = config.onFinish ?? (() => null)
-
-        config.onFinish = () => {
-            setValidating(true)
-
-            userOnFinish()
-        }
-
-        return config
-    }
+            (config.onFinish ?? (() => null))()
+        },
+    })
 
     const validate = (input: string|NamedInputEvent) => {
         input = typeof input !== 'string'

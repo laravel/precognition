@@ -14,5 +14,7 @@ module.exports = {
         "object-curly-spacing": ["error", "always"],
         "comma-dangle": ["error", "always-multiline"],
         "semi": ["error", "never"],
+        "@typescript-eslint/no-non-null-assertion": ["off"],
+        "@typescript-eslint/ban-ts-comment": ["off"]
     },
 };

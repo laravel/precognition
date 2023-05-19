@@ -59,28 +59,24 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Resolve the config for a form submission.
      */
-    const resolveSubmitConfig = (userConfig: Config): Config => ({
-        ...userConfig,
+    const resolveSubmitConfig = (config: Config): Config => ({
+        ...config,
         precognitive: false,
         onStart: () => {
-            form.processing = true
+            form.processing = true;
 
-            if (userConfig.onStart) {
-                userConfig.onStart()
-            }
+            (config.onStart ?? (() => null))()
         },
         onFinish: () => {
-            form.processing = false
+            form.processing = false;
 
-            if (userConfig.onFinish) {
-                userConfig.onFinish()
-            }
+            (config.onFinish ?? (() => null))()
         },
         onValidationError: (response, error) => {
             validator.setErrors(response.data.errors)
 
-            return userConfig.onValidationError
-                ? userConfig.onValidationError(response)
+            return config.onValidationError
+                ? config.onValidationError(response)
                 : Promise.reject(error)
         },
     })
