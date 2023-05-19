@@ -5,13 +5,13 @@ export interface Form<Data extends Record<string, unknown>> {
     validating: boolean,
     touched(name: keyof Data): boolean,
     data(): Data,
-    errors: Record<keyof Data, string>,
+    errors: Partial<Record<keyof Data, string>>,
     hasErrors: boolean,
     valid(name: keyof Data): boolean,
     invalid(name: keyof Data): boolean,
     validate(name: keyof Data|NamedInputEvent): Form<Data>,
-    setErrors(errors: Record<Partial<keyof Data>, string|string[]>): Form<Data>
+    setErrors(errors: Partial<Record<keyof Data, string|string[]>>): Form<Data>
     setValidationTimeout(duration: number): Form<Data>,
     submit(config?: Config): Promise<unknown>,
-    reset(...keys: (keyof Data)[]): Form<Data>,
+    reset(...keys: (keyof Partial<Data>)[]): Form<Data>,
 }

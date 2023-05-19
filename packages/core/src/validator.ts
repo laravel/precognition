@@ -93,7 +93,7 @@ export const createValidator = (callback: ClientCallback): TValidator => {
             patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
             put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
             delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
-        })
+        }).catch(() => null)
     }, timeoutDuration, { leading: true, trailing: true })
 
     /**

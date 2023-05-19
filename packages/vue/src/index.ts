@@ -1,10 +1,11 @@
-import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors, SimpleValidationErrors, ValidationErrors } from 'laravel-precognition'
+import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors } from 'laravel-precognition'
 import { Form } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Data&Form<Data> => {
-    method = method.toLowerCase() as RequestMethod
+    // @ts-expect-error
+    method = method.toLowerCase()
 
     /**
      * The original data.
@@ -14,7 +15,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The original input names.
      */
-    const originalInputs = Object.keys(originalData) as (keyof Data)[]
+    const originalInputs: (keyof Data)[] = Object.keys(originalData)
 
     /**
      * Reactive valid state.
@@ -24,7 +25,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Reactive touched state.
      */
-    const touched = ref([] as (keyof Data)[])
+    const touched = ref<(keyof Partial<Data>)[]>([])
 
     /**
      * The validator instance.
@@ -40,10 +41,10 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
     validator.on('touchedChanged', () => {
         // @ts-expect-error
-        touched.value = validator.touched() as (keyof Data)[]
+        touched.value = validator.touched()
 
         // @ts-expect-error
-        valid.value = validator.valid() as (keyof Data)[]
+        valid.value = validator.valid()
     })
 
     validator.on('errorsChanged', () => {
@@ -87,13 +88,13 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const createForm = (): Data&Form<Data> => ({
         ...cloneDeep(originalData),
         data() {
-            return originalInputs.reduce((carry, name) => ({
+            return originalInputs.reduce<Partial<Data>>((carry, name) => ({
                 ...carry,
                 // @ts-expect-error
                 [name]: this[name],
-            }), ({} as Partial<Data>)) as Data
+            }), {}) as Data
         },
-        touched(name: keyof Data) {
+        touched(name) {
             // @ts-expect-error
             return touched.value.includes(name)
         },
@@ -111,10 +112,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         invalid(name) {
             return typeof this.errors[name] !== 'undefined'
         },
-        errors: {} as Record<keyof Data, string>,
+        errors: {},
         hasErrors: false,
         setErrors(errors) {
-            validator.setErrors(errors as SimpleValidationErrors|ValidationErrors)
+            // @ts-expect-error
+            validator.setErrors(errors)
 
             return this
         },
@@ -136,7 +138,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return this
         },
         processing: false,
-        async submit(config = {}): Promise<unknown> {
+        async submit(config = {}) {
             return (method === 'get' || method === 'delete'
                 ? client[method](url, resolveSubmitConfig(config))
                 : client[method](url, this.data(), resolveSubmitConfig(config)))

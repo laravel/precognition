@@ -4,7 +4,8 @@ import { useRef, useState } from 'react'
 import { Form } from './types'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Form<Data> => {
-    method = method.toLowerCase() as RequestMethod
+    // @ts-expect-error
+    method = method.toLowerCase()
 
     /**
      * The original data.
@@ -21,7 +22,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const originalInputs = useRef<(keyof Data)[]|null>(null)
 
     if (originalInputs.current === null) {
-        originalInputs.current = Object.keys(originalData) as (keyof Data)[]
+        originalInputs.current = Object.keys(originalData)
     }
 
     /**
@@ -32,12 +33,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The reactive valid state.
      */
-    const [valid, setValid] = useState([] as (keyof Data)[])
+    const [valid, setValid] = useState<(keyof Partial<Data>)[]>([])
 
     /**
      * The reactive touched state.
      */
-    const [touched, setTouched] = useState([] as (keyof Data)[])
+    const [touched, setTouched] = useState<(keyof Partial<Data>)[]>([])
 
     /**
      * The reactive validating state.
@@ -52,7 +53,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The reactive errors state.
      */
-    const [errors, setErrors] = useState({} as Record<keyof Data, string>)
+    const [errors, setErrors] = useState<Partial<Record<keyof Data, string>>>({})
 
     /**
      * The reactive hasErrors state.
@@ -164,13 +165,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         reset(...names) {
             const original = cloneDeep(originalData.current!)
 
-            const newData = {} as Partial<Data>
+            const newData: Partial<Data> = {}
 
             names = (names.length === 0 ? originalInputs.current! : names)
 
             names.forEach(name => (newData[name] = original[name]))
 
-            setData(newData as Data)
+            // @ts-expect-error
+            setData(newData)
 
             validator.current!.reset()
 
@@ -182,7 +184,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return this
         },
         processing,
-        async submit(config = {}): Promise<unknown> {
+        async submit(config = {}) {
             return (method === 'get' || method === 'delete'
                 ? client[method](url, resolveSubmitConfig(config))
                 : client[method](url, data, resolveSubmitConfig(config)))
