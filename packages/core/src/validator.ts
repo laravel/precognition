@@ -2,7 +2,7 @@ import debounce from 'lodash.debounce'
 import { ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
 import { toValidationErrors } from './utils'
 import { client } from './client'
-import {isAxiosError} from 'axios'
+import { isAxiosError } from 'axios'
 
 export const createValidator = (callback: ClientCallback): TValidator => {
     /**
