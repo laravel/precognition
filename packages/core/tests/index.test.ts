@@ -1,10 +1,10 @@
 import axios from 'axios'
 import { client } from '../src/index'
+import { createValidator } from '../src/validator'
 
 jest.mock('axios')
 client.use(axios)
 jest.useFakeTimers()
-jest.spyOn(global, 'setTimeout')
 
 test('it can handle a successful precognition response via config handler', async () => {
     expect.assertions(2)
@@ -445,4 +445,64 @@ test('it does not create an abort controller when a cancelToken is provided', as
     })
 
     expect(config.signal).toBeUndefined()
+})
+
+test('revalidates data when validate is called', async () => {
+    expect.assertions(4)
+
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    expect(requests).toBe(0)
+
+    data = { name: 'Tim' }
+    validator.validate('name')
+    expect(requests).toBe(1)
+    jest.advanceTimersByTime(1500);
+
+    data = { name: 'Jess' }
+    validator.validate('name')
+    expect(requests).toBe(2)
+    jest.advanceTimersByTime(1500);
+
+    data = { name: 'Taylor' }
+    validator.validate('name')
+    expect(requests).toBe(3)
+    jest.advanceTimersByTime(1500);
+})
+
+test('does not revalidate data when data is unchanged', async () => {
+    expect.assertions(4)
+
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+    let data = {}
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    expect(requests).toBe(0)
+
+    data = { first: true }
+    validator.validate('name')
+    expect(requests).toBe(1)
+    jest.advanceTimersByTime(1500);
+
+    data = { first: true }
+    validator.validate('name')
+    expect(requests).toBe(1)
+    jest.advanceTimersByTime(1500);
+
+    data = { second: true }
+    validator.validate('name')
+    expect(requests).toBe(2)
+    jest.advanceTimersByTime(1500);
 })

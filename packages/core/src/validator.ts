@@ -1,10 +1,11 @@
 import debounce from 'lodash.debounce'
-import { ClientCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners } from './types'
+import isequal from 'lodash.isequal'
+import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig, RequestMethod } from './types'
 import { toValidationErrors } from './utils'
 import { client } from './client'
 import { isAxiosError } from 'axios'
 
-export const createValidator = (callback: ClientCallback): TValidator => {
+export const createValidator = (callback: ValidationCallback): TValidator => {
     /**
      * Event listener state.
      */
@@ -50,7 +51,7 @@ export const createValidator = (callback: ClientCallback): TValidator => {
     const setErrors = (value: ValidationErrors|SimpleValidationErrors) => {
         const prepared = toValidationErrors(value)
 
-        if (JSON.stringify(errors) !== JSON.stringify(prepared)) {
+        if (! isequal(errors, prepared)) {
             errors = prepared
 
             listeners.errorsChanged.forEach(callback => callback())
@@ -85,16 +86,25 @@ export const createValidator = (callback: ClientCallback): TValidator => {
     }
 
     /**
+     * The old data.
+     */
+    let oldData: Record<string, unknown> = {}
+
+    /**
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(function (): void {
+        let currentData = {}
+
         callback({
-            get: (url, config = {}) => client.get(url, resolveConfig(config)),
-            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config)),
-            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config)),
-            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config)),
-            delete: (url, config = {}) => client.delete(url, resolveConfig(config)),
+            get: (url, data = {}, config = {}) => client.get(url, resolveConfig('get', config, data)),
+            post: (url, data = {}, config = {}) => client.post(url, currentData = data, resolveConfig('post', config, data)),
+            patch: (url, data = {}, config = {}) => client.patch(url, currentData = data, resolveConfig('patch', config, data)),
+            put: (url, data = {}, config = {}) => client.put(url, currentData = data, resolveConfig('put', config, data)),
+            delete: (url, data = {}, config = {}) => client.delete(url, resolveConfig('delete', config, data)),
         }).catch((error) => ! isAxiosError(error) ? Promise.reject(error) : null)
+
+        oldData = currentData
     }, timeoutDuration, { leading: true, trailing: true })
 
     /**
@@ -105,8 +115,11 @@ export const createValidator = (callback: ClientCallback): TValidator => {
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (config: Config): Config => ({
+    const resolveConfig = (method: RequestMethod, config: ValidationConfig, data: Record<string, unknown> = {}): Config => ({
         ...config,
+        params: method === 'get' || method === 'delete'
+            ? mergeParams(data, config.params)
+            : config.params,
         validate: config.validate
             ? config.validate
             : touched,
@@ -124,6 +137,9 @@ export const createValidator = (callback: ClientCallback): TValidator => {
                 ? config.onPrecognitionSuccess(response)
                 : response
         },
+        onBefore: () => (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
+            return ! isequal(newRequest, oldRequest)
+        }))({ data }, { data: oldData }) && (config.onBefore || (() => true))(),
         onStart: () => {
             setValidating(true);
 
@@ -136,6 +152,26 @@ export const createValidator = (callback: ClientCallback): TValidator => {
         },
     })
 
+    /**
+     * Merge the "GET" and "DELETE" data with the configured parameters.
+     */
+    const mergeParams = (data: Record<string, unknown>, params: Record<string, unknown>|URLSearchParams): URLSearchParams|Record<string, unknown> => {
+        if (params instanceof URLSearchParams) {
+            return Object.keys(data).reduce((previous, key) => {
+                previous.set(key, data[key] as string)
+                return previous
+            }, params)
+        }
+
+        return {
+            ...params,
+            ...data,
+        }
+    }
+
+    /**
+     * Validate the given input.
+     */
     const validate = (input: string|NamedInputEvent) => {
         input = typeof input !== 'string'
             ? input.target.name
@@ -146,6 +182,9 @@ export const createValidator = (callback: ClientCallback): TValidator => {
         validator()
     }
 
+    /**
+     * The form validator instance.
+     */
     return {
         touched: () => touched,
         validate(input) {

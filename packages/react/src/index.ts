@@ -76,9 +76,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const validator = useRef<Validator|null>(null)
 
     if (validator.current === null) {
-        validator.current = createValidator(client => method === 'get' || method === 'delete'
-            ? client[method](url, config)
-            : client[method](url, payload.current, config))
+        validator.current = createValidator(client => client[method](url, payload.current, config))
 
         /**
          * Register event listeners...
@@ -178,17 +176,16 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return this
         },
         reset(...names) {
-            const original = cloneDeep(originalData.current!)
-
-            const newData: Partial<Data> = {}
-
             names = (names.length === 0 ? originalInputs.current! : names)
 
-            names.forEach(name => (newData[name] = original[name]))
+            const original = cloneDeep(originalData.current!)
 
             // @ts-expect-error
-            setData(newData)
-
+            setData(names.reduce((newData, name) => ({
+                ...newData,
+                [name]: original[name],
+            }), names)
+)
             validator.current!.reset()
 
             return this
@@ -200,9 +197,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         processing,
         async submit(config = {}) {
-            return (method === 'get' || method === 'delete'
-                ? client[method](url, resolveSubmitConfig(config))
-                : client[method](url, payload.current, resolveSubmitConfig(config)))
+            return client[method](url, payload.current, resolveSubmitConfig(config))
         },
     }
 }

@@ -59,6 +59,10 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         refreshAbortController,
     ].reduce((config, callback) => callback(config), userConfig);
 
+    if (! (config.onBefore ?? (() => true))()) {
+        return Promise.reject('The onBefore handler cancelled the request.')
+    }
+
     (config.onStart ?? (() => null))()
 
     return axiosClient.request(config).then(response => {

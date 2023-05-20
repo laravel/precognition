@@ -15,10 +15,19 @@ export type Config = AxiosRequestConfig&{
     onNotFound?: StatusHandler,
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
+    onBefore?: () => boolean,
     onStart?: () => unknown,
     onFinish?: () => unknown,
     fingerprint?: string|null,
     precognitive?: boolean,
+}
+
+interface RevalidatePayload {
+    data: Record<string, unknown>|null,
+}
+
+export type ValidationConfig = Config&{
+    onBeforeValidation?: (newRequest: RevalidatePayload, oldRequest: RevalidatePayload) => boolean,
 }
 
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
@@ -27,9 +36,9 @@ export type SuccessResolver = (response: AxiosResponse) => boolean
 
 export interface Client {
     get(url: string, config?: Config): Promise<unknown>,
-    post(url: string, data?: unknown, config?: Config): Promise<unknown>,
-    patch(url: string, data?: unknown, config?: Config): Promise<unknown>,
-    put(url: string, data?: unknown, config?: Config): Promise<unknown>,
+    post(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
+    patch(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
+    put(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     delete(url: string, config?: Config): Promise<unknown>,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
@@ -57,7 +66,13 @@ export interface ValidatorListeners {
 
 export type RequestMethod = 'get'|'post'|'patch'|'put'|'delete'
 
-export type ClientCallback = (client: Pick<Client, RequestMethod>) => Promise<unknown>
+export type ValidationCallback = (client: {
+    get(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
+    post(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
+    patch(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
+    put(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
+    delete(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
+}) => Promise<unknown>
 
 interface NamedEventTarget extends EventTarget {
     name: string

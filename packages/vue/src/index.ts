@@ -30,9 +30,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = createValidator(client => method === 'get' || method === 'delete'
-        ? client[method](url, config)
-        : client[method](url, form.data(), config))
+    const validator = createValidator(client => client[method](url, form.data(), config))
 
     /**
      * Register event listeners...
@@ -138,9 +136,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         processing: false,
         async submit(config = {}) {
-            return (method === 'get' || method === 'delete'
-                ? client[method](url, resolveSubmitConfig(config))
-                : client[method](url, form.data(), resolveSubmitConfig(config)))
+            return client[method](url, form.data(), resolveSubmitConfig(config))
         },
     })
 
