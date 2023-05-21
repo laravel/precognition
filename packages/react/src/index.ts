@@ -2,6 +2,7 @@ import { client, createValidator, Config, RequestMethod, Validator, toSimpleVali
 import cloneDeep from 'lodash.clonedeep'
 // @ts-expect-error
 import get from 'lodash.get'
+import set from 'lodash.set'
 import { useRef, useState } from 'react'
 import { Form } from './types'
 
@@ -123,14 +124,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     return {
         data,
         setData(key, value) {
-            const newData = {
-                ...payload.current!,
-                [key]: value,
-            }
+            const newData = cloneDeep(payload.current!)
 
-            payload.current = newData
+            payload.current = set(newData, key, value)
 
-            setData(newData)
+            setData(payload.current)
 
             return this
         },

@@ -16,8 +16,8 @@ export type Config = AxiosRequestConfig&{
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
     onBefore?: () => boolean,
-    onStart?: () => unknown,
-    onFinish?: () => unknown,
+    onStart?: () => void,
+    onFinish?: () => void,
     fingerprint?: string|null,
     precognitive?: boolean,
 }
