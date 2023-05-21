@@ -35,11 +35,11 @@ export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) 
 export type SuccessResolver = (response: AxiosResponse) => boolean
 
 export interface Client {
-    get(url: string, config?: Config): Promise<unknown>,
+    get(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     post(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     patch(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     put(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
-    delete(url: string, config?: Config): Promise<unknown>,
+    delete(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,

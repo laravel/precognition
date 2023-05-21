@@ -12,7 +12,7 @@ test('it can handle a successful precognition response via config handler', asyn
     const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         onPrecognitionSuccess: (r) => {
             expect(r).toBe(response)
 
@@ -27,7 +27,7 @@ test('it can handle a success response via a fulfilled promise', async () => {
     const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
-    await client.get('https://laravel.com').then(r => expect(r).toBe(response))
+    await client.post('https://laravel.com').then(r => expect(r).toBe(response))
 })
 
 test('it can handle a validation response via a config handler', async () => {
@@ -46,7 +46,7 @@ test('it can handle a validation response via a config handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com', {
+    await client.patch('https://laravel.com', {}, {
         onValidationError: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -69,7 +69,7 @@ test('it can handle an unauthorized response via a config handler', async () => 
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com', {
+    await client.delete('https://laravel.com', {}, {
         onUnauthorized: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -92,7 +92,7 @@ test('it can handle a forbidden response via a config handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com', {
+    await client.put('https://laravel.com', {}, {
         onForbidden: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -115,7 +115,7 @@ test('it can handle a not found response via a config handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         onNotFound: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -138,7 +138,7 @@ test('it can handle a conflict response via a config handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         onConflict: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -161,7 +161,7 @@ test('it can handle a locked response via a config handler', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         onLocked: (p, e) => {
             expect(p).toBe(error.response)
             expect(e).toBe(error)
@@ -180,7 +180,7 @@ test('it can provide input names to validate via config', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         validate: ['username', 'email'],
     })
 
@@ -274,7 +274,7 @@ test('it can customize how it determines a successful precognition response', as
 
     client.determineSuccessUsing((response) => response.status === 999)
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         onPrecognitionSuccess: (r) => {
             expect(r).toBe(response)
 
@@ -285,7 +285,7 @@ test('it can customize how it determines a successful precognition response', as
     response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
-    await client.get('https://laravel.com', {
+    await client.get('https://laravel.com', {}, {
         onPrecognitionSuccess: () => {
             return 'xxxx'
         },
@@ -333,7 +333,7 @@ test('the configured baseURL takes precedence over the axios default baseURL for
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await client.get('/docs', {
+    await client.get('/docs', {}, {
         baseURL: 'https://forge.laravel.com',
     })
 
@@ -350,7 +350,7 @@ test('it can specify the request fingerprint via config', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await client.get('/docs', {
+    await client.get('/docs', {}, {
         fingerprint: 'expected-id',
     })
 
@@ -384,7 +384,7 @@ test('the config fingerprint takes precedence over the global fingerprint for re
     })
     client.fingerprintRequestsUsing(() => 'foo')
 
-    await client.get('/docs', {
+    await client.get('/docs', {}, {
         fingerprint: 'expected-id',
     })
 
@@ -401,7 +401,7 @@ test('it can opt out of automatic request aborting', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await client.get('/docs', {
+    await client.get('/docs', {}, {
         fingerprint: null,
     })
 
@@ -423,7 +423,7 @@ test('it can specify the abort controller via config', async () => {
         called = true
     })
 
-    await client.get('/docs', {
+    await client.get('/docs', {}, {
         signal: controller.signal,
     })
     config.signal.dispatchEvent(new Event('foo'))
@@ -440,7 +440,7 @@ test('it does not create an abort controller when a cancelToken is provided', as
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
 
-    await client.get('/docs', {
+    await client.get('/docs', {}, {
         cancelToken: { /* ... */ },
     })
 
@@ -464,17 +464,17 @@ test('revalidates data when validate is called', async () => {
     data = { name: 'Tim' }
     validator.validate('name')
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1500)
 
     data = { name: 'Jess' }
     validator.validate('name')
     expect(requests).toBe(2)
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1500)
 
     data = { name: 'Taylor' }
     validator.validate('name')
     expect(requests).toBe(3)
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1500)
 })
 
 test('does not revalidate data when data is unchanged', async () => {
@@ -494,15 +494,15 @@ test('does not revalidate data when data is unchanged', async () => {
     data = { first: true }
     validator.validate('name')
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1500)
 
     data = { first: true }
     validator.validate('name')
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1500)
 
     data = { second: true }
     validator.validate('name')
     expect(requests).toBe(2)
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1500)
 })

@@ -1,5 +1,6 @@
 import { client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
+import isequal from 'lodash.isequal'
 import { useRef, useState } from 'react'
 import { Form } from './types'
 
@@ -149,7 +150,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // mimick the "onChange" functionality found in the Vue plugin. If
             // this becomes problematic we could consider adding a "force" flag
             // or function.
-            if (previousPayload.current == payload.current) {
+            if (isequal(previousPayload.current, payload.current)) {
                 return this
             }
 
