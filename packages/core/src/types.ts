@@ -52,7 +52,7 @@ export interface Validator {
     valid(): Array<string>,
     hasErrors(): boolean,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
-    validate(input: string|NamedInputEvent): Validator,
+    validate(input: string|NamedInputEvent, value: unknown): Validator,
     reset(): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,

@@ -1,11 +1,13 @@
 import debounce from 'lodash.debounce'
 import isequal from 'lodash.isequal'
+// @ts-expect-error
+import get from 'lodash.get'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types'
 import { toValidationErrors } from './utils'
 import { client } from './client'
 import { isAxiosError } from 'axios'
 
-export const createValidator = (callback: ValidationCallback): TValidator => {
+export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
      * Event listener state.
      */
@@ -73,10 +75,10 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
     /**
      * Debouncing timeout state.
      */
-    let timeoutDuration = 1500
+    let debounceTimeoutDuration = 1500
 
-    const setTimeout = (value: number) => {
-        timeoutDuration = value
+    const setDebounceTimeout = (value: number) => {
+        debounceTimeoutDuration = value
 
         validator.cancel()
 
@@ -88,7 +90,7 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
     /**
      * The old data.
      */
-    let oldData: Record<string, unknown> = {}
+    let oldData = initialData
 
     /**
      * Create a debounced validation callback.
@@ -105,7 +107,7 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
         }).catch((error) => ! isAxiosError(error) ? Promise.reject(error) : null)
 
         oldData = currentData
-    }, timeoutDuration, { leading: true, trailing: true })
+    }, debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
      * Validator state.
@@ -117,6 +119,7 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
      */
     const resolveConfig = (config: ValidationConfig, data: Record<string, unknown> = {}): Config => ({
         ...config,
+        timeout: config.timeout ?? 5000,
         validate: config.validate
             ? config.validate
             : touched,
@@ -152,12 +155,18 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
     /**
      * Validate the given input.
      */
-    const validate = (input: string|NamedInputEvent) => {
-        input = typeof input !== 'string'
-            ? input.target.name
-            : input
+    const validate = (name: string|NamedInputEvent, value: unknown) => {
+        name = typeof name !== 'string'
+            ? name.target.name
+            : name
 
-        setTouched([input, ...touched])
+        if (get(oldData, name) !== value) {
+            setTouched([name, ...touched])
+        }
+
+        if (touched.length === 0) {
+            return
+        }
 
         validator()
     }
@@ -167,8 +176,8 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
      */
     return {
         touched: () => touched,
-        validate(input) {
-            validate(input)
+        validate(input, value) {
+            validate(input, value)
 
             return this
         },
@@ -188,7 +197,7 @@ export const createValidator = (callback: ValidationCallback): TValidator => {
             return this
         },
         setTimeout(value) {
-            setTimeout(value)
+            setDebounceTimeout(value)
 
             return this
         },

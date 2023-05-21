@@ -2,15 +2,17 @@ import { Config, RequestMethod, client, createValidator, toSimpleValidationError
 import { Form } from './types'
 import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
+// @ts-expect-error
+import get from 'lodash.get'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Data&Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: Config = {}): Data&Form<Data> => {
     // @ts-expect-error
     method = method.toLowerCase()
 
     /**
      * The original data.
      */
-    const originalData = cloneDeep(input)
+    const originalData = cloneDeep(inputs)
 
     /**
      * The original input names.
@@ -30,7 +32,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = createValidator(client => client[method](url, form.data(), config))
+    const validator = createValidator(client => client[method](url, form.data(), config), inputs)
         .on('validatingChanged', () => {
             form.validating = validator.validating()
         })
@@ -92,8 +94,13 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return touched.value.includes(name)
         },
         validate(name) {
+            name = typeof name !== 'string'
+                // @ts-expect-error
+                ? name.target.name
+                : name
+
             // @ts-expect-error
-            validator.validate(name)
+            validator.validate(name, get(this.data(), name))
 
             return form
         },

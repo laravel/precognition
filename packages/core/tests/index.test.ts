@@ -462,17 +462,17 @@ test('revalidates data when validate is called', async () => {
     expect(requests).toBe(0)
 
     data = { name: 'Tim' }
-    validator.validate('name')
+    validator.validate('name', 'Tim')
     expect(requests).toBe(1)
     jest.advanceTimersByTime(1500)
 
     data = { name: 'Jess' }
-    validator.validate('name')
+    validator.validate('name', 'Jess')
     expect(requests).toBe(2)
     jest.advanceTimersByTime(1500)
 
     data = { name: 'Taylor' }
-    validator.validate('name')
+    validator.validate('name', 'Taylor')
     expect(requests).toBe(3)
     jest.advanceTimersByTime(1500)
 })
@@ -492,17 +492,17 @@ test('does not revalidate data when data is unchanged', async () => {
     expect(requests).toBe(0)
 
     data = { first: true }
-    validator.validate('name')
+    validator.validate('name', true)
     expect(requests).toBe(1)
     jest.advanceTimersByTime(1500)
 
     data = { first: true }
-    validator.validate('name')
+    validator.validate('name', true)
     expect(requests).toBe(1)
     jest.advanceTimersByTime(1500)
 
     data = { second: true }
-    validator.validate('name')
+    validator.validate('name', true)
     expect(requests).toBe(2)
     jest.advanceTimersByTime(1500)
 })

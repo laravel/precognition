@@ -32,11 +32,10 @@
     "dependencies": {
         "laravel-precognition": "0.1.0",
         "lodash.clonedeep": "^4.5.0",
-        "lodash.isequal": "^4.5.0"
+        "lodash.get": "^4.4.2"
     },
     "devDependencies": {
         "@types/lodash.clonedeep": "^4.5.7",
-        "@types/lodash.isequal": "^4.0.7",
         "@types/react": "^18.2.6",
         "typescript": "^5.0.0"
     }

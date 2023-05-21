@@ -58,10 +58,10 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         resolveConfig,
         abortMatchingRequests,
         refreshAbortController,
-    ].reduce((config, callback) => callback(config), userConfig);
+    ].reduce((config, callback) => callback(config), userConfig)
 
     if (! (config.onBefore ?? (() => true))()) {
-        return Promise.reject('The onBefore handler cancelled the request.')
+        return Promise.resolve(null)
     }
 
     (config.onStart ?? (() => null))()
@@ -99,7 +99,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
  * Resolve the configuration.
  */
 const resolveConfig = (config: Config): Config => ({
-    timeout: 5000,
+    timeout: config.timeout ?? axiosClient.defaults['timeout'] ?? 30000,
     precognitive: config.precognitive !== false,
     fingerprint: typeof config.fingerprint === 'undefined'
         ? requestFingerprintResolver(config, axiosClient)

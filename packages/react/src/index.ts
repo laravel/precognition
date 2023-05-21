@@ -1,6 +1,7 @@
 import { client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
-import isequal from 'lodash.isequal'
+// @ts-expect-error
+import get from 'lodash.get'
 import { useRef, useState } from 'react'
 import { Form } from './types'
 
@@ -30,11 +31,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * The current payload.
      */
     const payload = useRef(originalData.current)
-
-    /**
-     * The previous payload.
-     */
-    const previousPayload = useRef(originalData.current)
 
     /**
      * The reactive valid state.
@@ -77,7 +73,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const validator = useRef<Validator|null>(null)
 
     if (validator.current === null) {
-        validator.current = createValidator(client => client[method](url, payload.current, config))
+        validator.current = createValidator(client => client[method](url, payload.current, config), input)
             .on('validatingChanged', () => {
                 setValidating(validator.current!.validating())
             })
@@ -141,19 +137,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         touched(name) {
             return touched.includes(name)
         },
-        validate(input) {
-            // Due to the way that react works, we do this so that "onBlur" may
-            // mimick the "onChange" functionality found in the Vue plugin. If
-            // this becomes problematic we could consider adding a "force" flag
-            // or function.
-            if (isequal(previousPayload.current, payload.current)) {
-                return this
-            }
-
-            previousPayload.current = payload.current
+        validate(name) {
+            name = typeof name !== 'string'
+                // @ts-expect-error
+                ? name.target.name
+                : name
 
             // @ts-expect-error
-            validator.current!.validate(input)
+            validator.current!.validate(name, get(payload.current, name))
 
             return this
         },
