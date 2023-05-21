@@ -1,4 +1,5 @@
 import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
+import merge from 'lodash.merge'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver } from './types'
 
 /**
@@ -25,11 +26,11 @@ const abortControllers: Record<string, AbortController> = {}
  * The precognitive HTTP client instance.
  */
 export const client: Client = {
-    get: (url, data = {}, config = {}) => request({ ...config, params: mergeParams(config.params, data), url, method: 'get' }),
+    get: (url, data = {}, config = {}) => request({ ...config, params: merge(config.params, data), url, method: 'get' }),
     post: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'post' }),
     patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
     put: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'put' }),
-    delete: (url, data = {}, config = {}) => request({ ...config, url, params: mergeParams(config.params, data), method: 'delete' }),
+    delete: (url, data = {}, config = {}) => request({ ...config, url, params: merge(config.params, data), method: 'delete' }),
     use(client) {
         axiosClient = client
 
@@ -48,22 +49,6 @@ export const client: Client = {
         return this
     },
 }
-
-/**
- * Merge the "GET" and "DELETE" data with the configured request parameters.
- */
-const mergeParams = (data: Record<string, unknown>, params: Record<string, unknown>|URLSearchParams|undefined): URLSearchParams|Record<string, unknown> => {
-    if (params instanceof URLSearchParams) {
-        return Object.keys(data).reduce((previous, key) => {
-            previous.set(key, data[key] as string)
-
-            return previous
-        }, params)
-    }
-
-    return { ...params, ...data }
-}
-
 
 /**
  * Send and handle a new request.
@@ -114,6 +99,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
  * Resolve the configuration.
  */
 const resolveConfig = (config: Config): Config => ({
+    timeout: 5000,
     precognitive: config.precognitive !== false,
     fingerprint: typeof config.fingerprint === 'undefined'
         ? requestFingerprintResolver(config, axiosClient)

@@ -30,7 +30,8 @@
     "dependencies": {
         "axios": "^1.4.0",
         "lodash.debounce": "^4.0.8",
-        "lodash.isequal": "^4.0.8"
+        "lodash.isequal": "^4.0.8",
+        "lodash.merge": "^4.6.2"
     },
     "devDependencies": {
         "@babel/core": "^7.18.13",
@@ -39,6 +40,7 @@
         "@types/jest": "^29.0.0",
         "@types/lodash.debounce": "^4.0.7",
         "@types/lodash.isequal": "^4.0.7",
+        "@types/lodash.merge": "^4.0.7",
         "@types/node": "^20.1.0",
         "babel-jest": "^29.5.0",
         "ts-jest": "^29.0.0",

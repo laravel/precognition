@@ -78,26 +78,22 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
     if (validator.current === null) {
         validator.current = createValidator(client => client[method](url, payload.current, config))
+            .on('validatingChanged', () => {
+                setValidating(validator.current!.validating())
+            })
+            .on('touchedChanged', () => {
+                setTouched(validator.current!.touched())
 
-        /**
-         * Register event listeners...
-         */
-        validator.current.on('validatingChanged', () => setValidating(validator.current!.validating()))
+                setValid(validator.current!.valid())
+            })
+            .on('errorsChanged', () => {
+                setHasErrors(validator.current!.hasErrors())
 
-        validator.current.on('touchedChanged', () => {
-            setTouched(validator.current!.touched())
+                setValid(validator.current!.valid())
 
-            setValid(validator.current!.valid())
-        })
-
-        validator.current.on('errorsChanged', () => {
-            setHasErrors(validator.current!.hasErrors())
-
-            setValid(validator.current!.valid())
-
-            // @ts-expect-error
-            setErrors(toSimpleValidationErrors(validator.current!.errors()))
-        })
+                // @ts-expect-error
+                setErrors(toSimpleValidationErrors(validator.current!.errors()))
+            })
     }
 
     /**

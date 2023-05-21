@@ -31,29 +31,25 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * The validator instance.
      */
     const validator = createValidator(client => client[method](url, form.data(), config))
+        .on('validatingChanged', () => {
+            form.validating = validator.validating()
+        })
+        .on('touchedChanged', () => {
+            // @ts-expect-error
+            touched.value = validator.touched()
 
-    /**
-     * Register event listeners...
-     */
-    validator.on('validatingChanged', () => form.validating = validator.validating())
+            // @ts-expect-error
+            valid.value = validator.valid()
+        })
+        .on('errorsChanged', () => {
+            form.hasErrors = validator.hasErrors()
 
-    validator.on('touchedChanged', () => {
-        // @ts-expect-error
-        touched.value = validator.touched()
+            // @ts-expect-error
+            valid.value = validator.valid()
 
-        // @ts-expect-error
-        valid.value = validator.valid()
-    })
-
-    validator.on('errorsChanged', () => {
-        form.hasErrors = validator.hasErrors()
-
-        // @ts-expect-error
-        valid.value = validator.valid()
-
-        // @ts-expect-error
-        form.errors = toSimpleValidationErrors(validator.errors())
-    })
+            // @ts-expect-error
+            form.errors = toSimpleValidationErrors(validator.errors())
+        })
 
     /**
      * Resolve the config for a form submission.
