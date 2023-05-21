@@ -99,6 +99,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 ? name.target.name
                 : name
 
+            console.log(name, get(this.data(), name))
+
             // @ts-expect-error
             validator.validate(name, get(this.data(), name))
 
