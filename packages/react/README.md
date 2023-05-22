@@ -12,7 +12,7 @@ Laravel Precognition allows you to anticipate the outcome of a future HTTP reque
 
 ## Official Documentation
 
-Documentation for the Laravel Vite plugin can be found on the [Laravel website](https://laravel.com/docs/precognition).
+Documentation for Laravel Precognition can be found on the [Laravel website](https://laravel.com/docs/precognition).
 
 ## Contributing
 
