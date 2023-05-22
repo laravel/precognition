@@ -32,38 +32,11 @@ body:
       placeholder: 8.1.4
     validations:
       required: true
-  - type: dropdown
-    attributes:
-      label: Operating System
-      description: What operating system are you using? Any OS not listed here is currently not supported.
-      options:
-        - macOS
-        - Windows (WSL)
-        - Linux
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: OS Version
-      description: Provide the operation version
-      placeholder: 8.1.4
-    validations:
-      required: true
   - type: input
     attributes:
       label: Web browser and version
       description: Provide the browser type and version you're using to reproduce the bug.
       placeholder: Google Chrome Version 111.0.5563.146 (Official Build) (arm64)
-    validations:
-      required: true
-  - type: dropdown
-    attributes:
-      label: Running in Sail?
-      description: Please indicate if you're running your app and commands in Sail or a custom Docker setup.
-      options:
-        - "No"
-        - Sail
-        - Custom Docker
     validations:
       required: true
   - type: textarea
