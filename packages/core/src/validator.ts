@@ -203,24 +203,18 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         reset(...names) {
             if (names.length === 0) {
                 setTouched([])
-
-                setErrors({})
             } else {
                 const newTouched = [...touched]
-                const newErrors = { ...errors }
 
                 names.forEach(name => {
                     if (newTouched.includes(name)) {
                         newTouched.splice(newTouched.indexOf(name), 1)
                     }
 
-                    delete newErrors[name]
-
                     set(oldData, name, get(initialData, name))
                 })
 
                 setTouched(newTouched)
-                setErrors(newErrors)
             }
 
             return this
