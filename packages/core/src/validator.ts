@@ -3,7 +3,6 @@ import isequal from 'lodash.isequal'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types'
-import { resolveName, toValidationErrors } from './utils'
 import { client } from './client'
 import { isAxiosError } from 'axios'
 
@@ -238,3 +237,26 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         },
     }
 }
+
+export const toSimpleValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): SimpleValidationErrors => {
+    return Object.keys(errors).reduce((carry, key) => ({
+        ...carry,
+        [key]: Array.isArray(errors[key])
+            ? errors[key][0]
+            : errors[key],
+    }), {})
+}
+
+export const toValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): ValidationErrors => {
+    return Object.keys(errors).reduce((carry, key) => ({
+        ...carry,
+        [key]: typeof errors[key] === 'string' ? [errors[key]] : errors[key],
+    }), {})
+}
+
+export const resolveName = (name: string|NamedInputEvent): string => {
+    return typeof name !== 'string'
+        ? name.target.name
+        : name
+}
+

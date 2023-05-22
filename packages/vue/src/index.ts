@@ -144,6 +144,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         async submit(config = {}) {
             return client[method](url, form.data(), resolveSubmitConfig(config))
         },
+        validator() {
+            return validator
+        }
     })
 
     /**

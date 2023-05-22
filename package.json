@@ -1,7 +1,11 @@
 {
     "private": true,
     "workspaces": [
-        "packages/*"
+        "packages/core",
+        "packages/react",
+        "packages/react-inertia",
+        "packages/vue",
+        "packages/vue-inertia"
     ],
     "scripts": {
         "lint": "eslint --ext .ts --ignore-pattern dist ./packages",
