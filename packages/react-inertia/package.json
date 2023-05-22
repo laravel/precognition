@@ -1,0 +1,39 @@
+{
+    "name": "laravel-precognition-react-inertia",
+    "version": "0.1.0",
+    "description": "Laravel Precognition (React w/ Inertia).",
+    "keywords": [
+        "laravel",
+        "precognition",
+        "react",
+        "inertia"
+    ],
+    "homepage": "https://github.com/laravel/precognition",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/laravel/precognition"
+    },
+    "license": "MIT",
+    "author": "Laravel",
+    "main": "dist/index.js",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "build": "rm -rf dist && tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "engines": {
+        "node": ">=14"
+    },
+    "peerDependencies": {
+        "@inertiajs/react": "^1.0.0"
+    },
+    "dependencies": {
+        "laravel-precognition-react": "0.1.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
+}
