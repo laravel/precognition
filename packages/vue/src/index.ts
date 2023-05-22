@@ -1,6 +1,6 @@
 import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors } from 'laravel-precognition'
 import { Form } from './types'
-import { reactive, ref } from 'vue'
+import { reactive, ref, toRaw } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 // @ts-expect-error
 import get from 'lodash.get'
@@ -34,7 +34,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = createValidator(client => client[method](url, form.data(), config), inputs)
+    const validator = createValidator(client => client[method](url, form.data(), config), originalData)
         .on('validatingChanged', () => {
             form.validating = validator.validating()
         })
@@ -86,9 +86,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const createForm = (): Data&Form<Data> => ({
         ...cloneDeep(originalData),
         data() {
+            const data = toRaw(form)
+
             return originalInputs.reduce<Partial<Data>>((carry, name) => ({
                 ...carry,
-                [name]: form[name],
+                [name]: cloneDeep(data[name])
             }), {}) as Data
         },
         touched(name) {

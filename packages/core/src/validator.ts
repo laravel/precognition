@@ -96,17 +96,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(function (): void {
-        let currentData = {}
-
         callback({
-            get: (url, data = {}, config = {}) => client.get(url, data, resolveConfig(config, currentData = data)),
-            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config, currentData = data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config, currentData = data)),
-            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config, currentData = data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, data, resolveConfig(config, currentData = data)),
-        }).catch((error) => ! isAxiosError(error) ? Promise.reject(error) : null)
-
-        oldData = currentData
+            get: (url, data = {}, config = {}) => client.get(url, oldData = data, resolveConfig(config, data)),
+            post: (url, data = {}, config = {}) => client.post(url, oldData = data, resolveConfig(config, data)),
+            patch: (url, data = {}, config = {}) => client.patch(url, oldData = data, resolveConfig(config, data)),
+            put: (url, data = {}, config = {}) => client.put(url, oldData = data, resolveConfig(config, data)),
+            delete: (url, data = {}, config = {}) => client.delete(url, oldData = data, resolveConfig(config, data)),
+        }).catch(error => isAxiosError(error) ? null : Promise.reject(error))
     }, debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
