@@ -1,13 +1,12 @@
-import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors } from 'laravel-precognition'
+import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors, ValidationConfig } from 'laravel-precognition'
 import { Form } from './types'
 import { reactive, ref, toRaw } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
-// @ts-expect-error
 import get from 'lodash.get'
 import { resolveName } from 'laravel-precognition'
 import set from 'lodash.set'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: Config = {}): Data&Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
     // @ts-expect-error
     method = method.toLowerCase()
 
@@ -90,7 +89,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return originalInputs.reduce<Partial<Data>>((carry, name) => ({
                 ...carry,
-                [name]: cloneDeep(data[name])
+                [name]: cloneDeep(data[name]),
             }), {}) as Data
         },
         touched(name) {
@@ -131,7 +130,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 names.forEach(name => set(form, name, get(original, name)))
             }
 
-            validator.reset()
+            // @ts-expect-error
+            validator.reset(...names)
 
             return form
         },

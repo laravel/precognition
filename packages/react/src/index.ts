@@ -1,12 +1,11 @@
-import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors } from 'laravel-precognition'
+import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors, ValidationConfig } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
-// @ts-expect-error
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { useRef, useState } from 'react'
 import { Form } from './types'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: Config = {}): Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: ValidationConfig = {}): Form<Data> => {
     // @ts-expect-error
     method = method.toLowerCase()
 
@@ -171,7 +170,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 setData(payload.current)
             }
 
-            validator.current!.reset()
+            // @ts-expect-error
+            validator.current!.reset(...names)
 
             return this
         },

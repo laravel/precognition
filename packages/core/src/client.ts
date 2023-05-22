@@ -60,7 +60,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         refreshAbortController,
     ].reduce((config, callback) => callback(config), userConfig)
 
-    if (! (config.onBefore ?? (() => true))()) {
+    if ((config.onBefore ?? (() => true))() === false) {
         return Promise.resolve(null)
     }
 

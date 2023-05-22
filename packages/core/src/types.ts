@@ -10,7 +10,7 @@ export type Config = AxiosRequestConfig&{
     precognitive?: boolean,
     validate?: Iterable<string>|ArrayLike<string>,
     fingerprint?: string|null,
-    onBefore?: () => boolean,
+    onBefore?: () => boolean|undefined,
     onStart?: () => void,
     onPrecognitionSuccess?: (response: AxiosResponse) => unknown,
     onValidationError?: StatusHandler,
@@ -27,7 +27,7 @@ interface RevalidatePayload {
 }
 
 export type ValidationConfig = Config&{
-    onBeforeValidation?: (newRequest: RevalidatePayload, oldRequest: RevalidatePayload) => boolean,
+    onBeforeValidation?: (newRequest: RevalidatePayload, oldRequest: RevalidatePayload) => boolean|undefined,
 }
 
 export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
@@ -53,7 +53,7 @@ export interface Validator {
     errors(): ValidationErrors,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     hasErrors(): boolean,
-    reset(): Validator,
+    reset(...names: string[]): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
 }

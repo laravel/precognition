@@ -1,7 +1,7 @@
 import debounce from 'lodash.debounce'
 import isequal from 'lodash.isequal'
-// @ts-expect-error
 import get from 'lodash.get'
+import set from 'lodash.set'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types'
 import { resolveName, toValidationErrors } from './utils'
 import { client } from './client'
@@ -95,14 +95,15 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce(function (): void {
+    const createValidator = () => debounce(() => {
         callback({
-            get: (url, data = {}, config = {}) => client.get(url, oldData = data, resolveConfig(config, data)),
-            post: (url, data = {}, config = {}) => client.post(url, oldData = data, resolveConfig(config, data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, oldData = data, resolveConfig(config, data)),
-            put: (url, data = {}, config = {}) => client.put(url, oldData = data, resolveConfig(config, data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, oldData = data, resolveConfig(config, data)),
-        }).catch(error => isAxiosError(error) ? null : Promise.reject(error))
+            get: (url, data = {}, config = {}) => client.get(url, data, resolveConfig(config, data)),
+            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config, data)),
+            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config, data)),
+            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config, data)),
+            delete: (url, data = {}, config = {}) => client.delete(url, data, resolveConfig(config, data)),
+        })
+        .catch(error => isAxiosError(error) ? null : Promise.reject(error))
     }, debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
@@ -133,9 +134,25 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 ? config.onPrecognitionSuccess(response)
                 : response
         },
-        onBefore: () => (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
-            return ! isequal(newRequest, oldRequest)
-        }))({ data }, { data: oldData }) && (config.onBefore || (() => true))(),
+        onBefore: () => {
+            const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
+                return ! isequal(newRequest, oldRequest)
+            }))({ data }, { data: oldData })
+
+            if (beforeValidationResult === false) {
+                return false
+            }
+
+            const beforeResult = (config.onBefore || (() => true))()
+
+            if (beforeResult === false) {
+                return false
+            }
+
+            oldData = data
+
+            return true
+        },
         onStart: () => {
             setValidating(true);
 
@@ -184,9 +201,28 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             return this
         },
-        reset() {
-            setTouched([])
-            setErrors({})
+        reset(...names) {
+            if (names.length === 0) {
+                setTouched([])
+
+                setErrors({})
+            } else {
+                const newTouched = [...touched]
+                const newErrors = { ...errors }
+
+                names.forEach(name => {
+                    if (newTouched.includes(name)) {
+                        newTouched.splice(newTouched.indexOf(name), 1)
+                    }
+
+                    delete newErrors[name]
+
+                    set(oldData, name, get(initialData, name))
+                })
+
+                setTouched(newTouched)
+                setErrors(newErrors)
+            }
 
             return this
         },
