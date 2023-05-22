@@ -15,6 +15,7 @@ module.exports = {
         "comma-dangle": ["error", "always-multiline"],
         "semi": ["error", "never"],
         "@typescript-eslint/no-non-null-assertion": ["off"],
-        "@typescript-eslint/ban-ts-comment": ["off"]
+        "@typescript-eslint/ban-ts-comment": ["off"],
+        "@typescript-eslint/no-explicit-any": ["off"],
     },
 };

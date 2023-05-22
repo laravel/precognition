@@ -92,6 +92,13 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 [name]: cloneDeep(data[name]),
             }), {}) as Data
         },
+        setData(data: Record<string, unknown>) {
+            Object.keys(data).forEach(input => {
+                this[input] = data[input]
+            })
+
+            return form
+        },
         touched(name) {
             // @ts-expect-error
             return touched.value.includes(name)
@@ -146,7 +153,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         validator() {
             return validator
-        }
+        },
     })
 
     /**

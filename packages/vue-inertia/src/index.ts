@@ -1,4 +1,4 @@
-import {Config, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig} from 'laravel-precognition'
+import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors } from 'laravel-precognition'
 import { useForm as useVueForm } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
 
@@ -16,15 +16,34 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Setup event listeners.
      */
-    vueForm.validator().on('errorsChanged', () => inertiaForm.clearErrors().setError(
-        // @ts-expect-error
-        toSimpleValidationErrors(vueForm.validator().errors())
-    ))
+    vueForm.validator().on('errorsChanged', () => {
+        inertiaClearErrors()
+
+        inertiaSetError(
+            // @ts-expect-error
+            toSimpleValidationErrors(vueForm.validator().errors())
+        )
+    })
 
     /**
      * The Inertia submit function.
      */
     const inertiaSubmit = inertiaForm.submit.bind(inertiaForm)
+
+    /**
+     * The Inertia reset function.
+     */
+    const inertiaReset = inertiaForm.reset.bind(inertiaForm)
+
+    /**
+     * The Inertia clear errors function.
+     */
+    const inertiaClearErrors = inertiaForm.clearErrors.bind(inertiaForm)
+
+    /**
+     * The Inertia set error function.
+     */
+    const inertiaSetError = inertiaForm.setError.bind(inertiaForm)
 
     /**
      * Patch the form.
@@ -35,20 +54,60 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         touched: vueForm.touched,
         valid: vueForm.valid,
         invalid: vueForm.invalid,
-        validate: vueForm.validate,
-        setValidationTimeout: vueForm.setValidationTimeout,
-        submit: (submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void => {
+        clearErrors() {
+            inertiaClearErrors()
+
+            vueForm.setErrors({})
+
+            return this
+        },
+        reset(...names: string[]) {
+            inertiaReset(...names)
+
+            vueForm.reset(...names)
+        },
+        setErrors(errors: SimpleValidationErrors|ValidationErrors) {
+            // @ts-expect-error
+            vueForm.setErrors(errors)
+
+            return this
+        },
+        setError(key: any, value?: any) {
+            this.setErrors({
+                ...inertiaForm.errors,
+                ...typeof value === 'undefined'
+                    ? key
+                    : { [key]: value }
+            })
+
+            return this
+        },
+        validate(name: string|NamedInputEvent) {
+            vueForm.setData(inertiaForm.data())
+
+            vueForm.validate(name)
+
+            return this
+        },
+        setValidationTimeout(duration: number) {
+            vueForm.setValidationTimeout(duration)
+
+            return this
+        },
+        submit(submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void {
             const isPatchedCall = typeof submitMethod !== 'string'
 
+            const userOptions = isPatchedCall
+                ? submitMethod
+                : submitOptions
+
             const options = {
-                ...isPatchedCall
-                    ? submitMethod
-                    : submitOptions,
+                ...userOptions,
                 onError: (errors: SimpleValidationErrors): any => {
                     vueForm.validator().setErrors(errors)
 
-                    if (submitOptions.onError) {
-                        return submitOptions.onError(errors)
+                    if (userOptions.onError) {
+                        return userOptions.onError(errors)
                     }
                 },
             }
@@ -59,6 +118,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 (isPatchedCall ? url : submitUrl),
                 options
             )
-        }
+        },
     })
 }

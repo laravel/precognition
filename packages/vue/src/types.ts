@@ -5,6 +5,7 @@ export interface Form<Data extends Record<string, unknown>> {
     validating: boolean,
     touched(name: keyof Data): boolean,
     data(): Data,
+    setData(data: Record<string, unknown>): Data&Form<Data>,
     errors: Partial<Record<keyof Data, string>>,
     hasErrors: boolean,
     valid(name: keyof Data): boolean,
