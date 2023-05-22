@@ -77,7 +77,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 ...inertiaForm.errors,
                 ...typeof value === 'undefined'
                     ? key
-                    : { [key]: value }
+                    : { [key]: value },
             })
 
             return this

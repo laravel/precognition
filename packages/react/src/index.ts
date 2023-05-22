@@ -192,6 +192,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         validator() {
             return validator.current!
-        }
+        },
     }
 }
