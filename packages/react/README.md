@@ -8,13 +8,7 @@
 
 ## Introduction
 
-Laravel Precognition allows you to anticipate the outcome of a future request. Some ways Precognition may be used include:
-
-- Live validation of forms, powered by Laravel validation rules.
-- Notifying users that a resource they are editing has been updated since it was retrieved.
-- Notifying users their session has expired.
-
-This library provides the core functionality used by the [Vue](https://github.com/laravel/precognition-vue) and [React](https://github.com/laravel/precognition-react) framework libraries.
+Laravel Precognition allows you to anticipate the outcome of a future HTTP request. One of the primary use cases of Precognition is the ability to provide "live" validation in your frontend application.
 
 ## Official Documentation
 
