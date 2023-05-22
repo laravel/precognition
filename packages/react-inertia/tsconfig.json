@@ -7,10 +7,7 @@
         "resolveJsonModule": true,
         "strict": true,
         "declaration": true,
-        "esModuleInterop": true,
-        "types": [
-            "vue"
-        ]
+        "esModuleInterop": true
     },
     "include": [
         "./src/index.ts"

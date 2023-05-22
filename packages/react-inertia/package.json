@@ -34,6 +34,7 @@
         "laravel-precognition-react": "0.1.0"
     },
     "devDependencies": {
+        "@types/react-dom": "^18.2.4",
         "typescript": "^5.0.0"
     }
 }

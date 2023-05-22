@@ -123,11 +123,17 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     return {
         data,
         setData(key, value) {
-            const newData = cloneDeep(payload.current!)
+            if (typeof key === 'object') {
+                payload.current = key
 
-            payload.current = set(newData, key, value)
+                setData(key)
+            } else {
+                const newData = cloneDeep(payload.current!)
 
-            setData(payload.current)
+                payload.current = set(newData, key, value)
+
+                setData(payload.current)
+            }
 
             return this
         },
@@ -184,5 +190,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         async submit(config = {}) {
             return client[method](url, payload.current, resolveSubmitConfig(config))
         },
+        validator() {
+            return validator.current!
+        }
     }
 }

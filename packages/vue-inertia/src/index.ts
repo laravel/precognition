@@ -9,19 +9,19 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const inertiaForm = useInertiaForm(inputs)
 
     /**
-     * The Vue form.
+     * The Precognitive form.
      */
-    const vueForm = useVueForm(method, url, inputs, config)
+    const precognitiveForm = useVueForm(method, url, inputs, config)
 
     /**
      * Setup event listeners.
      */
-    vueForm.validator().on('errorsChanged', () => {
+    precognitiveForm.validator().on('errorsChanged', () => {
         inertiaClearErrors()
 
         inertiaSetError(
             // @ts-expect-error
-            toSimpleValidationErrors(vueForm.validator().errors())
+            toSimpleValidationErrors(precognitiveForm.validator().errors())
         )
     })
 
@@ -49,26 +49,26 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * Patch the form.
      */
     return Object.assign(inertiaForm, {
-        processing: vueForm.processing,
-        validating: vueForm.validating,
-        touched: vueForm.touched,
-        valid: vueForm.valid,
-        invalid: vueForm.invalid,
+        processing: precognitiveForm.processing,
+        validating: precognitiveForm.validating,
+        touched: precognitiveForm.touched,
+        valid: precognitiveForm.valid,
+        invalid: precognitiveForm.invalid,
         clearErrors() {
             inertiaClearErrors()
 
-            vueForm.setErrors({})
+            precognitiveForm.setErrors({})
 
             return this
         },
         reset(...names: string[]) {
             inertiaReset(...names)
 
-            vueForm.reset(...names)
+            precognitiveForm.reset(...names)
         },
         setErrors(errors: SimpleValidationErrors|ValidationErrors) {
             // @ts-expect-error
-            vueForm.setErrors(errors)
+            precognitiveForm.setErrors(errors)
 
             return this
         },
@@ -83,14 +83,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return this
         },
         validate(name: string|NamedInputEvent) {
-            vueForm.setData(inertiaForm.data())
+            precognitiveForm.setData(inertiaForm.data())
 
-            vueForm.validate(name)
+            precognitiveForm.validate(name)
 
             return this
         },
         setValidationTimeout(duration: number) {
-            vueForm.setValidationTimeout(duration)
+            precognitiveForm.setValidationTimeout(duration)
 
             return this
         },
@@ -104,7 +104,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             const options = {
                 ...userOptions,
                 onError: (errors: SimpleValidationErrors): any => {
-                    vueForm.validator().setErrors(errors)
+                    precognitiveForm.validator().setErrors(errors)
 
                     if (userOptions.onError) {
                         return userOptions.onError(errors)
