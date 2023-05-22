@@ -1,4 +1,4 @@
-import { SimpleValidationErrors, ValidationErrors } from './types'
+import { NamedInputEvent, SimpleValidationErrors, ValidationErrors } from './types'
 
 export const toSimpleValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): SimpleValidationErrors => {
     return Object.keys(errors).reduce((carry, key) => ({
@@ -15,3 +15,10 @@ export const toValidationErrors = (errors: ValidationErrors|SimpleValidationErro
         [key]: typeof errors[key] === 'string' ? [errors[key]] : errors[key],
     }), {})
 }
+
+export const resolveName = (name: string|NamedInputEvent): string => {
+    return typeof name !== 'string'
+        ? name.target.name
+        : name
+}
+

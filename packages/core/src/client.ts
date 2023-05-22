@@ -99,12 +99,12 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
  * Resolve the configuration.
  */
 const resolveConfig = (config: Config): Config => ({
+    ...config,
     timeout: config.timeout ?? axiosClient.defaults['timeout'] ?? 30000,
     precognitive: config.precognitive !== false,
     fingerprint: typeof config.fingerprint === 'undefined'
         ? requestFingerprintResolver(config, axiosClient)
         : config.fingerprint,
-    ...config,
     headers: {
         ...config.headers,
         ...config.precognitive !== false ? {

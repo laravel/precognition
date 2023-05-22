@@ -1,4 +1,4 @@
 export { client } from './client'
 export { createValidator } from './validator'
-export { toSimpleValidationErrors } from './utils'
+export { toSimpleValidationErrors, resolveName } from './utils'
 export * from './types'

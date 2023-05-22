@@ -3,7 +3,7 @@ import isequal from 'lodash.isequal'
 // @ts-expect-error
 import get from 'lodash.get'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types'
-import { toValidationErrors } from './utils'
+import { resolveName, toValidationErrors } from './utils'
 import { client } from './client'
 import { isAxiosError } from 'axios'
 
@@ -156,9 +156,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Validate the given input.
      */
     const validate = (name: string|NamedInputEvent, value: unknown) => {
-        name = typeof name !== 'string'
-            ? name.target.name
-            : name
+        name = resolveName(name)
 
         if (get(oldData, name) !== value) {
             setTouched([name, ...touched])

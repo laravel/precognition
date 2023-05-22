@@ -7,7 +7,11 @@ export type ValidationErrors = Record<string, Array<string>>
 export type SimpleValidationErrors = Record<string, string>
 
 export type Config = AxiosRequestConfig&{
+    precognitive?: boolean,
     validate?: Iterable<string>|ArrayLike<string>,
+    fingerprint?: string|null,
+    onBefore?: () => boolean,
+    onStart?: () => void,
     onPrecognitionSuccess?: (response: AxiosResponse) => unknown,
     onValidationError?: StatusHandler,
     onUnauthorized?: StatusHandler,
@@ -15,11 +19,7 @@ export type Config = AxiosRequestConfig&{
     onNotFound?: StatusHandler,
     onConflict?: StatusHandler,
     onLocked?: StatusHandler,
-    onBefore?: () => boolean,
-    onStart?: () => void,
     onFinish?: () => void,
-    fingerprint?: string|null,
-    precognitive?: boolean,
 }
 
 interface RevalidatePayload {
@@ -46,13 +46,13 @@ export interface Client {
 }
 
 export interface Validator {
-    validating(): boolean,
     touched(): Array<string>,
-    errors(): ValidationErrors,
-    valid(): Array<string>,
-    hasErrors(): boolean,
-    setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     validate(input: string|NamedInputEvent, value: unknown): Validator,
+    validating(): boolean,
+    valid(): Array<string>,
+    errors(): ValidationErrors,
+    setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
+    hasErrors(): boolean,
     reset(): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,

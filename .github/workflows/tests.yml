@@ -26,4 +26,4 @@ jobs:
         run: npm install
 
       - name: Execute tests
-        run: cd packages/core && npm test
+        run: npm run test

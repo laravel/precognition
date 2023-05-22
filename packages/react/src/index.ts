@@ -1,4 +1,4 @@
-import { client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors } from 'laravel-precognition'
+import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
 // @ts-expect-error
 import get from 'lodash.get'
@@ -136,12 +136,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return touched.includes(name)
         },
         validate(name) {
-            name = typeof name !== 'string'
-                // @ts-expect-error
-                ? name.target.name
-                : name
-
             // @ts-expect-error
+            name = resolveName(name)
+
             validator.current!.validate(name, get(payload.current, name))
 
             return this
@@ -162,16 +159,18 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return this
         },
         reset(...names) {
-            names = (names.length === 0 ? originalInputs.current! : names)
+            const original = cloneDeep(originalData.current)!
 
-            const original = cloneDeep(originalData.current!)
+            if (names.length === 0) {
+                payload.current = original
 
-            // @ts-expect-error
-            setData(names.reduce((newData, name) => ({
-                ...newData,
-                [name]: original[name],
-            }), names)
-)
+                setData(original)
+            } else {
+                names.forEach(name => (set(payload.current, name, get(original, name))))
+
+                setData(payload.current)
+            }
+
             validator.current!.reset()
 
             return this

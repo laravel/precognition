@@ -13,10 +13,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        package: ['vue']
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,5 +27,4 @@ jobs:
 
       - name: Run build
         run: |
-          cd packages/core && npm run build
-          cd ../${{ matrix.package }} && npm run build
+          npm run build

@@ -4,6 +4,8 @@ import { reactive, ref } from 'vue'
 import cloneDeep from 'lodash.clonedeep'
 // @ts-expect-error
 import get from 'lodash.get'
+import { resolveName } from 'laravel-precognition'
+import set from 'lodash.set'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: Config = {}): Data&Form<Data> => {
     // @ts-expect-error
@@ -94,14 +96,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return touched.value.includes(name)
         },
         validate(name) {
-            name = typeof name !== 'string'
-                // @ts-expect-error
-                ? name.target.name
-                : name
-
-            console.log(name, get(this.data(), name))
-
             // @ts-expect-error
+            name = resolveName(name)
+
             validator.validate(name, get(this.data(), name))
 
             return form
@@ -123,12 +120,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         reset(...names) {
-            const data = cloneDeep(originalData)
+            const original = cloneDeep(originalData)
 
-            names = (names.length === 0 ? originalInputs : names)
-
-            // @ts-expect-error
-            names.forEach(name => (form[name] = data[name]))
+            if (names.length === 0) {
+                // @ts-expect-error
+                originalInputs.forEach(name => (form[name] = original[name]))
+            } else {
+                names.forEach(name => set(form, name, get(original, name)))
+            }
 
             validator.reset()
 
