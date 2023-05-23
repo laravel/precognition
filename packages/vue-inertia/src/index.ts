@@ -1,5 +1,5 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors } from 'laravel-precognition'
-import { useForm as useVueForm } from 'laravel-precognition-vue'
+import { useForm as usePrecognitiveForm } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): any => {
@@ -11,7 +11,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The Precognitive form.
      */
-    const precognitiveForm = useVueForm(method, url, inputs, config)
+    const precognitiveForm = usePrecognitiveForm(method, url, inputs, config)
 
     /**
      * Setup event listeners.
