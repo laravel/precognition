@@ -70,11 +70,11 @@ test('it marks inputs as touched when they have an error', () => {
     expect.assertions(1)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
-        name: 'Tim'
+        name: 'Tim',
     })
 
     validator.setErrors({
-        name: 'xxxx'
+        name: 'xxxx',
     })
 
     expect(validator.touched()).toEqual(['name'])
@@ -84,11 +84,11 @@ test('inputs remain touched if they become valid',  () => {
     expect.assertions(1)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
-        name: 'Tim'
+        name: 'Tim',
     })
 
     validator.setErrors({
-        name: 'xxxx'
+        name: 'xxxx',
     })
     validator.setErrors({
         //
@@ -138,7 +138,7 @@ test('it triggers errorsChanged event when setting errors', () => {
     const validator = createValidator((client) => client.post('/foo', {}), {
         name: 'Tim',
     })
-    let triggered = 0;
+    let triggered = 0
 
     validator.on('errorsChanged', () => triggered++)
 
@@ -159,7 +159,7 @@ test('it doesnt trigger errorsChanged event when errors are the same', () => {
     const validator = createValidator((client) => client.post('/foo', {}), {
         name: 'Tim',
     })
-    let triggered = 0;
+    let triggered = 0
 
     validator.on('errorsChanged', () => triggered++)
 
@@ -215,7 +215,7 @@ test('it does not validate if the field has not been changed', async () => {
         return Promise.resolve({
             status: 201,
             headers: { precognition: 'true' },
-            data: {}
+            data: {},
         })
     })
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -235,7 +235,7 @@ test('is valid after field has changed and successful validation has triggered',
         return promise = Promise.resolve({
             status: 201,
             headers: { precognition: 'true' },
-            data: {}
+            data: {},
         })
     })
     const validator = createValidator((client) => client.post('/foo', {}), {
