@@ -31,7 +31,8 @@
         "@inertiajs/react": "^1.0.0"
     },
     "dependencies": {
-        "laravel-precognition-react": "0.1.0"
+        "laravel-precognition": "^0.2.0",
+        "laravel-precognition-react": "^0.2.0"
     },
     "devDependencies": {
         "@types/react-dom": "^18.2.4",

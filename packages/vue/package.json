@@ -30,7 +30,7 @@
         "vue": "^3.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "0.1.0",
+        "laravel-precognition": "^0.2.0",
         "lodash.clonedeep": "^4.5.0"
     },
     "devDependencies": {

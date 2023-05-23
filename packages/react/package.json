@@ -30,7 +30,7 @@
         "react": "^18.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "0.1.0",
+        "laravel-precognition": "^0.2.0",
         "lodash.clonedeep": "^4.5.0",
         "lodash.set": "^4.3.2"
     },
