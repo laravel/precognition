@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-vue-inertia",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Laravel Precognition (Vue w/ Inertia).",
     "keywords": [
         "laravel",
