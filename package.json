@@ -5,7 +5,8 @@
         "packages/react",
         "packages/react-inertia",
         "packages/vue",
-        "packages/vue-inertia"
+        "packages/vue-inertia",
+        "packages/alpine"
     ],
     "scripts": {
         "lint": "eslint --ext .ts --ignore-pattern dist ./packages",
@@ -18,5 +19,8 @@
         "@typescript-eslint/eslint-plugin": "^5.21.0",
         "@typescript-eslint/parser": "^5.21.0",
         "eslint": "^8.14.0"
+    },
+    "dependencies": {
+        "@types/alpinejs": "^3.7.1"
     }
 }
