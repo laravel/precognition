@@ -83,7 +83,7 @@ export default function (Alpine: any) {
             data() {
                 return originalInputs.reduce((carry, name) => ({
                     ...carry,
-                    [name]: cloneDeep(this[name]),
+                    [name]: cloneDeep(form[name]),
                 }), {}) as Data
             },
             touched(name) {
@@ -92,7 +92,7 @@ export default function (Alpine: any) {
             validate(name) {
                 name = resolveName(name)
 
-                validator.validate(name, get(this.data(), name))
+                validator.validate(name, get(form.data(), name))
 
                 return form
             },
