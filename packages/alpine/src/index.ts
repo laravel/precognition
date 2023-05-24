@@ -161,7 +161,7 @@ const syncDomForm = (el: Node, method: RequestMethod, url: string): void => {
 }
 
 /**
- * Sync the form's method attribute.
+ * Sync the form's "method" attribute.
  */
 const syncMethodAttribute = (el: Element, method: RequestMethod) => {
     if (method !== 'get' && ! el.hasAttribute('method')) {
@@ -170,7 +170,7 @@ const syncMethodAttribute = (el: Element, method: RequestMethod) => {
 }
 
 /**
- * Sync the form's action attribute.
+ * Sync the form's "action" attribute.
  */
 const syncActionAttribute = (el: Element, url: string) => {
     if (! el.hasAttribute('action')) {
@@ -179,7 +179,7 @@ const syncActionAttribute = (el: Element, url: string) => {
 }
 
 /**
- * Sync sythentic form method.
+ * Sync the form's sythentic "method" input.
  */
 const syncSyntheticMethodInput = (el: Element, method: RequestMethod) => {
     if (['get', 'post'].includes(method)) {
