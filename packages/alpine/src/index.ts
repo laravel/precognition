@@ -155,7 +155,7 @@ const syncDomForm = (el: Node, method: RequestMethod, url: string): void => {
         return
     }
 
-    syncSyntheticMethod(el, method)
+    syncSyntheticMethodInput(el, method)
     syncMethodAttribute(el, method)
     syncActionAttribute(el, url)
 }
@@ -181,22 +181,26 @@ const syncActionAttribute = (el: Element, url: string) => {
 /**
  * Sync sythentic form method.
  */
-const syncSyntheticMethod = (el: Element, method: RequestMethod) => {
+const syncSyntheticMethodInput = (el: Element, method: RequestMethod) => {
     if (['get', 'post'].includes(method)) {
         return
     }
 
-    const existingMethodInput = el.querySelector('input[type="hidden"][name="_method"]')
+    const existing = el.querySelector('input[type="hidden"][name="_method"]')
 
-    if (existingMethodInput === null) {
+    if (existing !== null) {
         return
     }
 
-    const methodInput = document.createElement('input')
+    console.log('here')
 
-    methodInput.setAttribute('type', 'hidden')
-    methodInput.setAttribute('name', '_method')
-    methodInput.setAttribute('value', method.toUpperCase())
+    const input = el.insertAdjacentElement('afterbegin', document.createElement('input'))
 
-    el.appendChild(methodInput)
+    if (input === null) {
+        return
+    }
+
+    input.setAttribute('type', 'hidden')
+    input.setAttribute('name', '_method')
+    input.setAttribute('value', method.toUpperCase())
 }
