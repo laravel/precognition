@@ -1,7 +1,7 @@
 import { client, Config, createValidator, RequestMethod, resolveName, toSimpleValidationErrors, ValidationConfig } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
-import get from 'lodash.get';
-import set from 'lodash.set';
+import get from 'lodash.get'
+import set from 'lodash.set'
 import { Form } from './types'
 
 export default function (Alpine: any) {
@@ -22,7 +22,7 @@ export default function (Alpine: any) {
         /**
          * Internal reactive state.
          */
-        let state: {
+        const state: {
             touched: string[],
             valid: string[],
         } = Alpine.reactive({
