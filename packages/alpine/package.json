@@ -1,0 +1,45 @@
+{
+    "name": "laravel-precognition-alpine",
+    "version": "0.2.1",
+    "description": "Laravel Precognition (Alpine).",
+    "keywords": [
+        "laravel",
+        "precognition",
+        "alpine"
+    ],
+    "homepage": "https://github.com/laravel/precognition",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/laravel/precognition"
+    },
+    "license": "MIT",
+    "author": "Laravel",
+    "main": "dist/index.js",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "build": "rm -rf dist && tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "engines": {
+        "node": ">=14"
+    },
+    "peerDependencies": {
+        "alpinejs": "^3.12.1"
+    },
+    "dependencies": {
+        "laravel-precognition": "^0.2.0",
+        "lodash.clonedeep": "^4.5.0",
+        "lodash.get": "^4.4.2",
+        "lodash.set": "^4.3.2"
+    },
+    "devDependencies": {
+        "@types/alpinejs": "^3.7.1",
+        "@types/lodash.clonedeep": "^4.5.7",
+        "@types/lodash.get": "^4.4.7",
+        "@types/lodash.set": "^4.3.7",
+        "typescript": "^5.0.0"
+    }
+}

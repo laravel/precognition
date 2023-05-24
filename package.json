@@ -5,14 +5,15 @@
         "packages/react",
         "packages/react-inertia",
         "packages/vue",
-        "packages/vue-inertia"
+        "packages/vue-inertia",
+        "packages/alpine"
     ],
     "scripts": {
+        "build": "npm run build --workspaces",
+        "link": "npm link --workspaces",
         "lint": "eslint --ext .ts --ignore-pattern dist ./packages",
         "lint:fix": "eslint --fix --ext .ts --ignore-pattern dist ./packages",
-        "build": "npm run build --workspaces",
-        "test": "npm run test --workspaces --if-present",
-        "link": "npm link --workspaces"
+        "test": "npm run test --workspaces --if-present"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.21.0",
