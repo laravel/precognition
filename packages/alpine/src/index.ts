@@ -1,13 +1,16 @@
+import { Alpine as TAlpine } from 'alpinejs'
 import { client, Config, createValidator, RequestMethod, resolveName, toSimpleValidationErrors, ValidationConfig } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { Form } from './types'
 
-export default function (Alpine: any) {
-    Alpine.magic('form', () => <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
+export default function (Alpine: TAlpine) {
+    Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
         // @ts-expect-error
         method = method.toLowerCase()
+
+        syncDomForm(el, method, url)
 
         /**
          * The original data.
@@ -142,4 +145,58 @@ export default function (Alpine: any) {
 
         return form
     })
+}
+
+/**
+ * Sync the DOM form with the Precognitive form.
+ */
+const syncDomForm = (el: Node, method: RequestMethod, url: string): void => {
+    if (! (el instanceof Element && el.nodeName === 'FORM')) {
+        return
+    }
+
+    syncSyntheticMethod(el, method)
+    syncMethodAttribute(el, method)
+    syncActionAttribute(el, url)
+}
+
+/**
+ * Sync the form's method attribute.
+ */
+const syncMethodAttribute = (el: Element, method: RequestMethod) => {
+    if (method !== 'get' && ! el.hasAttribute('method')) {
+        el.setAttribute('method', 'POST')
+    }
+}
+
+/**
+ * Sync the form's action attribute.
+ */
+const syncActionAttribute = (el: Element, url: string) => {
+    if (! el.hasAttribute('action')) {
+        el.setAttribute('action', url)
+    }
+}
+
+/**
+ * Sync sythentic form method.
+ */
+const syncSyntheticMethod = (el: Element, method: RequestMethod) => {
+    if (['get', 'post'].includes(method)) {
+        return
+    }
+
+    const existingMethodInput = el.querySelector('input[type="hidden"][name="_method"]')
+
+    if (existingMethodInput === null) {
+        return
+    }
+
+    const methodInput = document.createElement('input')
+
+    methodInput.setAttribute('type', 'hidden')
+    methodInput.setAttribute('name', '_method')
+    methodInput.setAttribute('value', method.toUpperCase())
+
+    el.appendChild(methodInput)
 }
