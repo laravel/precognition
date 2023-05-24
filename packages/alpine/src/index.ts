@@ -34,21 +34,21 @@ export default function (Alpine: any) {
          * The validator instance.
          */
         const validator = createValidator(client => client[method](url, form.data(), config), originalData)
-        .on('validatingChanged', () => {
-            form.validating = validator.validating()
-        })
-        .on('touchedChanged', () => {
-            state.valid = validator.valid()
+            .on('validatingChanged', () => {
+                form.validating = validator.validating()
+            })
+            .on('touchedChanged', () => {
+                state.valid = validator.valid()
 
-            state.touched = validator.touched()
-        })
-        .on('errorsChanged', () => {
-            state.valid = validator.valid()
+                state.touched = validator.touched()
+            })
+            .on('errorsChanged', () => {
+                state.valid = validator.valid()
 
-            form.hasErrors = validator.hasErrors()
+                form.hasErrors = validator.hasErrors()
 
-            form.errors = toSimpleValidationErrors(validator.errors())
-        })
+                form.errors = toSimpleValidationErrors(validator.errors())
+            })
 
         /**
          * Resolve the config for a form submission.
