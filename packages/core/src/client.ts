@@ -48,7 +48,6 @@ export const client: Client = {
 
         return this
     },
-    axios: () => axiosClient,
 }
 
 /**

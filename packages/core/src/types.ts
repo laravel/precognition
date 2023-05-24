@@ -43,7 +43,6 @@ export interface Client {
     use(axios: AxiosInstance): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,
-    axios(): AxiosInstance,
 }
 
 export interface Validator {
