@@ -135,6 +135,9 @@ export default function (Alpine: any) {
             },
         })
 
+        /**
+         * The form instance.
+         */
         const form = Alpine.reactive(createForm()) as Data&Form<Data>
 
         return form
