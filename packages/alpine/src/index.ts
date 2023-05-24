@@ -10,7 +10,7 @@ export default function (Alpine: TAlpine) {
         // @ts-expect-error
         method = method.toLowerCase()
 
-        syncDomForm(el, method, url)
+        syncWithDom(el, method, url)
 
         /**
          * The original data.
@@ -150,7 +150,7 @@ export default function (Alpine: TAlpine) {
 /**
  * Sync the DOM form with the Precognitive form.
  */
-const syncDomForm = (el: Node, method: RequestMethod, url: string): void => {
+const syncWithDom = (el: Node, method: RequestMethod, url: string): void => {
     if (! (el instanceof Element && el.nodeName === 'FORM')) {
         return
     }
