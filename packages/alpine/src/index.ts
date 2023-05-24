@@ -133,9 +133,6 @@ export default function (Alpine: any) {
             async submit(config = {}) {
                 return client[method](url, form.data(), resolveSubmitConfig(config))
             },
-            validator() {
-                return validator
-            },
         })
 
         const form = Alpine.reactive(createForm()) as Data&Form<Data>
