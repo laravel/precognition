@@ -136,6 +136,11 @@ export default function (Alpine: TAlpine) {
             async submit(config = {}) {
                 return client[method](url, form.data(), resolveSubmitConfig(config))
             },
+            validateFiles() {
+                validator.validateFiles()
+
+                return form
+            }
         })
 
         /**

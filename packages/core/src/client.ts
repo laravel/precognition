@@ -107,6 +107,7 @@ const resolveConfig = (config: Config): Config => ({
         : config.fingerprint,
     headers: {
         ...config.headers,
+        'Content-Type': resolveContentType(config),
         ...config.precognitive !== false ? {
             Precognition: true,
         } : {},
@@ -178,3 +179,26 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler|undef
     422: config.onValidationError,
     423: config.onLocked,
 }[code])
+
+/**
+ * Resolve the request's "Content-Type" header.
+ */
+const resolveContentType = (config: Config): string => config.headers?.['Content-Type']
+    ?? config.headers?.['Content-type']
+    ?? config.headers?.['content-type']
+    ?? (hasFiles(config.data) ? 'multipart/form-data' : 'application/json')
+
+/**
+ * Determine if the payload has any files.
+ *
+ * @see https://github.com/inertiajs/inertia/blob/master/packages/core/src/files.ts
+ */
+const hasFiles = (data: unknown): boolean => isFile(data)
+    || (typeof data === 'object' && data !== null && Object.values(data).some((value) => hasFiles(value)))
+
+/**
+ * Determine if the value is a file.
+ */
+export const isFile = (value: unknown): boolean => value instanceof File
+    || value instanceof Blob
+    || (value instanceof FileList && value.length > 0)

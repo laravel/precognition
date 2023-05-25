@@ -56,6 +56,7 @@ export interface Validator {
     reset(...names: string[]): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
+    validateFiles(): Validator,
 }
 
 export interface ValidatorListeners {

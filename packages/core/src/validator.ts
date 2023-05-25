@@ -3,7 +3,7 @@ import isequal from 'lodash.isequal'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types'
-import { client } from './client'
+import { client, isFile } from './client'
 import { isAxiosError } from 'axios'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
@@ -15,6 +15,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         touchedChanged: [],
         validatingChanged: [],
     }
+
+    /**
+     * Validate files state.
+     */
+    let validateFiles = false
 
     /**
      * Processing validation state.
@@ -96,11 +101,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     const createValidator = () => debounce(() => {
         callback({
-            get: (url, data = {}, config = {}) => client.get(url, data, resolveConfig(config, data)),
-            post: (url, data = {}, config = {}) => client.post(url, data, resolveConfig(config, data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, data, resolveConfig(config, data)),
-            put: (url, data = {}, config = {}) => client.put(url, data, resolveConfig(config, data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, data, resolveConfig(config, data)),
+            get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
+            post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
+            patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
+            put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
+            delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
         })
         .catch(error => isAxiosError(error) ? null : Promise.reject(error))
     }, debounceTimeoutDuration, { leading: true, trailing: true })
@@ -170,6 +175,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     const validate = (name: string|NamedInputEvent, value: unknown) => {
         name = resolveName(name)
 
+        if (isFile(value) && !validateFiles) {
+            console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
+
+            return
+        }
+
         if (get(oldData, name) !== value) {
             setTouched([name, ...touched])
         }
@@ -180,6 +191,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
         validator()
     }
+
+    /**
+     * Parse the validated data.
+     */
+    const parseData = (data: Record<string, unknown>): Record<string, unknown> => validateFiles === false
+        ? forgetFiles(data)
+        : data
 
     /**
      * The form validator instance.
@@ -229,6 +247,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             return this
         },
+        validateFiles() {
+            validateFiles = true
+
+            return this
+        }
     }
 }
 
@@ -254,3 +277,36 @@ export const resolveName = (name: string|NamedInputEvent): string => {
         : name
 }
 
+/**
+ * Forget any files from the payload.
+ */
+const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => {
+    const newData = { ...data }
+
+    Object.keys(newData).forEach(name => {
+        const value = newData[name]
+
+        if (value === null) {
+            return
+        }
+
+        if (isFile(value)) {
+            newData[name] = null
+
+            return
+        }
+
+        if (Array.isArray(value)) {
+            newData[name] = value.filter(isFile)
+
+            return
+        }
+
+        if (typeof value === "object") {
+            // @ts-expect-error
+            newData[name] = forgetFiles(newData[name])
+        }
+    })
+
+    return newData
+}
