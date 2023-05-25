@@ -142,7 +142,7 @@ export default function (Alpine: TAlpine) {
                 validator.validateFiles()
 
                 return form
-            }
+            },
         })
 
         /**
