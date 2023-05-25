@@ -84,9 +84,11 @@ export default function (Alpine: TAlpine) {
         const createForm = (): Data&Form<Data> => ({
             ...cloneDeep(inputs),
             data() {
+                const newForm = cloneDeep(form)
+
                 return originalInputs.reduce((carry, name) => ({
                     ...carry,
-                    [name]: cloneDeep(form[name]),
+                    [name]: newForm[name],
                 }), {}) as Data
             },
             touched(name) {

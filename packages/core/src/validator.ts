@@ -251,7 +251,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             validateFiles = true
 
             return this
-        }
+        },
     }
 }
 
