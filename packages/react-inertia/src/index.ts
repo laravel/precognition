@@ -106,6 +106,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
+        validateFiles() {
+            precognitiveForm.validateFiles()
+
+            return this
+        },
         submit(submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void {
             const isPatchedCall = typeof submitMethod !== 'string'
 
