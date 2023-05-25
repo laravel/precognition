@@ -291,7 +291,7 @@ const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => 
         }
 
         if (isFile(value)) {
-            newData[name] = null
+            newData[name] = ''
 
             return
         }
