@@ -5,6 +5,8 @@ import set from 'lodash.set'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types'
 import { client, isFile } from './client'
 import { isAxiosError } from 'axios'
+import omit from 'lodash.omit'
+import merge from 'lodash.merge'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -62,8 +64,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             listeners.errorsChanged.forEach(callback => callback())
         }
-
-        setTouched([...touched, ...Object.keys(errors)])
     }
 
     /**
@@ -118,56 +118,58 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (config: ValidationConfig, data: Record<string, unknown> = {}): Config => ({
-        ...config,
-        timeout: config.timeout ?? 5000,
-        validate: config.validate
-            ? config.validate
-            : touched,
-        onValidationError: (response, axiosError) => {
-            setErrors(response.data.errors)
+    const resolveConfig = (config: ValidationConfig, data: Record<string, unknown> = {}): Config => {
+        const validate = Array.from(config.validate ?? touched)
 
-            return config.onValidationError
-                ? config.onValidationError(response, axiosError)
-                : Promise.reject(axiosError)
-        },
-        onPrecognitionSuccess: (response) => {
-            setErrors({})
+        return {
+            ...config,
+            validate,
+            timeout: config.timeout ?? 5000,
+            onValidationError: (response, axiosError) => {
+                setErrors(merge({ ...omit(errors, validate) }, response.data.errors))
 
-            return config.onPrecognitionSuccess
-                ? config.onPrecognitionSuccess(response)
-                : response
-        },
-        onBefore: () => {
-            const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
-                return ! isequal(newRequest, oldRequest)
-            }))({ data }, { data: oldData })
+                return config.onValidationError
+                    ? config.onValidationError(response, axiosError)
+                    : Promise.reject(axiosError)
+            },
+            onPrecognitionSuccess: (response) => {
+                setErrors(omit(errors, validate))
 
-            if (beforeValidationResult === false) {
-                return false
-            }
+                return config.onPrecognitionSuccess
+                    ? config.onPrecognitionSuccess(response)
+                    : response
+            },
+            onBefore: () => {
+                const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
+                    return ! isequal(newRequest, oldRequest)
+                }))({ data }, { data: oldData })
 
-            const beforeResult = (config.onBefore || (() => true))()
+                if (beforeValidationResult === false) {
+                    return false
+                }
 
-            if (beforeResult === false) {
-                return false
-            }
+                const beforeResult = (config.onBefore || (() => true))()
 
-            oldData = data
+                if (beforeResult === false) {
+                    return false
+                }
 
-            return true
-        },
-        onStart: () => {
-            setValidating(true);
+                oldData = data
 
-            (config.onStart ?? (() => null))()
-        },
-        onFinish: () => {
-            setValidating(false);
+                return true
+            },
+            onStart: () => {
+                setValidating(true);
 
-            (config.onFinish ?? (() => null))()
-        },
-    })
+                (config.onStart ?? (() => null))()
+            },
+            onFinish: () => {
+                setValidating(false);
+
+                (config.onFinish ?? (() => null))()
+            },
+        }
+    }
 
     /**
      * Validate the given input.
@@ -291,7 +293,7 @@ const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => 
         }
 
         if (isFile(value)) {
-            newData[name] = ''
+            delete newData[name]
 
             return
         }
@@ -305,6 +307,8 @@ const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => 
         if (typeof value === "object") {
             // @ts-expect-error
             newData[name] = forgetFiles(newData[name])
+
+            return
         }
     })
 
