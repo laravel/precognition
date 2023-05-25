@@ -199,6 +199,6 @@ const hasFiles = (data: unknown): boolean => isFile(data)
 /**
  * Determine if the value is a file.
  */
-export const isFile = (value: unknown): boolean => value instanceof File
+export const isFile = (value: unknown): boolean => (typeof File !== 'undefined' && value instanceof File)
     || value instanceof Blob
-    || (value instanceof FileList && value.length > 0)
+    || (typeof FileList !== 'undefined' && value instanceof FileList && value.length > 0)

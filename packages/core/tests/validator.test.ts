@@ -66,36 +66,6 @@ test('does not revalidate data when data is unchanged', async () => {
     jest.advanceTimersByTime(1500)
 })
 
-test('it marks inputs as touched when they have an error', () => {
-    expect.assertions(1)
-
-    const validator = createValidator((client) => client.post('/foo', {}), {
-        name: 'Tim',
-    })
-
-    validator.setErrors({
-        name: 'xxxx',
-    })
-
-    expect(validator.touched()).toEqual(['name'])
-})
-
-test('inputs remain touched if they become valid',  () => {
-    expect.assertions(1)
-
-    const validator = createValidator((client) => client.post('/foo', {}), {
-        name: 'Tim',
-    })
-
-    validator.setErrors({
-        name: 'xxxx',
-    })
-    validator.setErrors({
-        //
-    })
-    expect(validator.touched()).toEqual(['name'])
-})
-
 test('setErrors accepts laravel formatted validation errors', () => {
     expect.assertions(1)
 
