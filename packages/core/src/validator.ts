@@ -304,7 +304,7 @@ const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => 
             return
         }
 
-        if (typeof value === "object") {
+        if (typeof value === 'object') {
             // @ts-expect-error
             newData[name] = forgetFiles(newData[name])
 
