@@ -85,11 +85,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const createForm = (): Data&Form<Data> => ({
         ...cloneDeep(originalData),
         data() {
-            const data = toRaw(form)
+            const data = cloneDeep(toRaw(form))
 
             return originalInputs.reduce<Partial<Data>>((carry, name) => ({
                 ...carry,
-                [name]: cloneDeep(data[name]),
+                [name]: data[name],
             }), {}) as Data
         },
         setData(data: Record<string, unknown>) {
@@ -127,6 +127,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
+        forgetError(name) {
+            // @ts-expect-error
+            validator.forgetError(name)
+
+            return form
+        },
         reset(...names) {
             const original = cloneDeep(originalData)
 
@@ -150,6 +156,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         processing: false,
         async submit(config = {}) {
             return client[method](url, form.data(), resolveSubmitConfig(config))
+        },
+        validateFiles() {
+            validator.validateFiles()
+
+            return form
         },
         validator() {
             return validator

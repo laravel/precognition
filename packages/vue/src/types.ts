@@ -12,8 +12,10 @@ export interface Form<Data extends Record<string, unknown>> {
     invalid(name: keyof Data): boolean,
     validate(name: keyof Data|NamedInputEvent): Data&Form<Data>,
     setErrors(errors: Partial<Record<keyof Data, string|string[]>>): Data&Form<Data>
+    forgetError(string: keyof Data|NamedInputEvent): Data&Form<Data>
     setValidationTimeout(duration: number): Data&Form<Data>,
     submit(config?: Config): Promise<unknown>,
     reset(...keys: (keyof Partial<Data>)[]): Data&Form<Data>,
+    validateFiles(): Form<Data>,
     validator(): Validator,
 }

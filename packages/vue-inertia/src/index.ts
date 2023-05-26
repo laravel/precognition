@@ -72,6 +72,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
+        forgetError(name: string|NamedInputEvent) {
+            precognitiveForm.forgetError(name)
+
+            return this
+        },
         setError(key: any, value?: any) {
             this.setErrors({
                 ...inertiaForm.errors,
@@ -91,6 +96,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         setValidationTimeout(duration: number) {
             precognitiveForm.setValidationTimeout(duration)
+
+            return this
+        },
+        validateFiles() {
+            precognitiveForm.validateFiles()
 
             return this
         },

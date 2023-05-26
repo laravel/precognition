@@ -163,6 +163,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
+        forgetError(name) {
+            // @ts-expect-error
+            validator.current!.forgetError(name)
+
+            return this
+        },
         reset(...names) {
             const original = cloneDeep(originalData.current)!
 
@@ -189,6 +195,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         processing,
         async submit(config = {}) {
             return client[method](url, payload.current, resolveSubmitConfig(config))
+        },
+        validateFiles() {
+            validator.current!.validateFiles()
+
+            return this
         },
         validator() {
             return validator.current!

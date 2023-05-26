@@ -84,9 +84,11 @@ export default function (Alpine: TAlpine) {
         const createForm = (): Data&Form<Data> => ({
             ...cloneDeep(inputs),
             data() {
+                const newForm = cloneDeep(form)
+
                 return originalInputs.reduce((carry, name) => ({
                     ...carry,
-                    [name]: cloneDeep(form[name]),
+                    [name]: newForm[name],
                 }), {}) as Data
             },
             touched(name) {
@@ -113,6 +115,11 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
+            forgetError(name) {
+                validator.forgetError(name)
+
+                return form
+            },
             reset(...names) {
                 const original = cloneDeep(originalData)
 
@@ -135,6 +142,11 @@ export default function (Alpine: TAlpine) {
             processing: false,
             async submit(config = {}) {
                 return client[method](url, form.data(), resolveSubmitConfig(config))
+            },
+            validateFiles() {
+                validator.validateFiles()
+
+                return form
             },
         })
 
