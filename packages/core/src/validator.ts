@@ -183,13 +183,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Validate the given input.
      */
     const validate = (name: string|NamedInputEvent, value: unknown) => {
-        name = resolveName(name)
-
         if (isFile(value) && !validateFiles) {
             console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
 
             return
         }
+
+        name = resolveName(name)
 
         if (get(oldData, name) !== value) {
             setTouched([name, ...touched])
