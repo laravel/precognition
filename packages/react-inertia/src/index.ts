@@ -94,6 +94,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return this
         },
+        forgetError(name: string|NamedInputEvent) {
+            precognitiveForm.forgetError(name)
+        },
         validate(name: string|NamedInputEvent) {
             precognitiveForm.setData(inertiaForm.data)
 

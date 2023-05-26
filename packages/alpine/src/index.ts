@@ -115,6 +115,11 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
+            forgetError(name) {
+                validator.forgetError(name)
+
+                return form
+            },
             reset(...names) {
                 const original = cloneDeep(originalData)
 

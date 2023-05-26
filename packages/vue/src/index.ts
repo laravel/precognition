@@ -127,6 +127,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
+        forgetError(name) {
+            // @ts-expect-error
+            validator.forgetError(name)
+
+            return form
+        },
         reset(...names) {
             const original = cloneDeep(originalData)
 

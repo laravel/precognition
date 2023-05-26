@@ -66,6 +66,14 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         }
     }
 
+    const forgetError = (name: string|NamedInputEvent) => {
+        const newErrors = { ...errors }
+
+        delete newErrors[resolveName(name)]
+
+        setErrors(newErrors)
+    }
+
     /**
      * Has errors state.
      */
@@ -126,14 +134,14 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             validate,
             timeout: config.timeout ?? 5000,
             onValidationError: (response, axiosError) => {
-                setErrors(merge({ ...omit(errors, validate) }, response.data.errors))
+                setErrors(merge(omit({ ...errors }, validate), response.data.errors))
 
                 return config.onValidationError
                     ? config.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
             },
             onPrecognitionSuccess: (response) => {
-                setErrors(omit(errors, validate))
+                setErrors(omit({ ...errors }, validate))
 
                 return config.onPrecognitionSuccess
                     ? config.onPrecognitionSuccess(response)
@@ -220,6 +228,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             return this
         },
+        forgetError(name) {
+            forgetError(name)
+
+            return this
+        },
         reset(...names) {
             if (names.length === 0) {
                 setTouched([])
@@ -257,6 +270,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     }
 }
 
+/**
+ * Normalise the validation errors as Inertia formatted errors.
+ */
 export const toSimpleValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): SimpleValidationErrors => {
     return Object.keys(errors).reduce((carry, key) => ({
         ...carry,
@@ -266,6 +282,9 @@ export const toSimpleValidationErrors = (errors: ValidationErrors|SimpleValidati
     }), {})
 }
 
+/**
+ * Normalise the validation errors as Laravel formatted errors.
+ */
 export const toValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): ValidationErrors => {
     return Object.keys(errors).reduce((carry, key) => ({
         ...carry,
@@ -273,6 +292,9 @@ export const toValidationErrors = (errors: ValidationErrors|SimpleValidationErro
     }), {})
 }
 
+/**
+ * Resolve the input's "name" attribute.
+ */
 export const resolveName = (name: string|NamedInputEvent): string => {
     return typeof name !== 'string'
         ? name.target.name

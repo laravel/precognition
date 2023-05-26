@@ -53,6 +53,7 @@ export interface Validator {
     errors(): ValidationErrors,
     setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
     hasErrors(): boolean,
+    forgetError(error: string|NamedInputEvent): Validator,
     reset(...names: string[]): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
