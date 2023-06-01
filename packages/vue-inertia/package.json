@@ -22,7 +22,8 @@
     ],
     "scripts": {
         "build": "rm -rf dist && tsc",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "test": "vitest run"
     },
     "engines": {
         "node": ">=14"
@@ -35,6 +36,7 @@
         "laravel-precognition-vue": "^0.2.0"
     },
     "devDependencies": {
-        "typescript": "^5.0.0"
+        "typescript": "^5.0.0",
+        "vitest": "^0.31.3"
     }
 }
