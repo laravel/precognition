@@ -1,12 +1,19 @@
+import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
 import { client } from '../src/index'
 import { createValidator } from '../src/validator'
 
-jest.mock('axios')
-client.use(axios)
-jest.useFakeTimers()
+beforeEach(() => {
+    vi.mock('axios')
+    vi.useFakeTimers()
+})
 
-test('it can handle a successful precognition response via config handler', async () => {
+afterEach(() => {
+    vi.restoreAllMocks()
+    vi.runAllTimers()
+})
+
+it('can handle a successful precognition response via config handler', async () => {
     expect.assertions(2)
 
     const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
@@ -21,7 +28,7 @@ test('it can handle a successful precognition response via config handler', asyn
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can handle a success response via a fulfilled promise', async () => {
+it('can handle a success response via a fulfilled promise', async () => {
     expect.assertions(1)
 
     const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
@@ -30,7 +37,7 @@ test('it can handle a success response via a fulfilled promise', async () => {
     await client.post('https://laravel.com').then(r => expect(r).toBe(response))
 })
 
-test('it can handle a validation response via a config handler', async () => {
+it('can handle a validation response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -56,7 +63,7 @@ test('it can handle a validation response via a config handler', async () => {
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can handle an unauthorized response via a config handler', async () => {
+it('can handle an unauthorized response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -79,7 +86,7 @@ test('it can handle an unauthorized response via a config handler', async () => 
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can handle a forbidden response via a config handler', async () => {
+it('can handle a forbidden response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -102,7 +109,7 @@ test('it can handle a forbidden response via a config handler', async () => {
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can handle a not found response via a config handler', async () => {
+it('can handle a not found response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -125,7 +132,7 @@ test('it can handle a not found response via a config handler', async () => {
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can handle a conflict response via a config handler', async () => {
+it('can handle a conflict response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -148,7 +155,7 @@ test('it can handle a conflict response via a config handler', async () => {
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can handle a locked response via a config handler', async () => {
+it('can handle a locked response via a config handler', async () => {
     expect.assertions(3)
 
     const error = {
@@ -171,7 +178,7 @@ test('it can handle a locked response via a config handler', async () => {
     }).then(value => expect(value).toBe('expected value'))
 })
 
-test('it can provide input names to validate via config', async () => {
+it('can provide input names to validate via config', async () => {
     expect.assertions(1)
 
     let config
@@ -187,7 +194,7 @@ test('it can provide input names to validate via config', async () => {
     expect(config.headers['Precognition-Validate-Only']).toBe('username,email')
 })
 
-test('it throws an error if the precognition header is not present on a success response', async () => {
+it('throws an error if the precognition header is not present on a success response', async () => {
     expect.assertions(2)
 
     axios.request.mockResolvedValueOnce({ headers: { status: 204 } })
@@ -198,7 +205,7 @@ test('it throws an error if the precognition header is not present on a success 
     })
 })
 
-test('it throws an error if the precognition header is not present on an error response', async () => {
+it('throws an error if the precognition header is not present on an error response', async () => {
     expect.assertions(2)
 
     axios.request.mockRejectedValueOnce({ response: { status: 500 } })
@@ -210,7 +217,7 @@ test('it throws an error if the precognition header is not present on an error r
     })
 })
 
-test('it returns a non-axios error via a rejected promise', async () => {
+it('returns a non-axios error via a rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -222,7 +229,7 @@ test('it returns a non-axios error via a rejected promise', async () => {
     })
 })
 
-test('returns a canceled request error via a rejected promise', async () => {
+it('returns a canceled request error va rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -235,7 +242,7 @@ test('returns a canceled request error via a rejected promise', async () => {
     })
 })
 
-test('an axios error without a "status" property returns a rejected promise', async () => {
+it('an axerror without a "status" property returns a rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -247,7 +254,7 @@ test('an axios error without a "status" property returns a rejected promise', as
     })
 })
 
-test('it can handle error responses via a rejected promise', async () => {
+it('can handle error responses via a rejected promise', async () => {
     expect.assertions(1)
 
     const error = {
@@ -266,7 +273,7 @@ test('it can handle error responses via a rejected promise', async () => {
     await client.get('https://laravel.com').catch(e => expect(e).toBe(error))
 })
 
-test('it can customize how it determines a successful precognition response', async () => {
+it('can customize how it determines a successful precognition response', async () => {
     expect.assertions(3)
 
     let response = { headers: { precognition: 'true' }, status: 999, data: 'data' }
@@ -292,7 +299,7 @@ test('it can customize how it determines a successful precognition response', as
     }).then(value => expect(value).toBe(response))
 })
 
-test('it creates a request fingerprint and an abort signal if none are configured', async () => {
+it('creates a request fingerprint and an abort signal if none are configured', async () => {
     expect.assertions(2)
 
     let config
@@ -307,7 +314,7 @@ test('it creates a request fingerprint and an abort signal if none are configure
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it uses the default axios baseURL in the request fingerprint', async () => {
+it('uses the default axios baseURL in the request fingerprint', async () => {
     expect.assertions(2)
 
     let config
@@ -323,7 +330,7 @@ test('it uses the default axios baseURL in the request fingerprint', async () =>
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('the configured baseURL takes precedence over the axios default baseURL for request id', async () => {
+it('the confbaseURL takes precedence over the axios default baseURL for request id', async () => {
     expect.assertions(2)
 
     let config
@@ -341,7 +348,7 @@ test('the configured baseURL takes precedence over the axios default baseURL for
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it can specify the request fingerprint via config', async () => {
+it('can specify the request fingerprint via config', async () => {
     expect.assertions(2)
 
     let config
@@ -358,7 +365,7 @@ test('it can specify the request fingerprint via config', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it can customize how the request fingerprint is created', async () => {
+it('can customize how the request fingerprint is created', async () => {
     expect.assertions(2)
 
     let config
@@ -374,7 +381,7 @@ test('it can customize how the request fingerprint is created', async () => {
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('the config fingerprint takes precedence over the global fingerprint for request id', async () => {
+it('the conffingerprint takes precedence over the global fingerprint for request id', async () => {
     expect.assertions(2)
 
     let config
@@ -392,7 +399,7 @@ test('the config fingerprint takes precedence over the global fingerprint for re
     expect(config.signal).toBeInstanceOf(AbortSignal)
 })
 
-test('it can opt out of automatic request aborting', async () => {
+it('can opt out of automatic request aborting', async () => {
     expect.assertions(2)
 
     let config
@@ -409,7 +416,7 @@ test('it can opt out of automatic request aborting', async () => {
     expect(config.signal).toBeUndefined()
 })
 
-test('it can specify the abort controller via config', async () => {
+it('can specify the abort controller via config', async () => {
     expect.assertions(1)
 
     let config
@@ -431,7 +438,7 @@ test('it can specify the abort controller via config', async () => {
     expect(called).toBe(true)
 })
 
-test('it does not create an abort controller when a cancelToken is provided', async () => {
+it('does not create an abort controller when a cancelToken is provided', async () => {
     expect.assertions(1)
 
     let config
@@ -447,7 +454,7 @@ test('it does not create an abort controller when a cancelToken is provided', as
     expect(config.signal).toBeUndefined()
 })
 
-test('revalidates data when validate is called', async () => {
+it('revaldata when validate is called', async () => {
     expect.assertions(4)
 
     let requests = 0
@@ -464,20 +471,20 @@ test('revalidates data when validate is called', async () => {
     data = { name: 'Tim' }
     validator.validate('name', 'Tim')
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { name: 'Jess' }
     validator.validate('name', 'Jess')
     expect(requests).toBe(2)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { name: 'Taylor' }
     validator.validate('name', 'Taylor')
     expect(requests).toBe(3)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 })
 
-test('does not revalidate data when data is unchanged', async () => {
+it('does not revaldata when data is unchanged', async () => {
     expect.assertions(4)
 
     let requests = 0
@@ -494,15 +501,15 @@ test('does not revalidate data when data is unchanged', async () => {
     data = { first: true }
     validator.validate('name', true)
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { first: true }
     validator.validate('name', true)
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { second: true }
     validator.validate('name', true)
     expect(requests).toBe(2)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 })

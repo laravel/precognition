@@ -1,12 +1,18 @@
+import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
-import { client } from '../src/index'
 import { createValidator } from '../src/validator'
 
-jest.mock('axios')
-client.use(axios)
-jest.useFakeTimers()
+beforeEach(() => {
+    vi.mock('axios')
+    vi.useFakeTimers()
+})
 
-test('revalidates data when validate is called', async () => {
+afterEach(() => {
+    vi.restoreAllMocks()
+    vi.runAllTimers()
+})
+
+it('revalidates data when validate is called', async () => {
     expect.assertions(4)
 
     let requests = 0
@@ -23,20 +29,20 @@ test('revalidates data when validate is called', async () => {
     data = { name: 'Tim' }
     validator.validate('name', 'Tim')
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { name: 'Jess' }
     validator.validate('name', 'Jess')
     expect(requests).toBe(2)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { name: 'Taylor' }
     validator.validate('name', 'Taylor')
     expect(requests).toBe(3)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 })
 
-test('does not revalidate data when data is unchanged', async () => {
+it('does not revalidate data when data is unchanged', async () => {
     expect.assertions(4)
 
     let requests = 0
@@ -53,20 +59,20 @@ test('does not revalidate data when data is unchanged', async () => {
     data = { first: true }
     validator.validate('name', true)
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { first: true }
     validator.validate('name', true)
     expect(requests).toBe(1)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 
     data = { second: true }
     validator.validate('name', true)
     expect(requests).toBe(2)
-    jest.advanceTimersByTime(1500)
+    vi.advanceTimersByTime(1500)
 })
 
-test('setErrors accepts laravel formatted validation errors', () => {
+it('accepts laravel formatted validation errors for setErrors', () => {
     expect.assertions(1)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -84,7 +90,7 @@ test('setErrors accepts laravel formatted validation errors', () => {
     })
 })
 
-test('setErrors accepts inertia formatted validation errors', () => {
+it('accepts inertia formatted validation errors for setErrors', () => {
     expect.assertions(1)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -102,7 +108,7 @@ test('setErrors accepts inertia formatted validation errors', () => {
     })
 })
 
-test('it triggers errorsChanged event when setting errors', () => {
+it('triggers errorsChanged event when setting errors', () => {
     expect.assertions(2)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -123,7 +129,7 @@ test('it triggers errorsChanged event when setting errors', () => {
     expect(triggered).toEqual(2)
 })
 
-test('it doesnt trigger errorsChanged event when errors are the same', () => {
+it('doesnt trigger errorsChanged event when errors are the same', () => {
     expect.assertions(2)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -144,7 +150,7 @@ test('it doesnt trigger errorsChanged event when errors are the same', () => {
     expect(triggered).toEqual(1)
 })
 
-test('hasErrors function', () => {
+it('returns errors via hasErrors function', () => {
     expect.assertions(3)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -162,7 +168,7 @@ test('hasErrors function', () => {
     expect(validator.hasErrors()).toBe(false)
 })
 
-test('is not valid before it has been validated', async () => {
+it('is not valid before it has been validated', async () => {
     expect.assertions(2)
 
     const validator = createValidator((client) => client.post('/foo', {}), {
@@ -178,7 +184,7 @@ test('is not valid before it has been validated', async () => {
     expect(validator.valid()).toEqual([])
 })
 
-test('it does not validate if the field has not been changed', async () => {
+it('does not validate if the field has not been changed', async () => {
     let requestMade = false
     axios.request.mockImplementation(() => {
         requestMade = true
@@ -197,9 +203,9 @@ test('it does not validate if the field has not been changed', async () => {
     expect(requestMade).toBe(false)
 })
 
-test('is valid after field has changed and successful validation has triggered', async () => {
+it('is valid after field has changed and successful validation has triggered', async () => {
     let requestMade = false
-    let promise
+    let promise = Promise.resolve(null)
     axios.request.mockImplementation(() => {
         requestMade = true
         return promise = Promise.resolve({
@@ -218,5 +224,3 @@ test('is valid after field has changed and successful validation has triggered',
     expect(requestMade).toBe(true)
     expect(validator.valid()).toEqual(['name'])
 })
-
-
