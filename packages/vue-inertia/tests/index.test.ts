@@ -1,9 +1,9 @@
 import { it, expect } from 'vitest'
 import { useForm } from '../src/index'
 
-it("can clear all errors via Inertia's clearErrors", () => {
+it('can clear all errors via Inertia\'s clearErrors', () => {
     const form = useForm('post', '/register', {
-        name: ''
+        name: '',
     }).setErrors({
         name: 'xxxx',
         other: 'xxxx',
@@ -20,9 +20,9 @@ it("can clear all errors via Inertia's clearErrors", () => {
     expect(form.validator().errors()).toEqual({})
 })
 
-it("can clear specific errors via Inertia's clearErrors", () => {
+it('can clear specific errors via Inertia\'s clearErrors', () => {
     const form = useForm('post', '/register', {
-        name: ''
+        name: '',
     }).setErrors({
         name: 'xxxx',
         email: 'xxxx',
@@ -38,9 +38,9 @@ it("can clear specific errors via Inertia's clearErrors", () => {
     form.clearErrors('name', 'email')
 
     expect(form.errors).toEqual({
-        other: 'xxxx'
+        other: 'xxxx',
     })
     expect(form.validator().errors()).toEqual({
-        other: ['xxxx']
+        other: ['xxxx'],
     })
 })

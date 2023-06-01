@@ -133,6 +133,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 options
             )
         },
-        validator: precognitiveForm.validator
+        validator: precognitiveForm.validator,
     })
 }
