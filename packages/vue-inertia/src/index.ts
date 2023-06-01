@@ -54,10 +54,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         touched: precognitiveForm.touched,
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
-        clearErrors() {
-            inertiaClearErrors()
+        clearErrors(...names: string[]) {
+            inertiaClearErrors(...names)
 
-            precognitiveForm.setErrors({})
+            if (names.length === 0) {
+                precognitiveForm.setErrors({})
+            } else {
+                names.forEach(precognitiveForm.forgetError)
+            }
 
             return this
         },
@@ -129,5 +133,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 options
             )
         },
+        validator: precognitiveForm.validator
     })
 }
