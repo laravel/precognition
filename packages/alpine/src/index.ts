@@ -204,8 +204,6 @@ const syncSyntheticMethodInput = (el: Element, method: RequestMethod) => {
         return
     }
 
-    console.log('here')
-
     const input = el.insertAdjacentElement('afterbegin', document.createElement('input'))
 
     if (input === null) {
