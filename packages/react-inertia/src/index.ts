@@ -1,8 +1,11 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
+import { useRef } from 'react'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): any => {
+    const booted = useRef<boolean>(false)
+
     /**
      * The Inertia form.
      */
@@ -12,18 +15,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * The React form.
      */
     const precognitiveForm = usePrecognitiveForm(method, url, inputs, config)
-
-    /**
-     * Setup event listeners.
-     */
-    precognitiveForm.validator().on('errorsChanged', () => {
-        inertiaClearErrors()
-
-        inertiaSetError(
-            // @ts-expect-error
-            toSimpleValidationErrors(precognitiveForm.validator().errors())
-        )
-    })
 
     /**
      * The Inertia submit function.
@@ -49,6 +40,22 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * The Inertia set data function.
      */
     const inertiaSetData = inertiaForm.setData.bind(inertiaForm)
+
+    if (! booted.current) {
+        /**
+         * Setup event listeners.
+         */
+        precognitiveForm.validator().on('errorsChanged', () => {
+            inertiaClearErrors()
+
+            inertiaSetError(
+                // @ts-expect-error
+                toSimpleValidationErrors(precognitiveForm.validator().errors())
+            )
+        })
+
+        booted.current = true
+    }
 
     /**
      * Patch the form.
