@@ -4,6 +4,9 @@ import { useForm as useInertiaForm } from '@inertiajs/react'
 import { useRef } from 'react'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): any => {
+    // @ts-expect-error
+    method = method.toLowerCase()
+
     const booted = useRef<boolean>(false)
 
     /**
