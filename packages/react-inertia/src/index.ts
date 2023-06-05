@@ -3,6 +3,9 @@ import { useForm as usePrecognitiveForm } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): any => {
+    // @ts-expect-error
+    method = method.toLowerCase()
+
     /**
      * The Inertia form.
      */
