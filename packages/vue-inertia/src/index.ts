@@ -52,7 +52,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * Patch the form.
      */
     return Object.assign(inertiaForm, {
-        processing: precognitiveForm.processing,
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
         valid: precognitiveForm.valid,
