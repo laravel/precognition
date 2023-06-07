@@ -32,8 +32,8 @@
         "@inertiajs/vue3": "^1.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "^0.2.0",
-        "laravel-precognition-vue": "^0.2.0"
+        "laravel-precognition": "^0.3.0",
+        "laravel-precognition-vue": "^0.3.0"
     },
     "devDependencies": {
         "typescript": "^5.0.0",
