@@ -1,9 +1,9 @@
 # Release Instructions
 
-The following commands should be run when doing a release, where `{version}` is `major`, `minor`, or `patch`.
+The following commands should be run when doing a release, where `{semver-type}` is `major`, `minor`, or `patch`.
 
 ```sh
-bin/release {version}
+bin/release {semver-type}
 git push
 npm publish
 ```
