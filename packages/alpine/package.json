@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-alpine",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Laravel Precognition (Alpine).",
     "keywords": [
         "laravel",
