@@ -23,7 +23,8 @@
     "scripts": {
         "build": "rm -rf dist && tsc",
         "prepublishOnly": "npm run build",
-        "test": "vitest run"
+        "test": "vitest run",
+        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version && npm pkg set dependencies.laravel-precognition-vue=$npm_package_version"
     },
     "engines": {
         "node": ">=14"
@@ -32,8 +33,8 @@
         "@inertiajs/vue3": "^1.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "^0.3.0",
-        "laravel-precognition-vue": "^0.3.0"
+        "laravel-precognition": "0.3.1",
+        "laravel-precognition-vue": "0.3.1"
     },
     "devDependencies": {
         "typescript": "^5.0.0",

@@ -21,7 +21,8 @@
     ],
     "scripts": {
         "build": "rm -rf dist && tsc",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
     },
     "engines": {
         "node": ">=14"
@@ -30,7 +31,7 @@
         "alpinejs": "^3.12.1"
     },
     "dependencies": {
-        "laravel-precognition": "^0.3.0",
+        "laravel-precognition": "0.3.1",
         "lodash.clonedeep": "^4.5.0",
         "lodash.get": "^4.4.2",
         "lodash.set": "^4.3.2"
