@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.3.0...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.3.1...main)
+
+## [v0.3.1](https://github.com/laravel/precognition/compare/v0.3.0...v0.3.1) - 2023-06-07
+
+- Use Inertia's processing property by @timacdonald in https://github.com/laravel/precognition/pull/13
 
 ## [v0.3.0](https://github.com/laravel/precognition/compare/v0.2.2...v0.3.0) - 2023-06-06
 
