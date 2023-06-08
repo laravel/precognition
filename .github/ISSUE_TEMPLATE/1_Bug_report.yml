@@ -23,8 +23,11 @@ body:
       label: Plugin
       description: The plugin flavor you are having issues with.
       options:
-        - Vue
+        - Alpine
         - React
+        - React w/ Inertia
+        - Vue
+        - Vue w/ Inertia
     validations:
       required: true
   - type: textarea
