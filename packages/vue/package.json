@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-vue",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "Laravel Precognition (Vue).",
     "keywords": [
         "laravel",
@@ -31,7 +31,7 @@
         "vue": "^3.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "0.3.1",
+        "laravel-precognition": "0.3.2",
         "lodash.clonedeep": "^4.5.0",
         "lodash.get": "^4.4.2",
         "lodash.set": "^4.3.2"
