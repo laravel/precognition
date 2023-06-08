@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.3.1...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.3.2...main)
+
+## [v0.3.2](https://github.com/laravel/precognition/compare/v0.3.1...v0.3.2) - 2023-06-08
+
+- Fix array filtering of files by @timacdonald in https://github.com/laravel/precognition/pull/15
 
 ## [v0.3.1](https://github.com/laravel/precognition/compare/v0.3.0...v0.3.1) - 2023-06-07
 
