@@ -224,3 +224,68 @@ it('is valid after field has changed and successful validation has triggered', a
     expect(requestMade).toBe(true)
     expect(validator.valid()).toEqual(['name'])
 })
+
+it('filters out files', () => {
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+    const validator = createValidator((client) => client.post('/foo', {
+        name: 'Tim',
+        email: null,
+        fruits: [
+            'apple',
+            'banana',
+            new Blob([], { type: 'image/png' }),
+        ],
+        avatar: new Blob([], { type: 'image/png' }),
+        nested: {
+            name: 'Tim',
+            email: null,
+            fruits: [
+                'apple',
+                'banana',
+                new Blob([], { type: 'image/png' }),
+            ],
+            avatar: new Blob([], { type: 'image/png' }),
+            nested: {
+                name: 'Tim',
+                email: null,
+                fruits: [
+                    'apple',
+                    'banana',
+                    new Blob([], { type: 'image/png' }),
+                ],
+                avatar: new Blob([], { type: 'image/png' }),
+            }
+        }
+    }))
+
+    validator.validate('text', 'Tim')
+
+    expect(config.data).toEqual({
+        name: 'Tim',
+        email: null,
+        fruits: [
+            'apple',
+            'banana',
+        ],
+        nested: {
+            name: 'Tim',
+            email: null,
+            fruits: [
+                'apple',
+                'banana',
+            ],
+            nested: {
+                name: 'Tim',
+                email: null,
+                fruits: [
+                    'apple',
+                    'banana',
+                ],
+            }
+        }
+    })
+})
