@@ -158,7 +158,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ? config.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
             },
-            onSuccess: (response) => {
+            onSuccess: () => {
                 setValidated([...validated, ...validate])
             },
             onPrecognitionSuccess: (response) => {

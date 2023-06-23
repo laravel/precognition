@@ -175,7 +175,7 @@ const isNotServerGeneratedError = (error: unknown): boolean => {
  * Resolve the handler for the given HTTP response status.
  */
 const resolveStatusHandler = (config: Config, code: number): StatusHandler => {
-    const fallback: StatusHandler = (response) => response;
+    const fallback: StatusHandler = (response) => response
 
     const generalHandler: StatusHandler = code >= 200 && code < 300
         ? (config.onSuccess ?? fallback)
