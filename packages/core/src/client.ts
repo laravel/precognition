@@ -71,14 +71,17 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
             validatePrecognitionResponse(response)
         }
 
-        if (config.precognitive && config.onPrecognitionSuccess && successResolver(response)) {
-            return config.onPrecognitionSuccess(response)
+        const status = response.status
+
+        let payload: any = response
+
+        if (config.precognitive && config.onPrecognitionSuccess && successResolver(payload)) {
+            payload = config.onPrecognitionSuccess(payload) ?? payload
         }
 
-        const statusHandler = resolveStatusHandler(config, response.status)
-            ?? ((response) => response)
+        const statusHandler = resolveStatusHandler(config, status)
 
-        return statusHandler(response)
+        return statusHandler(payload) ?? payload
     }, error => {
         if (isNotServerGeneratedError(error)) {
             return Promise.reject(error)
@@ -171,14 +174,26 @@ const isNotServerGeneratedError = (error: unknown): boolean => {
 /**
  * Resolve the handler for the given HTTP response status.
  */
-const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
-    401: config.onUnauthorized,
-    403: config.onForbidden,
-    404: config.onNotFound,
-    409: config.onConflict,
-    422: config.onValidationError,
-    423: config.onLocked,
-}[code])
+const resolveStatusHandler = (config: Config, code: number): StatusHandler => {
+    const fallback: StatusHandler = (response) => response;
+
+    const generalHandler: StatusHandler = code >= 200 && code < 300
+        ? (config.onSuccess ?? fallback)
+        : fallback
+
+    const specificHandler: StatusHandler = {
+        401: config.onUnauthorized,
+        403: config.onForbidden,
+        404: config.onNotFound,
+        409: config.onConflict,
+        422: config.onValidationError,
+        423: config.onLocked,
+    }[code] ?? fallback
+
+    return (response, error) => specificHandler(
+        generalHandler(response, error) as AxiosResponse<any, any>, error
+    )
+}
 
 /**
  * Resolve the request's "Content-Type" header.

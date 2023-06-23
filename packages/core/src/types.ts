@@ -12,6 +12,7 @@ export type Config = AxiosRequestConfig&{
     fingerprint?: string|null,
     onBefore?: () => boolean|undefined,
     onStart?: () => void,
+    onSuccess?: (response: AxiosResponse) => unknown,
     onPrecognitionSuccess?: (response: AxiosResponse) => unknown,
     onValidationError?: StatusHandler,
     onUnauthorized?: StatusHandler,
@@ -64,6 +65,7 @@ export interface ValidatorListeners {
     errorsChanged: Array<() => void>,
     validatingChanged: Array<() => void>,
     touchedChanged: Array<() => void>,
+    validatedChanged: Array<() => void>,
 }
 
 export type RequestMethod = 'get'|'post'|'patch'|'put'|'delete'

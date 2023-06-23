@@ -16,6 +16,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         errorsChanged: [],
         touchedChanged: [],
         validatingChanged: [],
+        validatedChanged: [],
     }
 
     /**
@@ -35,6 +36,26 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             listeners.validatingChanged.forEach(callback => callback())
         }
     }
+
+    /**
+     * Inputs that have been validated.
+     */
+    let validated: Array<string> = []
+
+    const setValidated = (value: Array<string>) => {
+        const uniqueNames = [...new Set(value)]
+
+        if (validated.length !== uniqueNames.length || ! uniqueNames.every(name => validated.includes(name))) {
+            validated = uniqueNames
+
+            listeners.validatedChanged.forEach(callback => callback())
+        }
+    }
+
+    /**
+     * Valid validation state.
+     */
+    const valid = () => validated.filter(name => typeof errors[name] === 'undefined')
 
     /**
      * Touched input state.
@@ -78,11 +99,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Has errors state.
      */
     const hasErrors = () => Object.keys(errors).length > 0
-
-    /**
-     * Valid validation state.
-     */
-    const valid = () => touched.filter(name => typeof errors[name] === 'undefined')
 
     /**
      * Debouncing timeout state.
@@ -134,11 +150,16 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             validate,
             timeout: config.timeout ?? 5000,
             onValidationError: (response, axiosError) => {
+                setValidated([...validated, ...validate])
+
                 setErrors(merge(omit({ ...errors }, validate), response.data.errors))
 
                 return config.onValidationError
                     ? config.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
+            },
+            onSuccess: (response) => {
+                setValidated([...validated, ...validate])
             },
             onPrecognitionSuccess: (response) => {
                 setErrors(omit({ ...errors }, validate))
