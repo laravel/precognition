@@ -66,7 +66,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
     (config.onStart ?? (() => null))()
 
-    return axiosClient.request(config).then(response => {
+    return axiosClient.request(config).then(async response => {
         if (config.precognitive) {
             validatePrecognitionResponse(response)
         }
@@ -76,10 +76,15 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         let payload: any = response
 
         if (config.precognitive && config.onPrecognitionSuccess && successResolver(payload)) {
-            payload = config.onPrecognitionSuccess(payload) ?? payload
+            payload = await Promise.resolve(config.onPrecognitionSuccess(payload) ?? payload)
+        }
+
+        if (config.onSuccess && isSuccess(status)) {
+            payload = await Promise.resolve(config.onSuccess(payload) ?? payload)
         }
 
         const statusHandler = resolveStatusHandler(config, status)
+            ?? ((response) => response)
 
         return statusHandler(payload) ?? payload
     }, error => {
@@ -119,6 +124,11 @@ const resolveConfig = (config: Config): Config => ({
         } : {},
     },
 })
+
+/**
+ * Determine if the status is successful.
+ */
+const isSuccess = (status: number) => status >= 200 && status < 300
 
 /**
  * Abort an existing request with the same configured fingerprint.
@@ -174,26 +184,14 @@ const isNotServerGeneratedError = (error: unknown): boolean => {
 /**
  * Resolve the handler for the given HTTP response status.
  */
-const resolveStatusHandler = (config: Config, code: number): StatusHandler => {
-    const fallback: StatusHandler = (response) => response
-
-    const generalHandler: StatusHandler = code >= 200 && code < 300
-        ? (config.onSuccess ?? fallback)
-        : fallback
-
-    const specificHandler: StatusHandler = {
-        401: config.onUnauthorized,
-        403: config.onForbidden,
-        404: config.onNotFound,
-        409: config.onConflict,
-        422: config.onValidationError,
-        423: config.onLocked,
-    }[code] ?? fallback
-
-    return (response, error) => specificHandler(
-        generalHandler(response, error) as AxiosResponse<any, any>, error
-    )
-}
+const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
+    401: config.onUnauthorized,
+    403: config.onForbidden,
+    404: config.onNotFound,
+    409: config.onConflict,
+    422: config.onValidationError,
+    423: config.onLocked,
+}[code])
 
 /**
  * Resolve the request's "Content-Type" header.
