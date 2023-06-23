@@ -203,28 +203,6 @@ it('does not validate if the field has not been changed', async () => {
     expect(requestMade).toBe(false)
 })
 
-it('is valid after field has changed and successful validation has triggered', async () => {
-    let requestMade = false
-    let promise = Promise.resolve(null)
-    axios.request.mockImplementation(() => {
-        requestMade = true
-        return promise = Promise.resolve({
-            status: 201,
-            headers: { precognition: 'true' },
-            data: {},
-        })
-    })
-    const validator = createValidator((client) => client.post('/foo', {}), {
-        name: 'Tim',
-    })
-
-    validator.validate('name', 'Taylor')
-    await promise
-
-    expect(requestMade).toBe(true)
-    expect(validator.valid()).toEqual(['name'])
-})
-
 it('filters out files', () => {
     let config
     axios.request.mockImplementationOnce((c) => {
@@ -288,4 +266,112 @@ it('filters out files', () => {
             }
         }
     })
+})
+
+it('doesnt mark fields as validated while response is pending', async () => {
+    expect.assertions(10)
+
+    let resolver = null
+    let promise = null
+    let onValidatedChangedCalledTimes = 0
+    axios.request.mockImplementation(() => {
+        promise = new Promise(resolve => {
+            resolver = resolve
+        })
+
+        return promise
+    })
+    let data = {}
+    const validator = createValidator((client) => client.post('/foo', data))
+    validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
+
+    expect(validator.valid()).toEqual([])
+    expect(onValidatedChangedCalledTimes).toEqual(0)
+
+    data = { app: 'Laravel' }
+    expect(validator.valid()).toEqual([])
+
+    validator.validate('app', 'Laravel')
+    expect(validator.valid()).toEqual([])
+
+    resolver({ headers: { precognition: 'true' }, status: 204 })
+    await vi.runAllTimersAsync()
+    expect(validator.valid()).toEqual(['app'])
+    expect(onValidatedChangedCalledTimes).toEqual(1)
+
+    data = { app: 'Laravel', version: '10' }
+    expect(validator.valid()).toEqual(['app'])
+
+    validator.validate('version', '10')
+    expect(validator.valid()).toEqual(['app'])
+
+    axios.isAxiosError.mockReturnValueOnce(true)
+    resolver({ headers: { precognition: 'true' }, status: 422, data: { errors: {}} })
+    await vi.runAllTimersAsync()
+    expect(validator.valid()).toEqual(['app', 'version'])
+    expect(onValidatedChangedCalledTimes).toEqual(2)
+})
+
+it('doesnt mark fields as validated on error status', async () => {
+    expect.assertions(6)
+
+    let resolver = null
+    let promise = null
+    let onValidatedChangedCalledTimes = 0
+    axios.request.mockImplementation(() => {
+        promise = new Promise(resolve => {
+            resolver = resolve
+        })
+
+        return promise
+    })
+    let data = {}
+    const validator = createValidator((client) => client.post('/foo', data))
+    validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
+
+    expect(validator.valid()).toEqual([])
+    expect(onValidatedChangedCalledTimes).toEqual(0)
+
+    data = { app: 'Laravel' }
+    expect(validator.valid()).toEqual([])
+
+    validator.validate('app', 'Laravel')
+    expect(validator.valid()).toEqual([])
+
+    resolver({ headers: { precognition: 'true' }, status: 401 })
+    await vi.runAllTimersAsync()
+    expect(validator.valid()).toEqual([])
+    expect(onValidatedChangedCalledTimes).toEqual(0)
+})
+
+it('does mark fields as validated on success status', async () => {
+    expect.assertions(6)
+
+    let resolver = null
+    let promise = null
+    let onValidatedChangedCalledTimes = 0
+    axios.request.mockImplementation(() => {
+        promise = new Promise(resolve => {
+            resolver = resolve
+        })
+
+        return promise
+    })
+    let data = {}
+    const validator = createValidator((client) => client.post('/foo', data))
+    validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
+
+    expect(validator.valid()).toEqual([])
+    expect(onValidatedChangedCalledTimes).toEqual(0)
+
+    data = { app: 'Laravel' }
+    expect(validator.valid()).toEqual([])
+
+    validator.validate('app', 'Laravel')
+    expect(validator.valid()).toEqual([])
+
+    resolver({ headers: { precognition: 'true' }, status: 200 })
+    await vi.runAllTimersAsync()
+    expect(validator.valid()).toEqual(['app'])
+    expect(onValidatedChangedCalledTimes).toEqual(1)
 })

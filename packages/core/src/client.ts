@@ -66,19 +66,27 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
     (config.onStart ?? (() => null))()
 
-    return axiosClient.request(config).then(response => {
+    return axiosClient.request(config).then(async response => {
         if (config.precognitive) {
             validatePrecognitionResponse(response)
         }
 
-        if (config.precognitive && config.onPrecognitionSuccess && successResolver(response)) {
-            return config.onPrecognitionSuccess(response)
+        const status = response.status
+
+        let payload: any = response
+
+        if (config.precognitive && config.onPrecognitionSuccess && successResolver(payload)) {
+            payload = await Promise.resolve(config.onPrecognitionSuccess(payload) ?? payload)
         }
 
-        const statusHandler = resolveStatusHandler(config, response.status)
+        if (config.onSuccess && isSuccess(status)) {
+            payload = await Promise.resolve(config.onSuccess(payload) ?? payload)
+        }
+
+        const statusHandler = resolveStatusHandler(config, status)
             ?? ((response) => response)
 
-        return statusHandler(response)
+        return statusHandler(payload) ?? payload
     }, error => {
         if (isNotServerGeneratedError(error)) {
             return Promise.reject(error)
@@ -116,6 +124,11 @@ const resolveConfig = (config: Config): Config => ({
         } : {},
     },
 })
+
+/**
+ * Determine if the status is successful.
+ */
+const isSuccess = (status: number) => status >= 200 && status < 300
 
 /**
  * Abort an existing request with the same configured fingerprint.
