@@ -77,15 +77,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             .on('validatingChanged', () => {
                 setValidating(validator.current!.validating())
             })
+            .on('validatedChanged', () => {
+                setValid(validator.current!.valid())
+            })
             .on('touchedChanged', () => {
                 setTouched(validator.current!.touched())
-
-                setValid(validator.current!.valid())
             })
             .on('errorsChanged', () => {
                 setHasErrors(validator.current!.hasErrors())
-
-                setValid(validator.current!.valid())
 
                 // @ts-expect-error
                 setErrors(toSimpleValidationErrors(validator.current!.errors()))

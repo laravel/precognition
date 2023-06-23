@@ -40,14 +40,13 @@ export default function (Alpine: TAlpine) {
             .on('validatingChanged', () => {
                 form.validating = validator.validating()
             })
-            .on('touchedChanged', () => {
+            .on('validatedChanged', () => {
                 state.valid = validator.valid()
-
+            })
+            .on('touchedChanged', () => {
                 state.touched = validator.touched()
             })
             .on('errorsChanged', () => {
-                state.valid = validator.valid()
-
                 form.hasErrors = validator.hasErrors()
 
                 form.errors = toSimpleValidationErrors(validator.errors())
