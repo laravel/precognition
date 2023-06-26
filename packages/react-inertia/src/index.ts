@@ -95,7 +95,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return this
         },
         setError(key: any, value?: any) {
-            this.setErrors({
+            precognitiveForm.setErrors({
                 ...inertiaForm.errors,
                 ...typeof value === 'undefined'
                     ? key
