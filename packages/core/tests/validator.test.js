@@ -375,3 +375,34 @@ it('does mark fields as validated on success status', async () => {
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
 })
+
+it('can provide a callback for the url', async () => {
+    expect.assertions(4)
+
+    let config = null
+    let url = null
+    let data
+    let requests = 0
+    axios.request.mockImplementation((c) => {
+        config = c
+        requests++
+        return Promise.resolve({ status: 201, headers: { precognition: 'true' } })
+    })
+    const validator = createValidator((client) => client.post(() => url, data), {})
+
+    url = 'https://foo'
+    data = { name: 'Tim' }
+    validator.validate('name', 'Tim')
+    vi.advanceTimersByTime(1500)
+
+    expect(requests).toBe(1)
+    expect(config.url).toBe('https://foo')
+
+    url = 'https://bar'
+    data = { name: 'Taylor' }
+    validator.validate('name', 'Taylor')
+    vi.advanceTimersByTime(1500)
+
+    expect(requests).toBe(2)
+    expect(config.url).toBe('https://bar')
+})

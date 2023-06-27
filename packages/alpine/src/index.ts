@@ -1,16 +1,13 @@
 import { Alpine as TAlpine } from 'alpinejs'
-import { client, Config, createValidator, RequestMethod, resolveName, toSimpleValidationErrors, ValidationConfig } from 'laravel-precognition'
+import { client, Config, createValidator, RequestMethod, resolveName, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { Form } from './types'
 
 export default function (Alpine: TAlpine) {
-    Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
-        // @ts-expect-error
-        method = method.toLowerCase()
-
-        syncWithDom(el, method, url)
+    Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
+        syncWithDom(el, resolveMethod(method), resolveUrl(url))
 
         /**
          * The original data.
@@ -36,7 +33,7 @@ export default function (Alpine: TAlpine) {
         /**
          * The validator instance.
          */
-        const validator = createValidator(client => client[method](url, form.data(), config), originalData)
+        const validator = createValidator(client => client[resolveMethod(method)](resolveUrl(url), form.data(), config), originalData)
             .on('validatingChanged', () => {
                 form.validating = validator.validating()
             })
@@ -140,7 +137,7 @@ export default function (Alpine: TAlpine) {
             },
             processing: false,
             async submit(config = {}) {
-                return client[method](url, form.data(), resolveSubmitConfig(config))
+                return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
             },
             validateFiles() {
                 validator.validateFiles()

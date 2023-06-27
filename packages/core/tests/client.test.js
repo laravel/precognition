@@ -513,3 +513,132 @@ it('does not revaldata when data is unchanged', async () => {
     expect(requests).toBe(2)
     vi.advanceTimersByTime(1500)
 })
+
+it('overrides request method url with config url', async () => {
+    expect.assertions(5)
+
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+    })
+
+    await client.get('https://laravel.com', {}, {
+        url: 'https://forge.laravel.com',
+    })
+    expect(config.url).toBe('https://forge.laravel.com')
+
+    await client.post('https://laravel.com', {}, {
+        url: 'https://forge.laravel.com',
+    })
+    expect(config.url).toBe('https://forge.laravel.com')
+
+    await client.patch('https://laravel.com', {}, {
+        url: 'https://forge.laravel.com',
+    })
+    expect(config.url).toBe('https://forge.laravel.com')
+
+    await client.put('https://laravel.com', {}, {
+        url: 'https://forge.laravel.com',
+    })
+    expect(config.url).toBe('https://forge.laravel.com')
+
+    await client.delete('https://laravel.com', {}, {
+        url: 'https://forge.laravel.com',
+    })
+    expect(config.url).toBe('https://forge.laravel.com')
+})
+
+it('overrides the request data with the config data', async () => {
+    expect.assertions(5)
+
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+    })
+
+    await client.get('https://laravel.com', { expected: false }, {
+        data: { expected: true }
+    })
+    expect(config.data).toEqual({ expected: true})
+
+    await client.post('https://laravel.com', { expected: false }, {
+        data: { expected: true }
+    })
+    expect(config.data).toEqual({ expected: true})
+
+    await client.patch('https://laravel.com', { expected: false }, {
+        data: { expected: true }
+    })
+    expect(config.data).toEqual({ expected: true})
+
+    await client.put('https://laravel.com', { expected: false }, {
+        data: { expected: true }
+    })
+    expect(config.data).toEqual({ expected: true})
+
+    await client.delete('https://laravel.com', { expected: false }, {
+        data: { expected: true }
+    })
+    expect(config.data).toEqual({ expected: true})
+})
+
+it('merges request data with config data', async () => {
+    expect.assertions(7)
+
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+    })
+
+    await client.get('https://laravel.com', { request: true }, {
+        data: { config: true }
+    })
+    expect(config.data).toEqual({ config: true })
+    expect(config.params).toEqual({ request: true })
+
+    await client.post('https://laravel.com', { request: true }, {
+        data: { config: true }
+    })
+    expect(config.data).toEqual({ request: true, config: true })
+
+    await client.patch('https://laravel.com', { request: true }, {
+        data: { config: true }
+    })
+    expect(config.data).toEqual({ request: true, config: true })
+
+    await client.put('https://laravel.com', { request: true }, {
+        data: { config: true }
+    })
+    expect(config.data).toEqual({ request: true, config: true })
+
+    await client.delete('https://laravel.com', { request: true }, {
+        data: { config: true }
+    })
+    expect(config.data).toEqual({ config: true })
+    expect(config.params).toEqual({ request: true })
+})
+
+it('merges request data with config params for get and delete requests', async () => {
+    expect.assertions(4)
+
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+    })
+
+    await client.get('https://laravel.com', { data: true }, {
+        params: { param: true }
+    })
+    expect(config.params).toEqual({ data: true, param: true })
+    expect(config.data).toBeUndefined()
+
+    await client.delete('https://laravel.com', { data: true }, {
+        params: { param: true }
+    })
+    expect(config.params).toEqual({ data: true, param: true })
+    expect(config.data).toBeUndefined()
+})

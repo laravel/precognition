@@ -1,6 +1,6 @@
 import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
 import merge from 'lodash.merge'
-import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver } from './types'
+import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types'
 
 /**
  * The configured axios client.
@@ -26,11 +26,11 @@ const abortControllers: Record<string, AbortController> = {}
  * The precognitive HTTP client instance.
  */
 export const client: Client = {
-    get: (url, data = {}, config = {}) => request({ ...config, params: merge(config.params, data), url, method: 'get' }),
-    post: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'post' }),
-    patch: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'patch' }),
-    put: (url, data = {}, config = {}) => request({ ...config, url, data, method: 'put' }),
-    delete: (url, data = {}, config = {}) => request({ ...config, url, params: merge(config.params, data), method: 'delete' }),
+    get: (url, data = {}, config = {}) => request(mergeConfig('get', url, data, config)),
+    post: (url, data = {}, config = {}) => request(mergeConfig('post', url, data, config)),
+    patch: (url, data = {}, config = {}) => request(mergeConfig('patch', url, data, config)),
+    put: (url, data = {}, config = {}) => request(mergeConfig('put', url, data, config)),
+    delete: (url, data = {}, config = {}) => request(mergeConfig('delete', url, data, config)),
     use(client) {
         axiosClient = client
 
@@ -49,6 +49,20 @@ export const client: Client = {
         return this
     },
 }
+
+/**
+ * Merge the client specified arguments with the provided configuration.
+ */
+const mergeConfig = (method: RequestMethod, url: string, data?: Record<string, unknown>, config?: Config) => ({
+    url,
+    method,
+    ...config,
+    ...(['get', 'delete'].includes(method) ? {
+        params: merge({}, data, config?.params),
+    } : {
+        data: merge({}, data, config?.data),
+    }),
+})
 
 /**
  * Send and handle a new request.
@@ -215,3 +229,17 @@ const hasFiles = (data: unknown): boolean => isFile(data)
 export const isFile = (value: unknown): boolean => (typeof File !== 'undefined' && value instanceof File)
     || value instanceof Blob
     || (typeof FileList !== 'undefined' && value instanceof FileList && value.length > 0)
+
+/**
+ * Resolve the url from a potential callback.
+ */
+export const resolveUrl = (url: string|(() => string)): string => typeof url === 'string'
+    ? url
+    : url()
+
+/**
+ * Resolve the method from a potential callback.
+ */
+export const resolveMethod = (method: RequestMethod|(() => RequestMethod)): RequestMethod => typeof method === 'string'
+    ? method.toLowerCase() as RequestMethod
+    : method()

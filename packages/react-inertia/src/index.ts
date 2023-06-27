@@ -1,12 +1,9 @@
-import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors } from 'laravel-precognition'
+import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
 import { useRef } from 'react'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, inputs: Data, config: ValidationConfig = {}): any => {
-    // @ts-expect-error
-    method = method.toLowerCase()
-
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
     const booted = useRef<boolean>(false)
 
     /**
@@ -132,27 +129,28 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         submit(submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void {
             const isPatchedCall = typeof submitMethod !== 'string'
 
-            const userOptions = isPatchedCall
+            submitOptions = isPatchedCall
                 ? submitMethod
                 : submitOptions
 
-            const options = {
-                ...userOptions,
+            submitUrl = isPatchedCall
+                ? resolveUrl(url)
+                : submitUrl!
+
+            submitMethod = isPatchedCall
+                ? resolveMethod(method)
+                : submitMethod as RequestMethod
+
+            inertiaSubmit(submitMethod, submitUrl, {
+                ...submitOptions,
                 onError: (errors: SimpleValidationErrors): any => {
                     precognitiveForm.validator().setErrors(errors)
 
-                    if (userOptions.onError) {
-                        return userOptions.onError(errors)
+                    if (submitOptions.onError) {
+                        return submitOptions.onError(errors)
                     }
                 },
-            }
-
-            inertiaSubmit(
-                isPatchedCall ? method : submitMethod,
-                // @ts-expect-error
-                (isPatchedCall ? url : submitUrl),
-                options
-            )
+            })
         },
         validator: precognitiveForm.validator,
     })
