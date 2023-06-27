@@ -5,7 +5,7 @@ import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResol
 /**
  * The configured axios client.
  */
-let axiosClient: AxiosInstance = Axios
+let axiosClient: AxiosInstance = Axios.create()
 
 /**
  * The request fingerprint resolver.
@@ -35,6 +35,9 @@ export const client: Client = {
         axiosClient = client
 
         return this
+    },
+    axios() {
+        return axiosClient
     },
     fingerprintRequestsUsing(callback) {
         requestFingerprintResolver = callback === null

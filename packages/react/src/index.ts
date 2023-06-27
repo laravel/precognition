@@ -5,6 +5,8 @@ import set from 'lodash.set'
 import { useRef, useState } from 'react'
 import { Form } from './types'
 
+export { client }
+
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
      * The original data.

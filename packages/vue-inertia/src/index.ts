@@ -1,6 +1,8 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
-import { useForm as usePrecognitiveForm } from 'laravel-precognition-vue'
+import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
+
+export { client }
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
     /**
