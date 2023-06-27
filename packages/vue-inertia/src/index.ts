@@ -120,7 +120,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             submitMethod = isPatchedCall
                 ? resolveMethod(method)
-                : (submitMethod as RequestMethod)
+                : submitMethod as RequestMethod
 
             inertiaSubmit(submitMethod, submitUrl, {
                 ...submitOptions,
