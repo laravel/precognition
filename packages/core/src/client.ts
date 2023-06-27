@@ -31,22 +31,22 @@ export const client: Client = {
     patch: (url, data = {}, config = {}) => request(mergeConfig('patch', url, data, config)),
     put: (url, data = {}, config = {}) => request(mergeConfig('put', url, data, config)),
     delete: (url, data = {}, config = {}) => request(mergeConfig('delete', url, data, config)),
-    use(client) {
-        axiosClient = client
+    use(axios) {
+        axiosClient = axios
 
-        return this
+        return client
     },
     fingerprintRequestsUsing(callback) {
         requestFingerprintResolver = callback === null
             ? () => null
             : callback
 
-        return this
+        return client
     },
     determineSuccessUsing(callback) {
         successResolver = callback
 
-        return this
+        return client
     },
 }
 

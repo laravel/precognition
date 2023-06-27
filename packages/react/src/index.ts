@@ -116,7 +116,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The form instance.
      */
-    return {
+    const form: Form<Data> = {
         data,
         setData(key, value) {
             if (typeof key === 'object') {
@@ -131,7 +131,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 setData(payload.current)
             }
 
-            return this
+            return form
         },
         touched(name) {
             return touched.includes(name)
@@ -142,7 +142,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             validator.current!.validate(name, get(payload.current, name))
 
-            return this
+            return form
         },
         validating,
         valid(name) {
@@ -157,13 +157,13 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             validator.current!.setErrors(errors)
 
-            return this
+            return form
         },
         forgetError(name) {
             // @ts-expect-error
             validator.current!.forgetError(name)
 
-            return this
+            return form
         },
         reset(...names) {
             const original = cloneDeep(originalData.current)!
@@ -181,12 +181,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             validator.current!.reset(...names)
 
-            return this
+            return form
         },
         setValidationTimeout(duration) {
             validator.current!.setTimeout(duration)
 
-            return this
+            return form
         },
         processing,
         async submit(config = {}) {
@@ -195,10 +195,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         validateFiles() {
             validator.current!.validateFiles()
 
-            return this
+            return form
         },
         validator() {
             return validator.current!
         },
     }
+
+    return form
 }

@@ -77,7 +77,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Create a new form instance.
      */
-    const createForm = (): Data&Form<Data> => ({
+    const form: Data&Form<Data> = {
         ...cloneDeep(originalData),
         data() {
             const data = cloneDeep(toRaw(form))
@@ -89,7 +89,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         setData(data: Record<string, unknown>) {
             Object.keys(data).forEach(input => {
-                this[input] = data[input]
+                // @ts-expect-error
+                form[input] = data[input]
             })
 
             return form
@@ -102,7 +103,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             name = resolveName(name)
 
-            validator.validate(name, get(this.data(), name))
+            validator.validate(name, get(form.data(), name))
 
             return form
         },
@@ -160,12 +161,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         validator() {
             return validator
         },
-    })
+    }
 
-    /**
-     * The form instance.
-     */
-    const form = reactive(createForm()) as Data&Form<Data>
-
-    return form
+    return reactive(form) as Data&Form<Data>
 }
