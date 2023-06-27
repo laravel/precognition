@@ -77,7 +77,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Create a new form instance.
      */
-    const form: Data&Form<Data> = {
+    let form: Data&Form<Data> = {
         ...cloneDeep(originalData),
         data() {
             const data = cloneDeep(toRaw(form))
@@ -163,5 +163,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
     }
 
-    return reactive(form) as Data&Form<Data>
+    form = reactive(form) as Data&Form<Data>
+
+    return form
 }
