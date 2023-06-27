@@ -1,14 +1,11 @@
-import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors, ValidationConfig } from 'laravel-precognition'
+import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
 import cloneDeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import set from 'lodash.set'
 import { useRef, useState } from 'react'
 import { Form } from './types'
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod, url: string, input: Data, config: ValidationConfig = {}): Form<Data> => {
-    // @ts-expect-error
-    method = method.toLowerCase()
-
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
      * The original data.
      */
@@ -73,7 +70,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const validator = useRef<Validator|null>(null)
 
     if (validator.current === null) {
-        validator.current = createValidator(client => client[method](url, payload.current, config), input)
+        validator.current = createValidator(client => client[resolveMethod(method)](resolveUrl(url), payload.current, config), input)
             .on('validatingChanged', () => {
                 setValidating(validator.current!.validating())
             })
@@ -193,7 +190,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         processing,
         async submit(config = {}) {
-            return client[method](url, payload.current, resolveSubmitConfig(config))
+            return client[resolveMethod(method)](resolveUrl(url), payload.current, resolveSubmitConfig(config))
         },
         validateFiles() {
             validator.current!.validateFiles()
