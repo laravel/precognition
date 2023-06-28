@@ -111,8 +111,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         validator.cancel()
 
         validator = createValidator()
-
-        return this
     }
 
     /**
@@ -233,12 +231,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * The form validator instance.
      */
-    return {
+    const form: TValidator = {
         touched: () => touched,
         validate(input, value) {
             validate(input, value)
 
-            return this
+            return form
         },
         validating: () => validating,
         valid,
@@ -247,12 +245,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         setErrors(value) {
             setErrors(value)
 
-            return this
+            return form
         },
         forgetError(name) {
             forgetError(name)
 
-            return this
+            return form
         },
         reset(...names) {
             if (names.length === 0) {
@@ -271,24 +269,26 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 setTouched(newTouched)
             }
 
-            return this
+            return form
         },
         setTimeout(value) {
             setDebounceTimeout(value)
 
-            return this
+            return form
         },
         on(event, callback) {
             listeners[event].push(callback)
 
-            return this
+            return form
         },
         validateFiles() {
             validateFiles = true
 
-            return this
+            return form
         },
     }
+
+    return form
 }
 
 /**

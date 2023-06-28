@@ -50,7 +50,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Patch the form.
      */
-    return Object.assign(inertiaForm, {
+    const form = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
         valid: precognitiveForm.valid,
@@ -64,7 +64,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 names.forEach(precognitiveForm.forgetError)
             }
 
-            return this
+            return form
         },
         reset(...names: string[]) {
             inertiaReset(...names)
@@ -75,39 +75,39 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             precognitiveForm.setErrors(errors)
 
-            return this
+            return form
         },
         forgetError(name: string|NamedInputEvent) {
             precognitiveForm.forgetError(name)
 
-            return this
+            return form
         },
         setError(key: any, value?: any) {
-            this.setErrors({
+            form.setErrors({
                 ...inertiaForm.errors,
                 ...typeof value === 'undefined'
                     ? key
                     : { [key]: value },
             })
 
-            return this
+            return form
         },
         validate(name: string|NamedInputEvent) {
             precognitiveForm.setData(inertiaForm.data())
 
             precognitiveForm.validate(name)
 
-            return this
+            return form
         },
         setValidationTimeout(duration: number) {
             precognitiveForm.setValidationTimeout(duration)
 
-            return this
+            return form
         },
         validateFiles() {
             precognitiveForm.validateFiles()
 
-            return this
+            return form
         },
         submit(submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void {
             const isPatchedCall = typeof submitMethod !== 'string'
@@ -137,4 +137,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         validator: precognitiveForm.validator,
     })
+
+    return form
 }
