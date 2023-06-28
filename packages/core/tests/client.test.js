@@ -5,6 +5,7 @@ import { createValidator } from '../src/validator'
 
 beforeEach(() => {
     vi.mock('axios')
+    client.use(axios)
     vi.useFakeTimers()
 })
 

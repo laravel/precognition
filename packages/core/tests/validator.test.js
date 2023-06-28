@@ -1,10 +1,12 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
+import { client } from '../src/client'
 import { createValidator } from '../src/validator'
 
 beforeEach(() => {
     vi.mock('axios')
     vi.useFakeTimers()
+    client.use(axios)
 })
 
 afterEach(() => {

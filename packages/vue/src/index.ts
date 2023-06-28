@@ -6,6 +6,8 @@ import get from 'lodash.get'
 import { resolveName } from 'laravel-precognition'
 import set from 'lodash.set'
 
+export { client }
+
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
     /**
      * The original data.

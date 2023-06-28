@@ -1,7 +1,9 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
-import { useForm as usePrecognitiveForm } from 'laravel-precognition-react'
+import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
 import { useRef } from 'react'
+
+export { client }
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
     const booted = useRef<boolean>(false)

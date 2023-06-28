@@ -5,6 +5,8 @@ import get from 'lodash.get'
 import set from 'lodash.set'
 import { Form } from './types'
 
+export { client }
+
 export default function (Alpine: TAlpine) {
     Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
         syncWithDom(el, resolveMethod(method), resolveUrl(url))
