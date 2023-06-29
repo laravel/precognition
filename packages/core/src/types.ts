@@ -25,6 +25,7 @@ export type Config = AxiosRequestConfig&{
 
 interface RevalidatePayload {
     data: Record<string, unknown>|null,
+    touched: Array<string>,
 }
 
 export type ValidationConfig = Config&{
@@ -50,6 +51,7 @@ export interface Client {
 export interface Validator {
     touched(): Array<string>,
     validate(input: string|NamedInputEvent, value: unknown): Validator,
+    touch(input: string|NamedInputEvent|Array<string>): Validator,
     validating(): boolean,
     valid(): Array<string>,
     errors(): ValidationErrors,

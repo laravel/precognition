@@ -54,7 +54,7 @@ it('does not revalidate data when data is unchanged', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
     let data = {}
-    const validator = createValidator((client) => client.post('/foo', data))
+    const validator = createValidator((client) => client.post('/foo', data), data)
 
     expect(requests).toBe(0)
 
@@ -65,7 +65,7 @@ it('does not revalidate data when data is unchanged', async () => {
 
     data = { first: true }
     validator.validate('name', true)
-    expect(requests).toBe(1)
+    expect(requests).toBe(1) // fails
     vi.advanceTimersByTime(1500)
 
     data = { second: true }
@@ -376,4 +376,28 @@ it('does mark fields as validated on success status', async () => {
     await vi.runAllTimersAsync()
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
+})
+
+it('can make fields as touched', () => {
+    expect.assertions(3)
+
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+    let data = { name: '' }
+    const validator = createValidator((client) => client.post('/foo', data), data)
+
+    validator.validate('name', '')
+    vi.advanceTimersByTime(2000)
+    expect(requests).toBe(0)
+
+    validator.touch('name')
+    validator.validate('name', '')
+
+    expect(validator.touched()).toEqual(['name'])
+    vi.advanceTimersByTime(2000)
+    expect(requests).toBe(1)
 })

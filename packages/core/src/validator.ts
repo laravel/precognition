@@ -119,6 +119,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     let oldData = initialData
 
     /**
+     * The old touched.
+     */
+    let oldTouched = touched
+
+    /**
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(() => {
@@ -169,7 +174,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onBefore: () => {
                 const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
                     return ! isequal(newRequest, oldRequest)
-                }))({ data }, { data: oldData })
+                }))({ data, touched }, { data: oldData, touched: oldTouched })
 
                 if (beforeValidationResult === false) {
                     return false
@@ -180,6 +185,8 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 if (beforeResult === false) {
                     return false
                 }
+
+                oldTouched = touched
 
                 oldData = data
 
@@ -235,6 +242,15 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         touched: () => touched,
         validate(input, value) {
             validate(input, value)
+
+            return form
+        },
+        touch(input) {
+            const inputs = Array.isArray(input)
+                ? input
+                : [resolveName(input)]
+
+            setTouched([...touched, ...inputs])
 
             return form
         },

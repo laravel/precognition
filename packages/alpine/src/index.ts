@@ -92,6 +92,11 @@ export default function (Alpine: TAlpine) {
             touched(name) {
                 return state.touched.includes(name)
             },
+            touch(name) {
+                validator.touch(name)
+
+                return form
+            },
             validate(name) {
                 name = resolveName(name)
 
