@@ -54,7 +54,7 @@ it('does not revalidate data when data is unchanged', async () => {
         return Promise.resolve({ headers: { precognition: 'true' } })
     })
     let data = {}
-    const validator = createValidator((client) => client.post('/foo', data), data)
+    const validator = createValidator((client) => client.post('/foo', data))
 
     expect(requests).toBe(0)
 
@@ -403,7 +403,7 @@ it('can make fields as touched', () => {
 })
 
 it('does not remember old data or touched until the response has returned', async () => {
-    expect.assertions(8)
+    expect.assertions(7)
 
     let requests = 0
     let resolvers = []
