@@ -50,7 +50,7 @@ export interface Client {
 
 export interface Validator {
     touched(): Array<string>,
-    validate(input: string|NamedInputEvent, value: unknown): Validator,
+    validate(input?: string|NamedInputEvent, value?: unknown): Validator,
     touch(input: string|NamedInputEvent|Array<string>): Validator,
     validating(): boolean,
     valid(): Array<string>,

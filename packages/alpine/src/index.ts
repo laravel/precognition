@@ -98,9 +98,13 @@ export default function (Alpine: TAlpine) {
                 return form
             },
             validate(name) {
-                name = resolveName(name)
+                if (typeof name === 'undefined') {
+                    validator.validate()
+                } else {
+                    name = resolveName(name)
 
-                validator.validate(name, get(form.data(), name))
+                    validator.validate(name, get(form.data(), name))
+                }
 
                 return form
             },

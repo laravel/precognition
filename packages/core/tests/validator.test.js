@@ -60,16 +60,19 @@ it('does not revalidate data when data is unchanged', async () => {
 
     data = { first: true }
     validator.validate('name', true)
+    await vi.runAllTimersAsync()
     expect(requests).toBe(1)
     vi.advanceTimersByTime(1500)
 
     data = { first: true }
     validator.validate('name', true)
+    await vi.runAllTimersAsync()
     expect(requests).toBe(1)
     vi.advanceTimersByTime(1500)
 
     data = { second: true }
     validator.validate('name', true)
+    await vi.runAllTimersAsync()
     expect(requests).toBe(2)
     vi.advanceTimersByTime(1500)
 })
@@ -416,4 +419,20 @@ it('revalidates when touched changes', async () => {
     validator.validate('app', 'Laravel')
     vi.advanceTimersByTime(2000)
     expect(requests).toBe(2)
+})
+
+it('can validate without needing to specify a field', async () => {
+    expect.assertions(1)
+
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+    let data = { name: 'Tim', framework: 'Laravel' }
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    validator.touch(['name', 'framework']).validate()
+    expect(requests).toBe(1)
 })

@@ -184,7 +184,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onBefore: () => {
                 const beforeValidationResult = (config.onBeforeValidation ?? ((previous, next) => {
                     return ! isequal(previous, next)
-                }))({ data, touched }, { data: validatingData ?? oldData, touched: validatingTouched ?? oldTouched })
+                }))({ data, touched }, { data: oldData, touched: oldTouched })
 
                 if (beforeValidationResult === false) {
                     return false
@@ -224,7 +224,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name: string|NamedInputEvent, value: unknown) => {
+    const validate = (name?: string|NamedInputEvent, value?: unknown) => {
+        if (typeof name === 'undefined') {
+            validator()
+
+            return
+        }
+
         if (isFile(value) && !validateFiles) {
             console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
 
