@@ -379,25 +379,41 @@ it('does mark fields as validated on success status', async () => {
 })
 
 it('can mark fields as touched', () => {
-    expect.assertions(3)
-
-    let requests = 0
-    axios.request.mockImplementation(() => {
-        requests++
-
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-    let data = { name: '' }
-    const validator = createValidator((client) => client.post('/foo', data), data)
-
-    validator.validate('name', '')
-    vi.advanceTimersByTime(2000)
-    expect(requests).toBe(0)
+    const validator = createValidator((client) => client.post('/foo', data))
 
     validator.touch('name')
-    validator.validate('name', '')
-
     expect(validator.touched()).toEqual(['name'])
+
+    validator.touch(['foo', 'bar'])
+    expect(validator.touched()).toEqual(['name', 'foo', 'bar'])
+})
+
+it('revalidates when touched changes', async () => {
+    expect.assertions(1)
+
+    let requests = 0
+    let resolvers = []
+    let promises = []
+    let configs = []
+    axios.request.mockImplementation((c) => {
+        requests++
+        configs.push(c)
+
+        const promise = new Promise(resolve => {
+            resolvers.push(resolve)
+        })
+
+        promises.push(promise)
+
+        return promise
+    })
+    let data = { version: '10' }
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data = { app: 'Laravel' }
+    validator.validate('app', 'Laravel')
+    validator.touch('version')
+    validator.validate('app', 'Laravel')
     vi.advanceTimersByTime(2000)
-    expect(requests).toBe(1)
+    expect(requests).toBe(2)
 })
