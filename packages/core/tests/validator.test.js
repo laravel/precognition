@@ -378,7 +378,7 @@ it('does mark fields as validated on success status', async () => {
     expect(onValidatedChangedCalledTimes).toEqual(1)
 })
 
-it('can make fields as touched', () => {
+it('can mark fields as touched', () => {
     expect.assertions(3)
 
     let requests = 0
