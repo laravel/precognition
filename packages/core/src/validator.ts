@@ -119,9 +119,19 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     let oldData = initialData
 
     /**
+     * The data currently being validated.
+     */
+    let validatingData: Record<string, unknown> = {}
+
+    /**
      * The old touched.
      */
-    let oldTouched = touched
+    let oldTouched: string[] = []
+
+    /**
+     * The touched currently being validated.
+     */
+    let validatingTouched: string[] = []
 
     /**
      * Create a debounced validation callback.
@@ -172,8 +182,8 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : response
             },
             onBefore: () => {
-                const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
-                    return ! isequal(newRequest, oldRequest)
+                const beforeValidationResult = (config.onBeforeValidation ?? ((previous, next) => {
+                    return ! isequal(previous, next)
                 }))({ data, touched }, { data: oldData, touched: oldTouched })
 
                 if (beforeValidationResult === false) {
@@ -186,9 +196,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return false
                 }
 
-                oldTouched = touched
+                validatingTouched = touched
 
-                oldData = data
+                validatingData = data
 
                 return true
             },
@@ -198,7 +208,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 (config.onStart ?? (() => null))()
             },
             onFinish: () => {
-                setValidating(false);
+                setValidating(false)
+
+                oldTouched = validatingTouched
+
+                oldData = validatingData;
 
                 (config.onFinish ?? (() => null))()
             },

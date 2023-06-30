@@ -401,3 +401,45 @@ it('can make fields as touched', () => {
     vi.advanceTimersByTime(2000)
     expect(requests).toBe(1)
 })
+
+it('does not remember old data or touched until the response has returned', async () => {
+    expect.assertions(8)
+
+    let requests = 0
+    let resolvers = []
+    let promises = []
+    let configs = []
+    axios.request.mockImplementation((c) => {
+        requests++
+        configs.push(c)
+
+        const promise = new Promise(resolve => {
+            resolvers.push(resolve)
+        })
+
+        promises.push(promise)
+
+        return promise
+    })
+    let data = { version: '10' }
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data = { app: 'Laravel' }
+    validator.validate('app', 'Laravel')
+    expect(requests).toBe(1)
+    expect(configs[0].onBefore()).toBe(true)
+    vi.advanceTimersByTime(2000)
+    expect(configs[0].onBefore()).toBe(true)
+
+    validator.touch('version')
+    validator.validate('app', 'Laravel')
+    expect(requests).toBe(2)
+    expect(configs[1].onBefore()).toBe(true)
+    vi.advanceTimersByTime(2000)
+    expect(configs[1].onBefore()).toBe(true)
+
+    resolvers[1]({ headers: { precognition: 'true' }, status: 204 })
+    await vi.runAllTimersAsync()
+
+    expect(configs[1].onBefore()).toBe(false)
+})
