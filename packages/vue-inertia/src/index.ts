@@ -53,6 +53,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const form = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
+        touch(name: Array<string>|string|NamedInputEvent) {
+            precognitiveForm.touch(name)
+
+            return form
+        },
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
         clearErrors(...names: string[]) {
@@ -92,7 +97,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        validate(name: string|NamedInputEvent) {
+        validate(name?: string|NamedInputEvent) {
             precognitiveForm.setData(inertiaForm.data())
 
             precognitiveForm.validate(name)

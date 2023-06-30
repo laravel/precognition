@@ -119,6 +119,21 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     let oldData = initialData
 
     /**
+     * The data currently being validated.
+     */
+    let validatingData: null|Record<string, unknown> = null
+
+    /**
+     * The old touched.
+     */
+    let oldTouched: string[] = []
+
+    /**
+     * The touched currently being validated.
+     */
+    let validatingTouched: null|string[] = null
+
+    /**
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(() => {
@@ -167,9 +182,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : response
             },
             onBefore: () => {
-                const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
-                    return ! isequal(newRequest, oldRequest)
-                }))({ data }, { data: oldData })
+                const beforeValidationResult = (config.onBeforeValidation ?? ((previous, next) => {
+                    return ! isequal(previous, next)
+                }))({ data, touched }, { data: oldData, touched: oldTouched })
 
                 if (beforeValidationResult === false) {
                     return false
@@ -181,7 +196,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return false
                 }
 
-                oldData = data
+                validatingTouched = touched
+
+                validatingData = data
 
                 return true
             },
@@ -191,7 +208,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 (config.onStart ?? (() => null))()
             },
             onFinish: () => {
-                setValidating(false);
+                setValidating(false)
+
+                oldTouched = validatingTouched!
+
+                oldData = validatingData!
+
+                validatingTouched = validatingData = null;
 
                 (config.onFinish ?? (() => null))()
             },
@@ -201,7 +224,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name: string|NamedInputEvent, value: unknown) => {
+    const validate = (name?: string|NamedInputEvent, value?: unknown) => {
+        if (typeof name === 'undefined') {
+            validator()
+
+            return
+        }
+
         if (isFile(value) && !validateFiles) {
             console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
 
@@ -235,6 +264,15 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         touched: () => touched,
         validate(input, value) {
             validate(input, value)
+
+            return form
+        },
+        touch(input) {
+            const inputs = Array.isArray(input)
+                ? input
+                : [resolveName(input)]
+
+            setTouched([...touched, ...inputs])
 
             return form
         },

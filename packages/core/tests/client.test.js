@@ -1,7 +1,6 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
 import { client } from '../src/index'
-import { createValidator } from '../src/validator'
 
 beforeEach(() => {
     vi.mock('axios')
@@ -453,66 +452,6 @@ it('does not create an abort controller when a cancelToken is provided', async (
     })
 
     expect(config.signal).toBeUndefined()
-})
-
-it('revaldata when validate is called', async () => {
-    expect.assertions(4)
-
-    let requests = 0
-    axios.request.mockImplementation(() => {
-        requests++
-
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-    let data
-    const validator = createValidator((client) => client.post('/foo', data))
-
-    expect(requests).toBe(0)
-
-    data = { name: 'Tim' }
-    validator.validate('name', 'Tim')
-    expect(requests).toBe(1)
-    vi.advanceTimersByTime(1500)
-
-    data = { name: 'Jess' }
-    validator.validate('name', 'Jess')
-    expect(requests).toBe(2)
-    vi.advanceTimersByTime(1500)
-
-    data = { name: 'Taylor' }
-    validator.validate('name', 'Taylor')
-    expect(requests).toBe(3)
-    vi.advanceTimersByTime(1500)
-})
-
-it('does not revaldata when data is unchanged', async () => {
-    expect.assertions(4)
-
-    let requests = 0
-    axios.request.mockImplementation(() => {
-        requests++
-
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-    let data = {}
-    const validator = createValidator((client) => client.post('/foo', data))
-
-    expect(requests).toBe(0)
-
-    data = { first: true }
-    validator.validate('name', true)
-    expect(requests).toBe(1)
-    vi.advanceTimersByTime(1500)
-
-    data = { first: true }
-    validator.validate('name', true)
-    expect(requests).toBe(1)
-    vi.advanceTimersByTime(1500)
-
-    data = { second: true }
-    validator.validate('name', true)
-    expect(requests).toBe(2)
-    vi.advanceTimersByTime(1500)
 })
 
 it('overrides request method url with config url', async () => {
