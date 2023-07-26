@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.3.2...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.4.0...main)
+
+## [v0.4.0](https://github.com/laravel/precognition/compare/v0.3.2...v0.4.0) - 2023-07-26
+
+- Ensure marked as valid once response returns by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/19
+- Allow config to override initial values by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/24
+- Expose the client / axios instance by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/25
+- Fix react-inertia setError bug by [@yo](https://github.com/yo)-goto in https://github.com/laravel/precognition/pull/22
+- Allow fields to be manually touched by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/26
 
 ## [v0.3.2](https://github.com/laravel/precognition/compare/v0.3.1...v0.3.2) - 2023-06-08
 
