@@ -3,7 +3,7 @@ import { client, Config, createValidator, RequestMethod, resolveName, toSimpleVa
 import cloneDeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import set from 'lodash.set'
-import { Form } from './types'
+import { Form } from './types.js'
 
 export { client }
 

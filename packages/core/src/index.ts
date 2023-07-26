@@ -1,3 +1,3 @@
-export { client, resolveUrl, resolveMethod } from './client'
-export { createValidator, toSimpleValidationErrors, resolveName } from './validator'
-export * from './types'
+export { client, resolveUrl, resolveMethod } from './client.js'
+export { createValidator, toSimpleValidationErrors, resolveName } from './validator.js'
+export * from './types.js'
