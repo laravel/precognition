@@ -6,8 +6,6 @@
 
 - [0.3.x] Support SSR mode by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/37
 
-**Full Changelog**: https://github.com/laravel/precognition/compare/v0.4.0...v0.4.1
-
 ## [v0.4.0](https://github.com/laravel/precognition/compare/v0.3.2...v0.4.0) - 2023-07-26
 
 - Ensure marked as valid once response returns by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/19
