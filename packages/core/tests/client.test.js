@@ -16,7 +16,7 @@ afterEach(() => {
 it('can handle a successful precognition response via config handler', async () => {
     expect.assertions(2)
 
-    const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
+    const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
     await client.get('https://laravel.com', {}, {
@@ -31,7 +31,7 @@ it('can handle a successful precognition response via config handler', async () 
 it('can handle a success response via a fulfilled promise', async () => {
     expect.assertions(1)
 
-    const response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
+    const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
     await client.post('https://laravel.com').then(r => expect(r).toBe(response))
@@ -197,12 +197,32 @@ it('can provide input names to validate via config', async () => {
 it('throws an error if the precognition header is not present on a success response', async () => {
     expect.assertions(2)
 
-    axios.request.mockResolvedValueOnce({ headers: { status: 204 } })
+    axios.request.mockResolvedValueOnce({ headers: {}, status: 204 })
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
         expect(e.message).toBe('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     })
+})
+
+it('does not consider 204 response to be success without "Precognition-Success" header', async () => {
+    expect.assertions(2)
+
+    axios.request.mockResolvedValueOnce({ headers: { precognition: 'true' }, status: 204 })
+    let precognitionSucess = false
+    let responseSuccess = false
+
+    await client.get('https://laravel.com', {}, {
+        onPrecognitionSuccess() {
+            precognitionSucess = true
+        },
+        onSuccess() {
+            responseSuccess = true
+        }
+    })
+
+    expect(precognitionSucess).toBe(false)
+    expect(responseSuccess).toBe(true)
 })
 
 it('throws an error if the precognition header is not present on an error response', async () => {
@@ -289,7 +309,7 @@ it('can customize how it determines a successful precognition response', async (
         },
     }).then(value => expect(value).toBe('expected value'))
 
-    response = { headers: { precognition: 'true' }, status: 204, data: 'data' }
+    response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
     await client.get('https://laravel.com', {}, {
@@ -460,7 +480,7 @@ it('overrides request method url with config url', async () => {
     let config
     axios.request.mockImplementation((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
 
     await client.get('https://laravel.com', {}, {
@@ -495,7 +515,7 @@ it('overrides the request data with the config data', async () => {
     let config
     axios.request.mockImplementation((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
 
     await client.get('https://laravel.com', { expected: false }, {
@@ -530,7 +550,7 @@ it('merges request data with config data', async () => {
     let config
     axios.request.mockImplementation((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
 
     await client.get('https://laravel.com', { request: true }, {
@@ -567,7 +587,7 @@ it('merges request data with config params for get and delete requests', async (
     let config
     axios.request.mockImplementation((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' }, status: 204, data: 'data' })
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
 
     await client.get('https://laravel.com', { data: true }, {

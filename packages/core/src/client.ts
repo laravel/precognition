@@ -15,7 +15,7 @@ let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => 
 /**
  * The precognition success resolver.
  */
-let successResolver: SuccessResolver = (response: AxiosResponse) => response.status === 204
+let successResolver: SuccessResolver = (response: AxiosResponse) => response.status === 204 && response.headers['precognition-success'] === 'true'
 
 /**
  * The abort controller cache.
