@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.4.1...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.0...main)
+
+## [v0.5.0](https://github.com/laravel/precognition/compare/v0.4.1...v0.5.0) - 2023-08-29
+
+- Require `Precognition-Success` header by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/41
 
 ## [v0.4.1](https://github.com/laravel/precognition/compare/v0.4.0...v0.4.1) - 2023-07-26
 
