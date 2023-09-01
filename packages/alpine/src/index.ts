@@ -9,8 +9,6 @@ export { client }
 
 export default function (Alpine: TAlpine) {
     Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
-        syncWithDom(el, resolveMethod(method), resolveUrl(url))
-
         /**
          * The original data.
          */
@@ -162,6 +160,8 @@ export default function (Alpine: TAlpine) {
          */
         const form = Alpine.reactive(createForm()) as Data&Form<Data>
 
+        syncWithDom(el, resolveMethod(method), resolveUrl(url), form)
+
         return form
     })
 }
@@ -169,7 +169,7 @@ export default function (Alpine: TAlpine) {
 /**
  * Sync the DOM form with the Precognitive form.
  */
-const syncWithDom = (el: Node, method: RequestMethod, url: string): void => {
+const syncWithDom = <Data extends Record<string, unknown>>(el: Node, method: RequestMethod, url: string, form: Form<Data>): void => {
     if (! (el instanceof Element && el.nodeName === 'FORM')) {
         return
     }
@@ -177,6 +177,7 @@ const syncWithDom = (el: Node, method: RequestMethod, url: string): void => {
     syncSyntheticMethodInput(el, method)
     syncMethodAttribute(el, method)
     syncActionAttribute(el, url)
+    addProcessingListener(el, form)
 }
 
 /**
@@ -221,3 +222,8 @@ const syncSyntheticMethodInput = (el: Element, method: RequestMethod) => {
     input.setAttribute('name', '_method')
     input.setAttribute('value', method.toUpperCase())
 }
+
+/**
+ * Add processing listener.
+ */
+const addProcessingListener = <Data extends Record<string, unknown>>(el: Element, form: Form<Data>) => el.addEventListener('submit', () => (form.processing = true))
