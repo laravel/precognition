@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.0...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.1...main)
+
+## [v0.5.1](https://github.com/laravel/precognition/compare/v0.5.0...v0.5.1) - 2023-09-05
+
+- Update `processing` flag for traditional for submissions by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/43
 
 ## [v0.5.0](https://github.com/laravel/precognition/compare/v0.4.1...v0.5.0) - 2023-08-29
 
