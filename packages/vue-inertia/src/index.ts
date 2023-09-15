@@ -1,6 +1,7 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
+import { watchEffect } from 'vue'
 
 export { client }
 
@@ -142,6 +143,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         validator: precognitiveForm.validator,
     })
+
+    // Due to the nature of `reactive` elements, reactivity is not inherited by
+    // the patched Inertia form as we have to destructure the Precog form. We
+    // can handle this by watching for changes and apply the changes manually.
+    watchEffect(() => form.validating = precognitiveForm.validating)
 
     return form
 }

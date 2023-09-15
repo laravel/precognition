@@ -30,7 +30,8 @@
         "node": ">=14"
     },
     "peerDependencies": {
-        "@inertiajs/vue3": "^1.0.0"
+        "@inertiajs/vue3": "^1.0.0",
+        "vue": "^3.0.0"
     },
     "dependencies": {
         "laravel-precognition": "0.5.1",
