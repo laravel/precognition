@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.1...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.2...main)
+
+## [v0.5.2](https://github.com/laravel/precognition/compare/v0.5.1...v0.5.2) - 2023-09-15
+
+- Fixes Vue w/ Inertia validating reactivity by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/49
 
 ## [v0.5.1](https://github.com/laravel/precognition/compare/v0.5.0...v0.5.1) - 2023-09-05
 
