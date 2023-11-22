@@ -5,7 +5,7 @@ import { watchEffect } from 'vue'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}) => {
     /**
      * The Inertia form.
      */
