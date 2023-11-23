@@ -9,7 +9,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The Inertia form.
      */
-    const inertiaForm = useInertiaForm(inputs)
+    const inertiaForm = useInertiaForm(inputs) as Omit<ReturnType<typeof useInertiaForm<Data>>, never>
+    // typecast can be removed/reverted when inertiajs/inertia#1734 is merged and released, tricks TS to not care for now by making it a more complex type.
 
     /**
      * The Precognitive form.
