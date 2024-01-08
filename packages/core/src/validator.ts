@@ -29,6 +29,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     let validating = false
 
+    /**
+     * Set the validating inputs.
+     *
+     * Returns an array of listeners that should be invoked once all state
+     * changes have taken place.
+     */
     const setValidating = (value: boolean): (() => void)[] => {
         if (value !== validating) {
             validating = value
@@ -44,6 +50,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     let validated: Array<string> = []
 
+    /**
+     * Set the validated inputs.
+     *
+     * Returns an array of listeners that should be invoked once all state
+     * changes have taken place.
+     */
     const setValidated = (value: Array<string>): (() => void)[] => {
         const uniqueNames = [...new Set(value)]
 
@@ -59,15 +71,19 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Valid validation state.
      */
-    const valid = () => {
-        return validated.filter(name => typeof errors[name] === 'undefined')
-    }
+    const valid = () => validated.filter(name => typeof errors[name] === 'undefined')
 
     /**
      * Touched input state.
      */
     let touched: Array<string> = []
 
+    /**
+     * Set the touched inputs.
+     *
+     * Returns an array of listeners that should be invoked once all state
+     * changes have taken place.
+     */
     const setTouched = (value: Array<string>): (() => void)[] => {
         const uniqueNames = [...new Set(value)]
 
@@ -85,6 +101,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     let errors: ValidationErrors = {}
 
+    /**
+     * Set the input errors.
+     *
+     * Returns an array of listeners that should be invoked once all state
+     * changes have taken place.
+     */
     const setErrors = (value: ValidationErrors|SimpleValidationErrors): (() => void)[] => {
         const prepared = toValidationErrors(value)
 
@@ -97,6 +119,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         return []
     }
 
+    /**
+     * Forget the given input's errors.
+     *
+     * Returns an array of listeners that should be invoked once all state
+     * changes have taken place.
+     */
     const forgetError = (name: string|NamedInputEvent): (() => void)[] => {
         const newErrors = { ...errors }
 
@@ -188,7 +216,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onPrecognitionSuccess: (response) => {
                 [
                     ...setValidated([...validated, ...validate]),
-                    ...setErrors({}),
+                    ...setErrors(omit({ ...errors }, validate)),
                 ].forEach(listener => listener())
 
                 return config.onPrecognitionSuccess
