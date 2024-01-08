@@ -47,6 +47,8 @@ export default function (Alpine: TAlpine) {
                 form.hasErrors = validator.hasErrors()
 
                 form.errors = toSimpleValidationErrors(validator.errors())
+
+                state.valid = validator.valid()
             })
 
         /**
