@@ -436,3 +436,29 @@ it('can validate without needing to specify a field', async () => {
     validator.touch(['name', 'framework']).validate()
     expect(requests).toBe(1)
 })
+
+it('marks fields as valid on precognition success', async () => {
+    expect.assertions(5)
+
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+    let valid = null
+    validator.setErrors({name: 'Required'}).touch('name').on('errorsChanged', () => {
+        valid = validator.valid()
+    })
+
+    expect(validator.valid()).toStrictEqual([])
+    expect(valid).toBeNull()
+
+    validator.validate()
+    await vi.runAllTimersAsync()
+
+    expect(requests).toBe(1)
+    expect(validator.valid()).toStrictEqual(['name'])
+    expect(valid).toStrictEqual(['name'])
+})

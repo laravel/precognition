@@ -87,6 +87,8 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
                 // @ts-expect-error
                 setErrors(toSimpleValidationErrors(validator.current!.errors()))
+
+                setValid(validator.current!.valid())
             })
     }
 
