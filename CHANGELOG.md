@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.2...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.3...main)
+
+## [v0.5.3](https://github.com/laravel/precognition/compare/v0.5.2...v0.5.3) - 2024-01-09
+
+* [0.5.x] Fix incorrectly reported valid inputs by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/60
 
 ## [v0.5.2](https://github.com/laravel/precognition/compare/v0.5.1...v0.5.2) - 2023-09-15
 
