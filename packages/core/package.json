@@ -29,20 +29,10 @@
     },
     "dependencies": {
         "axios": "^1.4.0",
-        "lodash.debounce": "^4.0.8",
-        "lodash.get": "^4.4.2",
-        "lodash.isequal": "^4.0.8",
-        "lodash.merge": "^4.6.2",
-        "lodash.omit": "^4.5.0",
-        "lodash.set": "^4.3.2"
+        "lodash": "^4.17.21"
     },
     "devDependencies": {
-        "@types/lodash.debounce": "^4.0.7",
-        "@types/lodash.get": "^4.4.7",
-        "@types/lodash.isequal": "^4.0.7",
-        "@types/lodash.merge": "^4.0.7",
-        "@types/lodash.omit": "^4.5.7",
-        "@types/lodash.set": "^4.3.7",
+        "@types/lodash": "^4.14.202",
         "@types/node": "^20.1.0",
         "typescript": "^5.0.0",
         "vitest": "^0.31.3"

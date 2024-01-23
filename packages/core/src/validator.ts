@@ -1,12 +1,12 @@
-import debounce from 'lodash.debounce'
-import isequal from 'lodash.isequal'
-import get from 'lodash.get'
-import set from 'lodash.set'
+import debounce from 'lodash/debounce'
+import isequal from 'lodash/isequal'
+import get from 'lodash/get'
+import set from 'lodash/set'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
 import { isAxiosError } from 'axios'
-import omit from 'lodash.omit'
-import merge from 'lodash.merge'
+import omit from 'lodash/omit'
+import merge from 'lodash/merge'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
