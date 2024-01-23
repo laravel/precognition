@@ -1,7 +1,7 @@
 import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod , resolveName } from 'laravel-precognition'
 import { Form } from './types.js'
 import { reactive, ref, toRaw } from 'vue'
-import {cloneDeep, get, set} from 'lodash-es'
+import { cloneDeep, get, set } from 'lodash-es'
 
 export { client }
 
