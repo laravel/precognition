@@ -1,5 +1,5 @@
 import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
-import merge from 'lodash/merge'
+import {merge} from 'lodash-es'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types.js'
 
 /**

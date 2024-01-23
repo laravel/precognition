@@ -1,7 +1,5 @@
 import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
-import cloneDeep from 'lodash/cloneDeep'
-import get from 'lodash/get'
-import set from 'lodash/set'
+import { cloneDeep, get, set } from 'lodash-es'
 import { useRef, useState } from 'react'
 import { Form } from './types.js'
 
