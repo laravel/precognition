@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.3...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.4...main)
+
+## [v0.5.4](https://github.com/laravel/precognition/compare/v0.5.3...v0.5.4) - 2024-01-23
+
+* [0.5.x] Migrate to lodash-es by [@dij-qhoekman](https://github.com/dij-qhoekman) in https://github.com/laravel/precognition/pull/62
 
 ## [v0.5.3](https://github.com/laravel/precognition/compare/v0.5.2...v0.5.3) - 2024-01-09
 
