@@ -1,12 +1,7 @@
-import debounce from 'lodash.debounce'
-import isequal from 'lodash.isequal'
-import get from 'lodash.get'
-import set from 'lodash.set'
+import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
 import { isAxiosError } from 'axios'
-import omit from 'lodash.omit'
-import merge from 'lodash.merge'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -110,7 +105,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     const setErrors = (value: ValidationErrors|SimpleValidationErrors): (() => void)[] => {
         const prepared = toValidationErrors(value)
 
-        if (! isequal(errors, prepared)) {
+        if (! isEqual(errors, prepared)) {
             errors = prepared
 
             return listeners.errorsChanged
@@ -225,7 +220,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             },
             onBefore: () => {
                 const beforeValidationResult = (config.onBeforeValidation ?? ((previous, next) => {
-                    return ! isequal(previous, next)
+                    return ! isEqual(previous, next)
                 }))({ data, touched }, { data: oldData, touched: oldTouched })
 
                 if (beforeValidationResult === false) {
