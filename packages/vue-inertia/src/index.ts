@@ -5,7 +5,7 @@ import { watchEffect } from 'vue'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
+export const useForm = <Data extends object>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
     /**
      * The Inertia form.
      */
@@ -14,7 +14,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The Precognitive form.
      */
-    const precognitiveForm = usePrecognitiveForm(method, url, inputs, config)
+    const precognitiveForm = usePrecognitiveForm(method, url, inputs as Record<string, unknown>, config)
 
     /**
      * Setup event listeners.
