@@ -62,6 +62,7 @@ export const useForm = <Data extends object>(method: RequestMethod|(() => Reques
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
         clearErrors(...names: string[]) {
+            // @ts-expect-error
             inertiaClearErrors(...names)
 
             if (names.length === 0) {
@@ -73,12 +74,12 @@ export const useForm = <Data extends object>(method: RequestMethod|(() => Reques
             return form
         },
         reset(...names: string[]) {
+            // @ts-expect-error
             inertiaReset(...names)
 
             precognitiveForm.reset(...names)
         },
         setErrors(errors: SimpleValidationErrors|ValidationErrors) {
-            // @ts-expect-error
             precognitiveForm.setErrors(errors)
 
             return form
@@ -99,7 +100,7 @@ export const useForm = <Data extends object>(method: RequestMethod|(() => Reques
             return form
         },
         validate(name?: string|NamedInputEvent) {
-            precognitiveForm.setData(inertiaForm.data())
+            precognitiveForm.setData(inertiaForm.data() as Record<string, unknown>)
 
             precognitiveForm.validate(name)
 
@@ -130,7 +131,7 @@ export const useForm = <Data extends object>(method: RequestMethod|(() => Reques
                 ? resolveMethod(method)
                 : submitMethod as RequestMethod
 
-            inertiaSubmit(submitMethod, submitUrl, {
+            inertiaSubmit(submitMethod, submitUrl as string, {
                 ...submitOptions,
                 onError: (errors: SimpleValidationErrors): any => {
                     precognitiveForm.validator().setErrors(errors)
