@@ -178,11 +178,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
                 delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
             })
-                .then(resolve)
-                .catch(error => isAxiosError(error) ? resolve(null) : reject(error))
-        }
-        )
-    } , debounceTimeoutDuration, { leading: true, trailing: true })
+            .then(resolve)
+            .catch(error => isAxiosError(error) ? resolve(null) : reject(error))
+        })
+    }, debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
      * Validator state.
