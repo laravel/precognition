@@ -170,15 +170,19 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(() => {
-        callback({
-            get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
-            post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
-            put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
-        })
-        .catch(error => isAxiosError(error) ? null : Promise.reject(error))
-    }, debounceTimeoutDuration, { leading: true, trailing: true })
+        return new Promise((resolve, reject) => {
+            callback({
+                get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
+                post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
+                patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
+                put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
+                delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
+            })
+                .then(resolve)
+                .catch(error => isAxiosError(error) ? resolve(null) : reject(error))
+        }
+        )
+    } , debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
      * Validator state.
@@ -261,9 +265,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name?: string|NamedInputEvent, value?: unknown) => {
+    const validate =  async (name?: string|NamedInputEvent, value?: unknown) => {
         if (typeof name === 'undefined') {
-            validator()
+            await validator()
 
             return
         }
@@ -284,7 +288,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             return
         }
 
-        validator()
+        await validator()
     }
 
     /**
@@ -299,8 +303,8 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     const form: TValidator = {
         touched: () => touched,
-        validate(input, value) {
-            validate(input, value)
+        async validate(input, value) {
+            await validate(input, value)
 
             return form
         },
