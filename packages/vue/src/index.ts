@@ -113,7 +113,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 // @ts-expect-error
                 name = resolveName(name)
 
-                await alidator.validate(name, get(form.data(), name))
+                await validator.validate(name, get(form.data(), name))
             }
 
             return form
