@@ -70,7 +70,7 @@ const mergeConfig = (method: RequestMethod, url: string, data?: Record<string, u
 /**
  * Send and handle a new request.
  */
-const request = (userConfig: Config = {}): Promise<unknown> => {
+const request = async (userConfig: Config = {}): Promise<unknown> => {
     const config = [
         resolveConfig,
         abortMatchingRequests,
@@ -78,7 +78,8 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
     ].reduce((config, callback) => callback(config), userConfig)
 
     if ((config.onBefore ?? (() => true))() === false) {
-        return Promise.resolve(null)
+        // response `null`
+        return null
     }
 
     (config.onStart ?? (() => null))()
@@ -93,18 +94,18 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         let payload: any = response
 
         if (config.precognitive && config.onPrecognitionSuccess && successResolver(payload)) {
-            payload = await Promise.resolve(config.onPrecognitionSuccess(payload) ?? payload)
+            payload = await (config.onPrecognitionSuccess(payload) ?? payload)
         }
 
         if (config.onSuccess && isSuccess(status)) {
-            payload = await Promise.resolve(config.onSuccess(payload) ?? payload)
+            payload = await (config.onSuccess(payload) ?? payload)
         }
 
         const statusHandler = resolveStatusHandler(config, status)
             ?? ((response) => response)
 
         return statusHandler(payload) ?? payload
-    }, error => {
+    }, async (error) => {
         if (isNotServerGeneratedError(error)) {
             return Promise.reject(error)
         }
@@ -187,7 +188,9 @@ const refreshAbortController = (config: Config): Config => {
  */
 const validatePrecognitionResponse = (response: AxiosResponse): void => {
     if (response.headers?.precognition !== 'true') {
-        throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
+        throw {
+            message: 'Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.',
+        }
     }
 }
 
