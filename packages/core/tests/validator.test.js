@@ -2,6 +2,7 @@ import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
 import { client } from '../src/client'
 import { createValidator } from '../src/validator'
+import {IgnorablePrecognitionError, PrecognitionError} from '../src/error'
 
 beforeEach(() => {
     vi.mock('axios')
@@ -434,7 +435,7 @@ it('can access the response object via the promise returned from validate', asyn
 })
 
 it('cancels unresolved promises returned from the validate call when re-calling the validate function', async () => {
-    expect.assertions(3)
+    expect.assertions(7)
 
     let requests = 0;
     axios.request.mockImplementation(() => {
@@ -454,8 +455,16 @@ it('cancels unresolved promises returned from the validate call when re-calling 
     data = { name: 'Taylor' }
     responses.push(validator.validate('name', 'Taylor').then(() => 'third'))
 
-    await responses[0].catch(reason => expect(reason).toEqual({ message: 'Another validation promise has been resolved.' }))
-    await responses[1].catch(reason => expect(reason).toEqual({ message: 'Another validation promise has been resolved.' }))
+    await responses[0].catch(reason => {
+        expect(reason).toBeInstanceOf(PrecognitionError)
+        expect(reason).toBeInstanceOf(IgnorablePrecognitionError)
+        expect(reason.message).toBe('Another validation promise has been resolved.')
+    })
+    await responses[1].catch(reason => {
+        expect(reason).toBeInstanceOf(PrecognitionError)
+        expect(reason).toBeInstanceOf(IgnorablePrecognitionError)
+        expect(reason.message).toBe('Another validation promise has been resolved.')
+    })
     expect(await responses[2]).toBe('third')
 })
 

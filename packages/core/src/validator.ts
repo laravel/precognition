@@ -2,6 +2,7 @@ import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
 import { isAxiosError } from 'axios'
+import {IgnorablePrecognitionError, PrecognitionError} from './error.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -268,10 +269,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         }
 
         if (isFile(value) && !validateFiles) {
-            // here
-            return Promise.reject({
-                message: 'Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.'
-            })
+            throw new PrecognitionError('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
         }
 
         name = resolveName(name)
@@ -318,6 +316,8 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return reject(reason)
                 })
             } else {
+                latestPromise.reject(new IgnorablePrecognitionError('Another validation promise has been resolved.'))
+
                 latestPromise = null
             }
 

@@ -1,6 +1,7 @@
 import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
 import { merge } from 'lodash-es'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types.js'
+import { PrecognitionError } from './error'
 
 /**
  * The configured axios client.
@@ -187,9 +188,7 @@ const refreshAbortController = (config: Config): Config => {
  */
 const validatePrecognitionResponse = (response: AxiosResponse): void => {
     if (response.headers?.precognition !== 'true') {
-        throw {
-            message: 'Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.',
-        }
+        throw new PrecognitionError('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     }
 }
 
