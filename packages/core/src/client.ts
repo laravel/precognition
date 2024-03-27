@@ -107,7 +107,7 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
         return statusHandler(payload) ?? payload
     }, async (error) => {
         if (isNotServerGeneratedError(error)) {
-            return Promise.reject(error)
+            throw error
         }
 
         if (config.precognitive) {
@@ -115,7 +115,7 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
         }
 
         const statusHandler = resolveStatusHandler(config, error.response.status)
-            ?? ((_, error) => Promise.reject(error))
+            ?? ((_, error) => { throw (error) })
 
         return statusHandler(error.response, error)
     }).finally(config.onFinish ?? (() => null))

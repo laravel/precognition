@@ -434,6 +434,52 @@ it('can access the response object via the promise returned from validate', asyn
     expect(response.data).toBe('response-data')
 })
 
+it('can handle generic exceptions that are thrown', async () => {
+    expect.assertions(1)
+
+    axios.request.mockImplementation(() => Promise.reject('Whoops!'))
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data = { name: 'Tim' }
+    const response = await validator.validate('name', 'Tim').catch((error) => 'error-caught: '+error)
+
+    expect(response).toBe('error-caught: Whoops!')
+})
+
+it('can handle axios exceptions that are thrown', async () => {
+    expect.assertions(1)
+
+    axios.isAxiosError.mockReturnValue(true)
+    axios.request.mockImplementation(() => Promise.reject('Whoops!'))
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data = { name: 'Tim' }
+    const response = await validator.validate('name', 'Tim').catch((error) => 'error-caught: '+error)
+
+    expect(response).toBe('error-caught: Whoops!')
+})
+
+it('can handle cancelled in-flight requests', async () => {
+    expect.assertions(4)
+
+    axios.isAxiosError.mockReturnValue(true)
+    axios.isCancel.mockReturnValue(true)
+    axios.request.mockImplementation(() => Promise.reject('Whoops!'))
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data = { name: 'Tim' }
+    let error = null
+    await validator.validate('name', 'Tim').catch((e) => (error = e))
+
+    expect(error).toBeInstanceOf(PrecognitionError)
+    expect(error).toBeInstanceOf(IgnorablePrecognitionError)
+    expect(error.message).toBe('An in-flight Precognition request was cancelled.')
+    expect(error.cause).toBe('Whoops!')
+})
+
 it('cancels unresolved promises returned from the validate call when re-calling the validate function', async () => {
     expect.assertions(7)
 
