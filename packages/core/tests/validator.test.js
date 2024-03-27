@@ -526,3 +526,30 @@ it('calls user configured onSuccess handlers', async () => {
 
     expect(response).toBe('123')
 })
+
+it('can pass config to individual validate calls', async () => {
+    expect.assertions(1)
+
+    axios.request.mockImplementation(() => Promise.resolve(precognitiveResponse({ data: 'original' })))
+    let globalSuccess = false
+    let localSuccess = false
+    const validator = createValidator((client) => client.post('/foo', {}, {
+        onPrecognitionSuccess: (response) => {
+            globalSuccess = true
+
+            return response+'-global'
+        }
+    }))
+
+    const response = await validator.validate({
+        onPrecognitionSuccess: (response) => {
+            localSuccess = true
+
+            return response+'-local'
+        }
+    })
+
+    expect(globalSuccess).toBe(true)
+    expect(localSuccess).toBe(true)
+    expect(response).toBe('original-global-local')
+})

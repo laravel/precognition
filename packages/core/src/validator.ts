@@ -171,11 +171,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Create a debounced validation callback.
      */
     const createValidator = () => debounce(async (instanceConfig: Config): Promise<unknown> => callback({
-            get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
-            post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
-            put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
+            get: (url, data = {}, globalConfig = {}) => client.get(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            post: (url, data = {}, globalConfig = {}) => client.post(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            put: (url, data = {}, globalConfig = {}) => client.put(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
         })
         .catch(error => {
             if (isAxiosError(error) && isCancel(error)) {
@@ -193,27 +193,30 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (config: ValidationConfig, data: Record<string, unknown> = {}): Config => {
-        const validate = Array.from(config.validate ?? touched)
+    const resolveConfig = (globalConfig: ValidationConfig, instanceConfig: ValidationConfig, data: Record<string, unknown> = {}): Config => {
+        const validate = Array.from(globalConfig.validate ?? instanceConfig.validate ?? touched)
 
         return {
-            ...config,
+            // TODO: start merging. Perhaps ditch this deconstruction and decide if things should be merged or replaced. Also should
+            // local callbacks happenen before global callbacks?
+            ...globalConfig,
+            ...instanceConfig,
             validate,
-            timeout: config.timeout ?? 5000,
+            timeout: globalConfig.timeout ?? 5000,
             onValidationError: async (response, axiosError) => {
                 [
                     ...setValidated([...validated, ...validate]),
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
                 ].forEach(listener => listener())
 
-                return config.onValidationError
-                    ? config.onValidationError(response, axiosError)
+                return globalConfig.onValidationError
+                    ? globalConfig.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
             },
             onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener());
 
-                return (config.onSuccess ?? ((r) => r))(response);
+                return (globalConfig.onSuccess ?? ((r) => r))(response);
             },
             onPrecognitionSuccess: (response) => {
                 [
@@ -221,12 +224,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(omit({ ...errors }, validate)),
                 ].forEach(listener => listener())
 
-                return config.onPrecognitionSuccess
-                    ? config.onPrecognitionSuccess(response)
+                return globalConfig.onPrecognitionSuccess
+                    ? globalConfig.onPrecognitionSuccess(response)
                     : response
             },
             onBefore: () => {
-                const beforeValidationResult = (config.onBeforeValidation ?? ((newRequest, oldRequest) => {
+                const beforeValidationResult = (globalConfig.onBeforeValidation ?? ((newRequest, oldRequest) => {
                     return newRequest.touched.length > 0 && ! isEqual(newRequest, oldRequest)
                 }))({ data, touched }, { data: oldData, touched: oldTouched })
 
@@ -234,7 +237,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return false
                 }
 
-                const beforeResult = (config.onBefore || (() => true))()
+                const beforeResult = (globalConfig.onBefore || (() => true))()
 
                 if (beforeResult === false) {
                     return false
@@ -249,7 +252,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onStart: () => {
                 setValidating(true).forEach(listener => listener());
 
-                (config.onStart ?? (() => null))()
+                (globalConfig.onStart ?? (() => null))()
             },
             onFinish: () => {
                 setValidating(false).forEach(listener => listener())
@@ -260,7 +263,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 validatingTouched = validatingData = null;
 
-                (config.onFinish ?? (() => null))()
+                (globalConfig.onFinish ?? (() => null))()
             },
         }
     }
