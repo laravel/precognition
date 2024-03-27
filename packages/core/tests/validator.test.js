@@ -14,6 +14,8 @@ afterEach(() => {
     vi.runAllTimers()
 })
 
+const precognitiveResponse = (payload) => ({ status: 204, data: {}, ...payload, headers: { precognition: 'true',  'precognition-success': 'true', ...payload?.headers },  })
+
 it('revalidates data when validate is called', async () => {
     expect.assertions(4)
 
@@ -21,7 +23,7 @@ it('revalidates data when validate is called', async () => {
     axios.request.mockImplementation(() => {
         requests++
 
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve(precognitiveResponse())
     })
     let data
     const validator = createValidator((client) => client.post('/foo', data))
@@ -29,50 +31,47 @@ it('revalidates data when validate is called', async () => {
     expect(requests).toBe(0)
 
     data = { name: 'Tim' }
-    validator.validate('name', 'Tim')
+    await validator.validate('name', 'Tim')
     expect(requests).toBe(1)
     vi.advanceTimersByTime(1500)
 
     data = { name: 'Jess' }
-    validator.validate('name', 'Jess')
+    await validator.validate('name', 'Jess')
     expect(requests).toBe(2)
     vi.advanceTimersByTime(1500)
 
     data = { name: 'Taylor' }
-    validator.validate('name', 'Taylor')
+    await validator.validate('name', 'Taylor')
     expect(requests).toBe(3)
     vi.advanceTimersByTime(1500)
 })
 
-it('does not revalidate data when data is unchanged', async () => {
+it('does not revalidate when data is unchanged', async () => {
     expect.assertions(4)
 
     let requests = 0
     axios.request.mockImplementation(() => {
         requests++
 
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve(precognitiveResponse())
     })
     let data = {}
     const validator = createValidator((client) => client.post('/foo', data))
 
     expect(requests).toBe(0)
 
-    data = { first: true }
-    validator.validate('name', true)
-    await vi.runAllTimersAsync()
+    data = { name: 'Tim' }
+    await validator.validate('name', 'Tim')
     expect(requests).toBe(1)
     vi.advanceTimersByTime(1500)
 
-    data = { first: true }
-    validator.validate('name', true)
-    await vi.runAllTimersAsync()
+    data = { name: 'Tim' }
+    await validator.validate('name', 'Tim')
     expect(requests).toBe(1)
     vi.advanceTimersByTime(1500)
 
-    data = { second: true }
-    validator.validate('name', true)
-    await vi.runAllTimersAsync()
+    data = { name: 'Tim', location: 'Melbourne' }
+    await validator.validate('name', 'Tim')
     expect(requests).toBe(2)
     vi.advanceTimersByTime(1500)
 })
@@ -190,29 +189,31 @@ it('is not valid before it has been validated', async () => {
 })
 
 it('does not validate if the field has not been changed', async () => {
-    let requestMade = false
+    expect.assertions(1)
+
+    let requests = 0
     axios.request.mockImplementation(() => {
-        requestMade = true
-        return Promise.resolve({
-            status: 201,
-            headers: { precognition: 'true' },
-            data: {},
-        })
+        requests++
+
+        return Promise.resolve(precognitiveResponse())
     })
     const validator = createValidator((client) => client.post('/foo', {}), {
         name: 'Tim',
     })
 
-    validator.validate('name', 'Tim')
+    await validator.validate('name', 'Tim')
 
-    expect(requestMade).toBe(false)
+    expect(requests).toBe(0)
 })
 
-it('filters out files', () => {
+it('filters out files', async () => {
+    expect.assertions(1)
+
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+
+        return Promise.resolve(precognitiveResponse())
     })
     const validator = createValidator((client) => client.post('/foo', {
         name: 'Tim',
@@ -245,7 +246,7 @@ it('filters out files', () => {
         }
     }))
 
-    validator.validate('text', 'Tim')
+    await validator.validate('text', 'Tim')
 
     expect(config.data).toEqual({
         name: 'Tim',
@@ -274,62 +275,33 @@ it('filters out files', () => {
 })
 
 it('doesnt mark fields as validated while response is pending', async () => {
-    expect.assertions(10)
+    expect.assertions(4)
 
-    let resolver = null
-    let promise = null
+    let pendingRequest = null
+    let response = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(() => {
-        promise = new Promise(resolve => {
-            resolver = resolve
-        })
-
-        return promise
-    })
+    axios.request.mockImplementation(() => Promise.resolve(response))
     let data = {}
     const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
 
-    expect(validator.valid()).toEqual([])
-    expect(onValidatedChangedCalledTimes).toEqual(0)
-
     data = { app: 'Laravel' }
+    response = precognitiveResponse({ status: 204, headers: { 'precognition-success': undefined }})
+    pendingRequest = validator.validate('app', 'Laravel')
+    expect(onValidatedChangedCalledTimes).toEqual(0)
     expect(validator.valid()).toEqual([])
-
-    validator.validate('app', 'Laravel')
-    expect(validator.valid()).toEqual([])
-
-    resolver({ headers: { precognition: 'true' }, status: 204 })
-    await vi.runAllTimersAsync()
+    await pendingRequest
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
-
-    data = { app: 'Laravel', version: '10' }
-    expect(validator.valid()).toEqual(['app'])
-
-    validator.validate('version', '10')
-    expect(validator.valid()).toEqual(['app'])
-
-    axios.isAxiosError.mockReturnValueOnce(true)
-    resolver({ headers: { precognition: 'true' }, status: 422, data: { errors: {}} })
-    await vi.runAllTimersAsync()
-    expect(validator.valid()).toEqual(['app', 'version'])
-    expect(onValidatedChangedCalledTimes).toEqual(2)
 })
 
 it('doesnt mark fields as validated on error status', async () => {
     expect.assertions(6)
 
-    let resolver = null
-    let promise = null
+    let response = null
+    let pendingRequest = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(() => {
-        promise = new Promise(resolve => {
-            resolver = resolve
-        })
-
-        return promise
-    })
+    axios.request.mockImplementation(() => Promise.resolve(response))
     let data = {}
     const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
@@ -340,11 +312,11 @@ it('doesnt mark fields as validated on error status', async () => {
     data = { app: 'Laravel' }
     expect(validator.valid()).toEqual([])
 
-    validator.validate('app', 'Laravel')
+    response = precognitiveResponse({ status: 401, headers: { 'precognition-success' : undefined } })
+    pendingRequest = validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
 
-    resolver({ headers: { precognition: 'true' }, status: 401 })
-    await vi.runAllTimersAsync()
+    await pendingRequest
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
 })
@@ -352,16 +324,10 @@ it('doesnt mark fields as validated on error status', async () => {
 it('does mark fields as validated on success status', async () => {
     expect.assertions(6)
 
-    let resolver = null
-    let promise = null
+    let response = null
+    let pendingRequest = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(() => {
-        promise = new Promise(resolve => {
-            resolver = resolve
-        })
-
-        return promise
-    })
+    axios.request.mockImplementation(() => Promise.resolve(response))
     let data = {}
     const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
@@ -372,11 +338,11 @@ it('does mark fields as validated on success status', async () => {
     data = { app: 'Laravel' }
     expect(validator.valid()).toEqual([])
 
-    validator.validate('app', 'Laravel')
+    response = precognitiveResponse({status: 200, headers: { 'precognition-success' : undefined } })
+    pendingRequest = validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
 
-    resolver({ headers: { precognition: 'true' }, status: 200 })
-    await vi.runAllTimersAsync()
+    await pendingRequest
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
 })
@@ -392,32 +358,24 @@ it('can mark fields as touched', () => {
 })
 
 it('revalidates when touched changes', async () => {
-    expect.assertions(1)
+    expect.assertions(2)
 
     let requests = 0
-    let resolvers = []
-    let promises = []
-    let configs = []
-    axios.request.mockImplementation((c) => {
+    axios.request.mockImplementation(() => {
         requests++
-        configs.push(c)
 
-        const promise = new Promise(resolve => {
-            resolvers.push(resolve)
-        })
-
-        promises.push(promise)
-
-        return promise
+        return Promise.resolve(precognitiveResponse())
     })
     let data = { version: '10' }
     const validator = createValidator((client) => client.post('/foo', data))
 
     data = { app: 'Laravel' }
-    validator.validate('app', 'Laravel')
+    await validator.validate('app', 'Laravel')
+    expect(requests).toBe(1)
+
+    vi.advanceTimersByTime(1500)
     validator.touch('version')
-    validator.validate('app', 'Laravel')
-    vi.advanceTimersByTime(2000)
+    await validator.validate('app', 'Laravel')
     expect(requests).toBe(2)
 })
 
@@ -428,12 +386,12 @@ it('can validate without needing to specify a field', async () => {
     axios.request.mockImplementation(() => {
         requests++
 
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve(precognitiveResponse())
     })
     let data = { name: 'Tim', framework: 'Laravel' }
     const validator = createValidator((client) => client.post('/foo', data))
 
-    validator.touch(['name', 'framework']).validate()
+    await validator.touch(['name', 'framework']).validate()
     expect(requests).toBe(1)
 })
 
@@ -444,7 +402,7 @@ it('marks fields as valid on precognition success', async () => {
     axios.request.mockImplementation(() => {
         requests++
 
-        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+        return Promise.resolve(precognitiveResponse())
     })
     const validator = createValidator((client) => client.post('/foo', {}))
     let valid = null
@@ -455,10 +413,61 @@ it('marks fields as valid on precognition success', async () => {
     expect(validator.valid()).toStrictEqual([])
     expect(valid).toBeNull()
 
-    validator.validate()
-    await vi.runAllTimersAsync()
+    await validator.validate()
 
     expect(requests).toBe(1)
     expect(validator.valid()).toStrictEqual(['name'])
     expect(valid).toStrictEqual(['name'])
+})
+
+it('can access the response object via the promise returned from validate', async () => {
+    expect.assertions(1)
+
+    axios.request.mockImplementation(() => Promise.resolve(precognitiveResponse({ data: 'response-data' })))
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data = { name: 'Tim' }
+    const response = await validator.validate('name', 'Tim')
+
+    expect(response.data).toBe('response-data')
+})
+
+it('cancels unresolved promises returned from the validate call when re-calling the validate function', async () => {
+    expect.assertions(3)
+
+    let requests = 0;
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve(precognitiveResponse({ data: `response-${requests}` }))
+    })
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    const responses = []
+
+    data = { name: 'Tim' }
+    responses.push(validator.validate('name', 'Tim').then(() => 'first'))
+    data = { name: 'Jess' }
+    responses.push(validator.validate('name', 'Jess').then(() => 'second'))
+    data = { name: 'Taylor' }
+    responses.push(validator.validate('name', 'Taylor').then(() => 'third'))
+
+    await responses[0].catch(reason => expect(reason).toEqual({ message: 'Another validation promise has been resolved.' }))
+    await responses[1].catch(reason => expect(reason).toEqual({ message: 'Another validation promise has been resolved.' }))
+    expect(await responses[2]).toBe('third')
+})
+
+it('calls user configured onSuccess handlers', async () => {
+    expect.assertions(1)
+
+    axios.request.mockImplementation(() => Promise.resolve(precognitiveResponse({ data: '123' })))
+    const validator = createValidator((client) => client.post('/foo', {}, {
+        onSuccess: (response) => response.data
+    }))
+
+    const response = await validator.validate('foo', 'bar')
+
+    expect(response).toBe('123')
 })

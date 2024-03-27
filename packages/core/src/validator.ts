@@ -169,19 +169,15 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce(() => {
-        return new Promise((resolve, reject) => {
-            callback({
-                get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
-                post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
-                patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
-                put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
-                delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
-            })
-            .then(resolve)
-            .catch(error => isAxiosError(error) ? resolve(null) : reject(error))
+    const createValidator = () => debounce((instanceConfig: Config) => callback({
+            get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
+            post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
+            patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
+            put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
+            delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
         })
-    }, debounceTimeoutDuration, { leading: true, trailing: true })
+        // TODO: why is this `null`k
+        .catch(error => isAxiosError(error) ? null : Promise.reject(error)), debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
      * Validator state.
@@ -208,8 +204,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ? config.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
             },
-            onSuccess: () => {
-                setValidated([...validated, ...validate]).forEach(listener => listener())
+            onSuccess: (response) => {
+                setValidated([...validated, ...validate]).forEach(listener => listener());
+
+                return (config.onSuccess ?? ((r) => r))(response);
             },
             onPrecognitionSuccess: (response) => {
                 [
@@ -264,17 +262,15 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate =  async (name?: string|NamedInputEvent, value?: unknown) => {
+    const validate = async (name?: string|NamedInputEvent, value?: unknown, config?: Config): Promise<unknown> => {
         if (typeof name === 'undefined') {
-            await validator()
-
-            return
+            return validator(config ?? {})
         }
 
         if (isFile(value) && !validateFiles) {
             console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
 
-            return
+            return null
         }
 
         name = resolveName(name)
@@ -284,10 +280,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         }
 
         if (touched.length === 0) {
-            return
+            return null
         }
 
-        await validator()
+        return validator(config ?? {})
     }
 
     /**
@@ -297,15 +293,44 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         ? forgetFiles(data)
         : data
 
+    let latestPromise: { resolve: (value: unknown) => void, reject: (reason?: any) => void }|null = null
+
     /**
      * The form validator instance.
      */
     const form: TValidator = {
         touched: () => touched,
-        async validate(input, value) {
-            await validate(input, value)
+        validate(input, value, config) {
+            if (typeof input === 'object' && ! (input instanceof Event)) {
+                config = input
+                input = value = undefined
+            }
 
-            return form
+            if (latestPromise === null) {
+                validate(input, value, config).then((result) => {
+                    const resolve = latestPromise!.resolve
+
+                    latestPromise = null
+
+                    return resolve(result)
+                }, (reason) => {
+                    const reject = latestPromise!.reject
+
+                    latestPromise = null
+
+                    return reject(reason)
+                })
+            } else {
+                // TODO: can I make it that we don't reject if we have not go
+                // any thenables? Maybe with a proxy?
+                latestPromise.reject({
+                    message: 'Another validation promise has been resolved.'
+                })
+
+                latestPromise = null
+            }
+
+            return new Promise((resolve, reject) => (latestPromise = { resolve, reject }))
         },
         touch(input) {
             const inputs = Array.isArray(input)
