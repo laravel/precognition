@@ -318,12 +318,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return reject(reason)
                 })
             } else {
-                // TODO: can I make it that we don't reject if we have not go
-                // any thenables? Maybe with a proxy?
-                latestPromise.reject({
-                    message: 'Another validation promise has been resolved.'
-                })
-
                 latestPromise = null
             }
 
