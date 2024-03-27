@@ -78,7 +78,6 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
     ].reduce((config, callback) => callback(config), userConfig)
 
     if ((config.onBefore ?? (() => true))() === false) {
-        // response `null`
         return null
     }
 
