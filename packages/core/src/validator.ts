@@ -194,29 +194,33 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Resolve the configuration.
      */
     const resolveConfig = (globalConfig: ValidationConfig, instanceConfig: ValidationConfig, data: Record<string, unknown> = {}): Config => {
-        const validate = Array.from(globalConfig.validate ?? instanceConfig.validate ?? touched)
+        const validate = Array.from(instanceConfig.validate ?? globalConfig.validate ?? touched)
 
         return {
-            // TODO: start merging. Perhaps ditch this deconstruction and decide if things should be merged or replaced. Also should
-            // local callbacks happenen before global callbacks?
-            ...globalConfig,
-            ...instanceConfig,
+            // ...globalConfig,
+            // ...instanceConfig,
             validate,
-            timeout: globalConfig.timeout ?? 5000,
+            timeout: instanceConfig.timeout ?? globalConfig.timeout ?? 5000,
             onValidationError: async (response, axiosError) => {
                 [
                     ...setValidated([...validated, ...validate]),
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
                 ].forEach(listener => listener())
 
-                return globalConfig.onValidationError
-                    ? globalConfig.onValidationError(response, axiosError)
-                    : Promise.reject(axiosError)
+                const handler = instanceConfig.onValidationError
+                    ?? globalConfig.onValidationError
+                    ?? (() => { throw axiosError })
+
+                return handler(response, axiosError)
             },
             onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener());
 
-                return (globalConfig.onSuccess ?? ((r) => r))(response);
+                const handler = instanceConfig.onSuccess
+                    ?? globalConfig.onSuccess
+                    ?? (() => response)
+
+                return handler(response)
             },
             onPrecognitionSuccess: (response) => {
                 [
@@ -224,9 +228,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(omit({ ...errors }, validate)),
                 ].forEach(listener => listener())
 
-                return globalConfig.onPrecognitionSuccess
-                    ? globalConfig.onPrecognitionSuccess(response)
-                    : response
+                const handler = instanceConfig.onPrecognitionSuccess
+                    ?? globalConfig.onPrecognitionSuccess
+                    ?? (() => response)
+
+                return handler(response)
             },
             onBefore: () => {
                 const beforeValidationResult = (globalConfig.onBeforeValidation ?? ((newRequest, oldRequest) => {
@@ -237,9 +243,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return false
                 }
 
-                const beforeResult = (globalConfig.onBefore || (() => true))()
+                const handler = instanceConfig.onBefore
+                    ?? globalConfig.onBefore
+                    ?? (() => true)
 
-                if (beforeResult === false) {
+                if (handler() === false) {
                     return false
                 }
 
@@ -252,7 +260,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onStart: () => {
                 setValidating(true).forEach(listener => listener());
 
-                (globalConfig.onStart ?? (() => null))()
+                const handler = instanceConfig.onStart
+                    ?? globalConfig.onStart
+                    ?? (() => null)
+
+                handler()
             },
             onFinish: () => {
                 setValidating(false).forEach(listener => listener())
@@ -263,7 +275,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 validatingTouched = validatingData = null;
 
-                (globalConfig.onFinish ?? (() => null))()
+                const handler = instanceConfig.onFinish
+                    ?? globalConfig.onFinish
+                    ?? (() => null)
+
+                handler()
             },
         }
     }
