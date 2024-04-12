@@ -1,7 +1,7 @@
 import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
-import { isAxiosError, isCancel } from 'axios'
+import { isAxiosError, isCancel, mergeConfig } from 'axios'
 import {IgnorablePrecognitionError, PrecognitionError} from './error.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
@@ -194,31 +194,31 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Resolve the configuration.
      */
     const resolveConfig = (globalConfig: ValidationConfig, instanceConfig: ValidationConfig, data: Record<string, unknown> = {}): Config => {
-        const validate = Array.from(instanceConfig.validate ?? globalConfig.validate ?? touched)
+        const config: ValidationConfig = {
+            ...globalConfig,
+            ...instanceConfig,
+        }
+
+        const validate = Array.from(config.validate ?? touched)
 
         return {
-            // ...globalConfig,
-            // ...instanceConfig,
+            ...mergeConfig(globalConfig, instanceConfig),
             validate,
-            timeout: instanceConfig.timeout ?? globalConfig.timeout ?? 5000,
+            timeout: config.timeout ?? 5000,
             onValidationError: async (response, axiosError) => {
                 [
                     ...setValidated([...validated, ...validate]),
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
                 ].forEach(listener => listener())
 
-                const handler = instanceConfig.onValidationError
-                    ?? globalConfig.onValidationError
-                    ?? (() => { throw axiosError })
+                const handler = config.onValidationError ?? (() => { throw axiosError })
 
                 return handler(response, axiosError)
             },
             onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener());
 
-                const handler = instanceConfig.onSuccess
-                    ?? globalConfig.onSuccess
-                    ?? (() => response)
+                const handler = config.onSuccess ?? (() => response)
 
                 return handler(response)
             },
@@ -228,26 +228,22 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(omit({ ...errors }, validate)),
                 ].forEach(listener => listener())
 
-                const handler = instanceConfig.onPrecognitionSuccess
-                    ?? globalConfig.onPrecognitionSuccess
-                    ?? (() => response)
+                const handler = config.onPrecognitionSuccess ?? (() => response)
 
                 return handler(response)
             },
             onBefore: () => {
-                const beforeValidationResult = (globalConfig.onBeforeValidation ?? ((newRequest, oldRequest) => {
+                const beforeValidationHandler = config.onBeforeValidation ?? ((newRequest, oldRequest) => {
                     return newRequest.touched.length > 0 && ! isEqual(newRequest, oldRequest)
-                }))({ data, touched }, { data: oldData, touched: oldTouched })
+                })
 
-                if (beforeValidationResult === false) {
+                if (beforeValidationHandler({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
                 }
 
-                const handler = instanceConfig.onBefore
-                    ?? globalConfig.onBefore
-                    ?? (() => true)
+                const onBeforeHandler = config.onBefore ?? (() => true)
 
-                if (handler() === false) {
+                if (onBeforeHandler() === false) {
                     return false
                 }
 
@@ -260,9 +256,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onStart: () => {
                 setValidating(true).forEach(listener => listener());
 
-                const handler = instanceConfig.onStart
-                    ?? globalConfig.onStart
-                    ?? (() => null)
+                const handler = config.onStart ?? (() => null)
 
                 handler()
             },
@@ -275,9 +269,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 validatingTouched = validatingData = null;
 
-                const handler = instanceConfig.onFinish
-                    ?? globalConfig.onFinish
-                    ?? (() => null)
+                const handler = config.onFinish ?? (() => null)
 
                 handler()
             },

@@ -1,5 +1,5 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
-import axios from 'axios'
+import axios, {mergeConfig} from 'axios'
 import { client } from '../src/client'
 import { createValidator } from '../src/validator'
 import {IgnorablePrecognitionError, PrecognitionError} from '../src/error'
@@ -15,7 +15,23 @@ const precognitiveResponse = payload => merge({
 }, payload)
 
 beforeEach(() => {
-    vi.mock('axios')
+    vi.mock('axios', async () => {
+        const axios = await vi.importActual('axios')
+
+        const isCancel = vi.fn(() => false)
+        const isAxiosError = vi.fn(() => false)
+        return {
+            ...axios,
+            isCancel,
+            isAxiosError,
+            default: {
+                ...axios.default,
+                request: vi.fn(),
+                isCancel,
+                isAxiosError,
+            }
+        }
+    })
     vi.useFakeTimers()
     client.use(axios)
 })
@@ -503,7 +519,7 @@ it('can pass config to individual validate calls', async () => {
     expect.assertions(1)
 
     let data = { name: 'Tim' }
-    axios.request.mockImplementation(() => Promise.resolve(precognitiveResponse({ data: 'response-data' })))
+    axios.request.mockImplementation(async () => precognitiveResponse({ data: 'response-data' }))
     const validator = createValidator(client => client.post('/users', data, {
         onPrecognitionSuccess: response => response.data+':global-handler'
     }))
@@ -518,7 +534,7 @@ it('can pass config to individual validate calls', async () => {
 it('can pass config to individual validate calls without specifying input values', async () => {
     expect.assertions(1)
 
-    axios.request.mockImplementation(() => Promise.resolve(precognitiveResponse({ data: 'response-data' })))
+    axios.request.mockImplementation(async () => precognitiveResponse({ data: 'response-data' }))
     const validator = createValidator(client => client.post('/users', { name: 'Tim' }, {
         onPrecognitionSuccess: response => response.data+':global-handler'
     }))
@@ -530,3 +546,39 @@ it('can pass config to individual validate calls without specifying input values
 
     expect(response).toBe('response-data:local-handler')
 })
+
+it('correctly merges axios config', async () => {
+    expect.assertions(1)
+
+    let data = { name: 'Tim' }
+    let config = null
+    axios.request.mockImplementationOnce(async c => {
+        config = c
+
+        return precognitiveResponse()
+    })
+    const validator = createValidator(client => client.post('/users', data, {
+        headers: {
+            'X-Global': '1',
+            'X-Both': ['global'],
+        },
+    }))
+
+    await validator.validate('name', data.name, {
+        headers: {
+            'X-Local': '1',
+            'X-Both': ['local']
+        }
+    })
+
+    expect(config.headers).toEqual({
+        'X-Global': '1',
+        'X-Local': '1',
+        'X-Both': ['local'],
+        // others...
+        'Content-Type': 'application/json',
+        Precognition: true,
+        'Precognition-Validate-Only': 'name'
+    })
+})
+
