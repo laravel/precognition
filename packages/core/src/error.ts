@@ -1,6 +1,6 @@
 export class PrecognitionError extends Error {
   constructor(message: string, options?: { cause: Error }) {
-      // @ts-ignore
+    // @ts-expect-error
     super(message, options)
   }
 }
