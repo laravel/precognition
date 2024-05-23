@@ -330,6 +330,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                     return resolve(result)
                 }, (reason) => {
+                    // TODO: can we detect certain errors here, such as
+                    // cancelled requests, and simply never resolve the
+                    // promise?  We could potentially detect the env and write
+                    // a console.log for debugging purposes.
                     const reject = latestPromise!.reject
 
                     latestPromise = null
