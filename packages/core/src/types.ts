@@ -89,6 +89,6 @@ export interface NamedInputEvent extends InputEvent {
     readonly target: NamedEventTarget;
 }
 
-declare module "axios" {
+declare module 'axios' {
     export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestConfig): AxiosRequestConfig
 }

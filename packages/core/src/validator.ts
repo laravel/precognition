@@ -2,7 +2,7 @@ import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
 import { isAxiosError, isCancel, mergeConfig } from 'axios'
-import {IgnorablePrecognitionError, PrecognitionError} from './error.js'
+import { IgnorablePrecognitionError, PrecognitionError } from './error.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -216,7 +216,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 return handler(response, axiosError)
             },
             onSuccess: (response) => {
-                setValidated([...validated, ...validate]).forEach(listener => listener());
+                setValidated([...validated, ...validate]).forEach(listener => listener())
 
                 const handler = config.onSuccess ?? (() => response)
 
@@ -254,7 +254,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 return true
             },
             onStart: () => {
-                setValidating(true).forEach(listener => listener());
+                setValidating(true).forEach(listener => listener())
 
                 const handler = config.onStart ?? (() => null)
 
@@ -267,7 +267,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 oldData = validatingData!
 
-                validatingTouched = validatingData = null;
+                validatingTouched = validatingData = null
 
                 const handler = config.onFinish ?? (() => null)
 
@@ -318,6 +318,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             }
 
             if (latestPromise === null) {
+                // There is no pending validation promise. We will call
+                // `validate` and create our "hook" thenable. We only register
+                // our hook once to ensure that once the debounced validate
+                // method is resolved we only invoke the end-user's thenable
+                // once.
                 validate(input, value, config).then((result) => {
                     const resolve = latestPromise!.resolve
 
@@ -332,11 +337,21 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return reject(reason)
                 })
             } else {
-                latestPromise.reject(new IgnorablePrecognitionError('Another validation promise has been resolved.'))
-
+                // We have already registered our "hook" thenable, however the
+                // end-user has invoked our function again before the debounced
+                // validation has run. In this case we will ditch their
+                // previous pending promise and hold on to their latest.
                 latestPromise = null
+
+                // We also need to invoke the `validate` method to ensure the
+                // debouncing works as expected and waits until it has stopped
+                // being called.
+                validate(input, value, config)
             }
 
+            // We return a new promise each to to make sure that we only invoke
+            // their latest promise the one time and don't build up a chain of
+            // the same resolver.
             return new Promise((resolve, reject) => (latestPromise = { resolve, reject }))
         },
         touch(input) {

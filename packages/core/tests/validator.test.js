@@ -1,5 +1,5 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
-import axios, {mergeConfig} from 'axios'
+import axios from 'axios'
 import { client } from '../src/client'
 import { createValidator } from '../src/validator'
 import {IgnorablePrecognitionError, PrecognitionError} from '../src/error'
@@ -38,7 +38,7 @@ beforeEach(() => {
 
 afterEach(() => {
     vi.restoreAllMocks()
-    vi.runAllTimers()
+    console.log(`There are ${vi.getTimerCount()} active timers`)
 })
 
 it('revalidates data when validate is called', async () => {
@@ -473,32 +473,47 @@ it('can handle cancelled in-flight requests', async () => {
     expect(error.cause).toBe('Whoops!')
 })
 
-it('cancels unresolved promises returned from the validate call when re-calling the validate function', async () => {
-    expect.assertions(7)
+it('never resolves promises returned from the validate call when re-calling the validate function', async () => {
+    expect.assertions(4)
 
     let data = null
     const responses = []
     axios.request.mockImplementation(async () => precognitiveResponse())
     const validator = createValidator(client => client.post('/users', data))
+    let resolved = 0
 
     data = { name: 'Tim' }
-    responses.push(validator.validate('name', data.name).then(() => 'first'))
-    data = { name: 'Jess' }
-    responses.push(validator.validate('name', data.name).then(() => 'second'))
-    data = { name: 'Taylor' }
-    responses.push(validator.validate('name', data.name).then(() => 'third'))
+    responses.push(validator.validate('name', data.name).then(() => {
+        resolved++
 
-    await responses[0].catch(reason => {
-        expect(reason).toBeInstanceOf(PrecognitionError)
-        expect(reason).toBeInstanceOf(IgnorablePrecognitionError)
-        expect(reason.message).toBe('Another validation promise has been resolved.')
-    })
-    await responses[1].catch(reason => {
-        expect(reason).toBeInstanceOf(PrecognitionError)
-        expect(reason).toBeInstanceOf(IgnorablePrecognitionError)
-        expect(reason.message).toBe('Another validation promise has been resolved.')
-    })
+        return 'first'
+    }))
+    data = { name: 'Jess' }
+    responses.push(validator.validate('name', data.name).then(() => {
+        resolved++
+
+        return 'second'
+    }))
+    data = { name: 'Taylor' }
+    responses.push(validator.validate('name', data.name).then(() => {
+        resolved++
+
+        return 'third'
+    }))
+
+    vi.runAllTimers()
+
+    try {
+        await vi.waitUntil(async () => Promise.race([responses[0], responses[1]]))
+
+        throw 'Did not timeout as expected!'
+    } catch (e) {
+        expect(e).toBeInstanceOf(Error)
+        expect(e.message).toBe('Timed out in waitUntil!')
+    }
+
     expect(await responses[2]).toBe('third')
+    expect(resolved).toBe(1)
 })
 
 it('calls user configured onSuccess handlers', async () => {
