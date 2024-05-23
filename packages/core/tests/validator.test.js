@@ -544,7 +544,10 @@ it('never resolves promises returned from the validate call when re-calling the 
     vi.runAllTimers()
 
     try {
-        await vi.waitUntil(async () => Promise.race([responses[0], responses[1]]))
+        await vi.waitUntil(async () => Promise.race([responses[0], responses[1]]), {
+            timeout: 500,
+            interval: 10,
+        })
 
         throw 'Did not timeout as expected!'
     } catch (e) {
@@ -552,7 +555,11 @@ it('never resolves promises returned from the validate call when re-calling the 
         expect(e.message).toBe('Timed out in waitUntil!')
     }
 
-    expect(await responses[2]).toBe('third')
+    const result = await vi.waitUntil(async () => responses[2], {
+        timeout: 1,
+        interval: 1,
+    })
+    expect(result).toBe('third')
     expect(resolved).toBe(1)
 })
 
