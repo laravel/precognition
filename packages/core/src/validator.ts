@@ -321,27 +321,23 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                     latestPromise = null
 
-                    return resolve(result)
+                    resolve(result)
                 }, error => {
-                    // TODO: can we detect certain errors here, such as
-                    // cancelled requests, and simply never resolve the
-                    // promise?  We could potentially detect the env and write
-                    // a console.log for debugging purposes.
-                    if (error instanceof PrecognitionError) {
-                        // ??
+                    if (isAxiosError(error) && isCancel(error)) {
+                        latestPromise = null
+
+                        return
                     }
 
-                    if (isAxiosError(error) && isCancel(error)) {
-                        // todo: we probably won't throw this in prod. We just 
-                        // won't resolve the promise.
-                        error = new RequestCancelled('An in-flight Precognition request was cancelled.', { cause: error })
+                    if (error instanceof PrecognitionError) {
+                        // Do we wanna handle things differently in prod vs dev?
                     }
 
                     const reject = latestPromise!.reject
 
                     latestPromise = null
 
-                    return reject(error)
+                    reject(error)
                 })
             } else {
                 // We have already registered our "hook" thenable, however the
