@@ -2,7 +2,7 @@ import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
 import { client } from '../src/client'
 import { createValidator } from '../src/validator'
-import {IgnorablePrecognitionError, PrecognitionError} from '../src/error'
+import {PrecognitionError, RequestCancelled} from '../src/error'
 import {merge} from 'lodash-es'
 
 const precognitiveResponse = payload => merge({
@@ -506,7 +506,7 @@ it('can handle cancelled in-flight requests', async () => {
     await validator.validate('name', 'Tim').catch(e => (error = e))
 
     expect(error).toBeInstanceOf(PrecognitionError)
-    expect(error).toBeInstanceOf(IgnorablePrecognitionError)
+    expect(error).toBeInstanceOf(RequestCancelled)
     expect(error.message).toBe('An in-flight Precognition request was cancelled.')
     expect(error.cause).toBe('Whoops!')
 

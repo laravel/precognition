@@ -5,7 +5,7 @@ export class PrecognitionError extends Error {
   }
 }
 
-export class IgnorablePrecognitionError extends PrecognitionError {
+export class RequestCancelled extends PrecognitionError {
   constructor(message: string, options?: { cause: Error }) {
     super(message, options)
   }

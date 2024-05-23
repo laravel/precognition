@@ -249,7 +249,7 @@ it('returns a non-axios error via a rejected promise', async () => {
     })
 })
 
-it('returns a canceled request error va rejected promise', async () => {
+it('returns a cancelled request error va rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
