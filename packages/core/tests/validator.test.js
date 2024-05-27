@@ -2,7 +2,7 @@ import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import axios from 'axios'
 import { client } from '../src/client'
 import { createValidator } from '../src/validator'
-import { PrecognitionError, RequestCancelled } from '../src/error'
+import { PrecognitionError } from '../src/error'
 import { merge } from 'lodash-es'
 
 const precognitiveResponse = payload => merge({

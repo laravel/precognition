@@ -105,7 +105,7 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
             ?? ((response) => response)
 
         return statusHandler(payload) ?? payload
-    }, async (error) => {
+    }, error => {
         if (isNotServerGeneratedError(error)) {
             throw error
         }

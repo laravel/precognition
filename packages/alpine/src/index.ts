@@ -95,6 +95,7 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
+            // TODO: probably remove the awaits?
             async validate(name) {
                 if (typeof name === 'undefined') {
                     await validator.validate()
@@ -145,7 +146,7 @@ export default function (Alpine: TAlpine) {
                 return form
             },
             processing: false,
-            async submit(config = {}) {
+            submit(config = {}) {
                 return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
             },
             validateFiles() {

@@ -143,6 +143,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
+        // this should not be async and should return the promise
         async validate(name) {
             if (typeof name === 'undefined') {
                 await validator.current!.validate()
@@ -200,7 +201,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         processing,
-        async submit(config = {}) {
+        submit(config = {}) {
             return client[resolveMethod(method)](resolveUrl(url), payload.current, resolveSubmitConfig(config))
         },
         validateFiles() {

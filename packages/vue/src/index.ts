@@ -159,7 +159,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         processing: false,
-        async submit(config = {}) {
+        submit(config = {}) {
             return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
         },
         validateFiles() {

@@ -2,7 +2,7 @@ import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
 import { isAxiosError, isCancel, mergeConfig } from 'axios'
-import { PrecognitionError, RequestCancelled } from './error.js'
+import { PrecognitionError } from './error.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -170,7 +170,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce(async (instanceConfig: Config): Promise<unknown> => callback({
+    const createValidator = () => debounce((instanceConfig: Config): Promise<unknown> => callback({
             get: (url, data = {}, globalConfig = {}) => client.get(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             post: (url, data = {}, globalConfig = {}) => client.post(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
@@ -198,7 +198,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             ...mergeConfig(globalConfig, instanceConfig),
             validate,
             timeout: config.timeout ?? 5000,
-            onValidationError: async (response, axiosError) => {
+            onValidationError: (response, axiosError) => {
                 [
                     ...setValidated([...validated, ...validate]),
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
@@ -272,7 +272,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = async (name?: string|NamedInputEvent, value?: unknown, config?: Config): Promise<unknown> => {
+    const validate = (name?: string|NamedInputEvent, value?: unknown, config?: Config): Promise<unknown> => {
         if (typeof name === 'undefined') {
             return validator(config ?? {})
         }
@@ -304,7 +304,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     const form: TValidator = {
         touched: () => touched,
-        async validate(input, value, config) {
+        validate(input, value, config) {
             if (typeof input === 'object' && ! (input instanceof Event)) {
                 config = input
                 input = value = undefined
