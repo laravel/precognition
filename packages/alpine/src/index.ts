@@ -95,7 +95,7 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
-            async validate(name) {
+            validate(name) {
                 if (typeof name === 'undefined') {
                     return validator.validate()
                 } else {
