@@ -494,23 +494,32 @@ it('can handle axios exceptions that are thrown', async () => {
 })
 
 it('can handle cancelled in-flight requests', async () => {
-    expect.assertions(5)
+    expect.assertions(2)
 
-    let error = null
     let data = { name: 'Tim' }
     axios.isCancel.mockReturnValue(true)
     axios.isAxiosError.mockReturnValue(true)
-    axios.request.mockImplementation(async () => { throw 'Whoops!' })
+    axios.request.mockImplementation(async () => { throw 'Request cancelled' })
     const validator = createValidator(client => client.post('/users', data))
 
-    await validator.validate('name', 'Tim').catch(e => (error = e))
+    try {
 
-    expect(error).toBeInstanceOf(PrecognitionError)
-    expect(error).toBeInstanceOf(RequestCancelled)
-    expect(error.message).toBe('An in-flight Precognition request was cancelled.')
-    expect(error.cause).toBe('Whoops!')
+        await vi.waitUntil(async () => {
+            const promise = validator.validate('name', 'Tim')
 
-    assertPendingValidateDebounceAndClear()
+            vi.runAllTimers()
+
+            return promise
+        }, {
+            timeout: 500,
+            interval: 10,
+        })
+
+        throw 'Did not timeout as expected!'
+    } catch (e) {
+        expect(e).toBeInstanceOf(Error)
+        expect(e.message).toBe('Timed out in waitUntil!')
+    }
 })
 
 it('never resolves promises returned from the validate call when re-calling the validate function', async () => {
