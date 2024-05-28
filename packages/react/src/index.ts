@@ -143,18 +143,15 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        // this should not be async and should return the promise
-        async validate(name) {
+        validate(name) {
             if (typeof name === 'undefined') {
-                await validator.current!.validate()
+                return validator.current!.validate()
             } else {
                 // @ts-expect-error
                 name = resolveName(name)
 
-                await validator.current!.validate(name, get(payload.current, name))
+                return validator.current!.validate(name, get(payload.current, name))
             }
-
-            return form
         },
         validating,
         valid(name) {

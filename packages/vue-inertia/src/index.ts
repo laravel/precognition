@@ -101,9 +101,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         validate(name?: string|NamedInputEvent) {
             precognitiveForm.setData(inertiaForm.data())
 
-            precognitiveForm.validate(name)
-
-            return form
+            return precognitiveForm.validate(name)
         },
         setValidationTimeout(duration: number) {
             precognitiveForm.setValidationTimeout(duration)
