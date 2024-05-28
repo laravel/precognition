@@ -314,8 +314,8 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 // There is no pending validation promise. We will call
                 // `validate` and create our "hook" thenable. We only register
                 // our hook once to ensure that once the debounced validate
-                // method is resolved we only invoke the end-user's thenable
-                // once.
+                // method is resolved we only invoke the end-user's thenable a
+                // single time.
                 validate(input, value, config).then((result) => {
                     const resolve = latestPromise!.resolve
 
@@ -342,19 +342,19 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             } else {
                 // We have already registered our "hook" thenable, however the
                 // end-user has invoked our function again before the debounced
-                // validation has run. In this case we will ditch their
-                // previous pending promise and hold on to their latest.
+                // validation has run. In this case we will ditch our previous
+                // pending promise and create a new one as our hook.
                 latestPromise = null
 
                 // We also need to invoke the `validate` method to ensure the
-                // debouncing works as expected and waits until it has stopped
-                // being called.
+                // debouncing works as expected and we do not validate until
+                // the method has finished being called.
                 validate(input, value, config)
             }
 
-            // We return a new promise each to to make sure that we only invoke
-            // their latest promise the one time and don't build up a chain of
-            // the same resolver.
+            // We return a new promise each time to make sure that we only
+            // invoke the latest thenable chain. This ensures duplicate work is
+            // not performed when the promise resovles.
             return new Promise((resolve, reject) => (latestPromise = { resolve, reject }))
         },
         touch(input) {
