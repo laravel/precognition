@@ -323,6 +323,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                     resolve(result)
                 }, error => {
+                    // Precognition can often cancel in-flight requests.
+                    // Instead of throwing an exception, we silently discard
+                    // cancelled request errors as this is expected behaviour.
                     if (isAxiosError(error) && isCancel(error)) {
                         latestPromise = null
 
