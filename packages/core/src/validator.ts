@@ -329,10 +329,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                         return
                     }
 
-                    if (error instanceof PrecognitionError) {
-                        // Do we wanna handle things differently in prod vs dev?
-                    }
-
                     const reject = latestPromise!.reject
 
                     latestPromise = null
