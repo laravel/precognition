@@ -95,17 +95,14 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
-            // TODO: probably remove the awaits?
             async validate(name) {
                 if (typeof name === 'undefined') {
-                    await validator.validate()
+                    return validator.validate()
                 } else {
                     name = resolveName(name)
 
-                    await validator.validate(name, get(form.data(), name))
+                    return validator.validate(name, get(form.data(), name))
                 }
-
-                return form
             },
             validating: false,
             valid(name) {
