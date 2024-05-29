@@ -2,7 +2,6 @@ import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpl
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
 import { FormDataConvertible, Progress, VisitOptions } from '@inertiajs/core'
-
 import { watchEffect } from 'vue'
 
 export { client }
