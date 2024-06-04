@@ -1,7 +1,7 @@
 import { it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useForm, client } from '../src/index'
 import axios from 'axios'
-import {Config} from 'laravel-precognition'
+import { Config } from 'laravel-precognition'
 
 beforeEach(() => {
     vi.mock('axios')
@@ -91,7 +91,7 @@ it('transforms data for validation requests', () => {
     const form = useForm('post', '/register', {
         emails: '',
     }).transform((data) => ({
-        emails: data.emails.split(',').map(email => email.trim())
+        emails: data.emails.split(',').map(email => email.trim()),
     }))
 
     form.emails = 'taylor@laravel.com, tim@laravel.com'
