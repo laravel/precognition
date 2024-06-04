@@ -11,7 +11,7 @@ export interface Form<Data extends Record<string, unknown>> {
     hasErrors: boolean,
     valid(name: keyof Data): boolean,
     invalid(name: keyof Data): boolean,
-    validate(name?: keyof Data|NamedInputEvent): Form<Data>,
+    validate(name?: keyof Data|NamedInputEvent): Promise<unknown>,
     setErrors(errors: Partial<Record<keyof Data, string|string[]>>): Form<Data>
     forgetError(string: keyof Data|NamedInputEvent): Form<Data>
     setValidationTimeout(duration: number): Form<Data>,

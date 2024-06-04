@@ -1,7 +1,8 @@
 import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
-import { isAxiosError } from 'axios'
+import { isAxiosError, isCancel, mergeConfig } from 'axios'
+import { PrecognitionError } from './error.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -169,16 +170,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce(() => {
-        callback({
-            get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
-            post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
-            put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
-        })
-        .catch(error => isAxiosError(error) ? null : Promise.reject(error))
-    }, debounceTimeoutDuration, { leading: true, trailing: true })
+    const createValidator = () => debounce((instanceConfig: Config): Promise<unknown> => callback({
+            get: (url, data = {}, globalConfig = {}) => client.get(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            post: (url, data = {}, globalConfig = {}) => client.post(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            put: (url, data = {}, globalConfig = {}) => client.put(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+        }), debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
      * Validator state.
@@ -188,11 +186,16 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (config: ValidationConfig, data: Record<string, unknown> = {}): Config => {
+    const resolveConfig = (globalConfig: ValidationConfig, instanceConfig: ValidationConfig, data: Record<string, unknown> = {}): Config => {
+        const config: ValidationConfig = {
+            ...globalConfig,
+            ...instanceConfig,
+        }
+
         const validate = Array.from(config.validate ?? touched)
 
         return {
-            ...config,
+            ...mergeConfig(globalConfig, instanceConfig),
             validate,
             timeout: config.timeout ?? 5000,
             onValidationError: (response, axiosError) => {
@@ -201,12 +204,16 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
                 ].forEach(listener => listener())
 
-                return config.onValidationError
-                    ? config.onValidationError(response, axiosError)
-                    : Promise.reject(axiosError)
+                const handler = config.onValidationError ?? (() => { throw axiosError })
+
+                return handler(response, axiosError)
             },
-            onSuccess: () => {
+            onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener())
+
+                const handler = config.onSuccess ?? (() => response)
+
+                return handler(response)
             },
             onPrecognitionSuccess: (response) => {
                 [
@@ -214,22 +221,22 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(omit({ ...errors }, validate)),
                 ].forEach(listener => listener())
 
-                return config.onPrecognitionSuccess
-                    ? config.onPrecognitionSuccess(response)
-                    : response
+                const handler = config.onPrecognitionSuccess ?? (() => response)
+
+                return handler(response)
             },
             onBefore: () => {
-                const beforeValidationResult = (config.onBeforeValidation ?? ((previous, next) => {
-                    return ! isEqual(previous, next)
-                }))({ data, touched }, { data: oldData, touched: oldTouched })
+                const beforeValidationHandler = config.onBeforeValidation ?? ((newRequest, oldRequest) => {
+                    return newRequest.touched.length > 0 && ! isEqual(newRequest, oldRequest)
+                })
 
-                if (beforeValidationResult === false) {
+                if (beforeValidationHandler({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
                 }
 
-                const beforeResult = (config.onBefore || (() => true))()
+                const onBeforeHandler = config.onBefore ?? (() => true)
 
-                if (beforeResult === false) {
+                if (onBeforeHandler() === false) {
                     return false
                 }
 
@@ -240,9 +247,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 return true
             },
             onStart: () => {
-                setValidating(true).forEach(listener => listener());
+                setValidating(true).forEach(listener => listener())
 
-                (config.onStart ?? (() => null))()
+                const handler = config.onStart ?? (() => null)
+
+                handler()
             },
             onFinish: () => {
                 setValidating(false).forEach(listener => listener())
@@ -251,9 +260,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 oldData = validatingData!
 
-                validatingTouched = validatingData = null;
+                validatingTouched = validatingData = null
 
-                (config.onFinish ?? (() => null))()
+                const handler = config.onFinish ?? (() => null)
+
+                handler()
             },
         }
     }
@@ -261,17 +272,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name?: string|NamedInputEvent, value?: unknown) => {
+    const validate = (name?: string|NamedInputEvent, value?: unknown, config?: Config): Promise<unknown> => {
         if (typeof name === 'undefined') {
-            validator()
-
-            return
+            return validator(config ?? {})
         }
 
         if (isFile(value) && !validateFiles) {
-            console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
-
-            return
+            throw new PrecognitionError('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
         }
 
         name = resolveName(name)
@@ -280,11 +287,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             setTouched([name, ...touched]).forEach(listener => listener())
         }
 
-        if (touched.length === 0) {
-            return
-        }
-
-        validator()
+        return validator(config ?? {})
     }
 
     /**
@@ -294,15 +297,64 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         ? forgetFiles(data)
         : data
 
+    let latestPromise: { resolve: (value: unknown) => void, reject: (error?: any) => void }|null = null
+
     /**
      * The form validator instance.
      */
     const form: TValidator = {
         touched: () => touched,
-        validate(input, value) {
-            validate(input, value)
+        validate(input, value, config) {
+            if (typeof input === 'object' && ! (input instanceof Event)) {
+                config = input
+                input = value = undefined
+            }
 
-            return form
+            if (latestPromise === null) {
+                // There is no pending validation promise. We will call
+                // `validate` and create our "hook" thenable. We only register
+                // our hook once to ensure that once the debounced validate
+                // method is resolved we only invoke the end-user's thenable a
+                // single time.
+                validate(input, value, config).then((result) => {
+                    const resolve = latestPromise!.resolve
+
+                    latestPromise = null
+
+                    resolve(result)
+                }, error => {
+                    // Precognition can often cancel in-flight requests.
+                    // Instead of throwing an exception, we silently discard
+                    // cancelled request errors as this is expected behaviour.
+                    if (isAxiosError(error) && isCancel(error)) {
+                        latestPromise = null
+
+                        return
+                    }
+
+                    const reject = latestPromise!.reject
+
+                    latestPromise = null
+
+                    reject(error)
+                })
+            } else {
+                // We have already registered our "hook" thenable, however the
+                // end-user has invoked our function again before the debounced
+                // validation has run. In this case we will ditch our previous
+                // pending promise and create a new one as our hook.
+                latestPromise = null
+
+                // We also need to invoke the `validate` method to ensure the
+                // debouncing works as expected and we do not validate until
+                // the method has finished being called.
+                validate(input, value, config)
+            }
+
+            // We return a new promise each time to make sure that we only
+            // invoke the latest thenable chain. This ensures duplicate work is
+            // not performed when the promise resovles.
+            return new Promise((resolve, reject) => (latestPromise = { resolve, reject }))
         },
         touch(input) {
             const inputs = Array.isArray(input)

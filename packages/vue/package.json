@@ -21,6 +21,7 @@
     ],
     "scripts": {
         "build": "rm -rf dist && tsc",
+        "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
     },

@@ -50,7 +50,7 @@ export interface Client {
 
 export interface Validator {
     touched(): Array<string>,
-    validate(input?: string|NamedInputEvent, value?: unknown): Validator,
+    validate(input?: string|NamedInputEvent|Config, value?: unknown, config?: Config): Promise<unknown>,
     touch(input: string|NamedInputEvent|Array<string>): Validator,
     validating(): boolean,
     valid(): Array<string>,
@@ -87,4 +87,8 @@ interface NamedEventTarget extends EventTarget {
 
 export interface NamedInputEvent extends InputEvent {
     readonly target: NamedEventTarget;
+}
+
+declare module 'axios' {
+    export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestConfig): AxiosRequestConfig
 }

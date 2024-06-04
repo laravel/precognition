@@ -106,17 +106,15 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        validate(name) {
-            if (typeof name === 'undefined') {
-                validator.validate()
-            } else {
-                // @ts-expect-error
-                name = resolveName(name)
-
-                validator.validate(name, get(form.data(), name))
+        validate(name, config) {
+            if (typeof name === 'object') {
+                return validator.validate(name)
             }
 
-            return form
+            // @ts-expect-error
+            name = resolveName(name)
+
+            return validator.validate(name, get(form.data(), name), config)
         },
         validating: false,
         valid(name) {
@@ -161,7 +159,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         processing: false,
-        async submit(config = {}) {
+        submit(config = {}) {
             return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
         },
         validateFiles() {

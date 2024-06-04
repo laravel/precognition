@@ -97,14 +97,12 @@ export default function (Alpine: TAlpine) {
             },
             validate(name) {
                 if (typeof name === 'undefined') {
-                    validator.validate()
+                    return validator.validate()
                 } else {
                     name = resolveName(name)
 
-                    validator.validate(name, get(form.data(), name))
+                    return validator.validate(name, get(form.data(), name))
                 }
-
-                return form
             },
             validating: false,
             valid(name) {
@@ -145,7 +143,7 @@ export default function (Alpine: TAlpine) {
                 return form
             },
             processing: false,
-            async submit(config = {}) {
+            submit(config = {}) {
                 return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
             },
             validateFiles() {
