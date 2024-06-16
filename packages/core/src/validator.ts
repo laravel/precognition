@@ -222,9 +222,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
                 ].forEach(listener => listener())
 
-                const handler = config.onValidationError ?? (() => { throw axiosError })
-
-                return handler(response, axiosError)
+                return config.onValidationError
+                    ? config.onValidationError(response, axiosError)
+                    : Promise.reject(axiosError)
             },
             onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener())
@@ -239,9 +239,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ...setErrors(omit({ ...errors }, validate)),
                 ].forEach(listener => listener())
 
-                const handler = config.onPrecognitionSuccess ?? (() => response)
-
-                return handler(response)
+                return config.onPrecognitionSuccess
+                    ? config.onPrecognitionSuccess(response)
+                    : response
             },
             onBefore: () => {
                 const beforeValidationHandler = config.onBeforeValidation ?? ((newRequest, oldRequest) => {
@@ -252,9 +252,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return false
                 }
 
-                const onBeforeHandler = config.onBefore ?? (() => true)
+                const beforeResult = (config.onBefore || (() => true))()
 
-                if (onBeforeHandler() === false) {
+                if (beforeResult === false) {
                     return false
                 }
 
@@ -265,11 +265,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 return true
             },
             onStart: () => {
-                setValidating(true).forEach(listener => listener())
+                setValidating(true).forEach(listener => listener());
 
-                const handler = config.onStart ?? (() => null)
-
-                handler()
+                (config.onStart ?? (() => null))()
             },
             onFinish: () => {
                 setValidating(false).forEach(listener => listener())
@@ -278,11 +276,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 oldData = validatingData!
 
-                validatingTouched = validatingData = null
+                validatingTouched = validatingData = null;
 
-                const handler = config.onFinish ?? (() => null)
-
-                handler()
+                (config.onFinish ?? (() => null))()
             },
         }
     }
