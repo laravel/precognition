@@ -2,7 +2,6 @@ import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
 import { isAxiosError, isCancel, mergeConfig } from 'axios'
-import { PrecognitionError } from './error.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
