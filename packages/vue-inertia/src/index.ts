@@ -107,8 +107,10 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             precognitiveForm.setData(inertiaForm.data())
 
+            // @ts-expect-error
             if (typeof config === 'object' && config.onError) {
                 // TODO shoult this decorate?
+                // @ts-expect-error
                 config.onValidationError = config.onValidationError ?? config?.onError
             }
 

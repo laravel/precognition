@@ -176,6 +176,24 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             put: (url, data = {}, globalConfig = {}) => client.put(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+        }).catch((e) => {
+            // Unlike other status codes, 422 responses are expected and
+            // constant behaviour for Precognition requests.  Although slightly
+            // inconsistent with other response codes, we will silently ignore
+            // these. They should be intercepted by the `onValidationError`
+            // config option.
+            if (isAxiosError(e) && e.response?.status === 422) {
+                return
+            }
+
+            // Precognition can often cancel in-flight requests.  Instead of
+            // throwing an exception, we silently discard cancelled request
+            // errors as this is expected behaviour.
+            if (isAxiosError(e) && isCancel(e)) {
+                return
+            }
+
+            throw e
         }), debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
@@ -272,9 +290,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name?: string|NamedInputEvent, value?: unknown, config?: Config): Promise<unknown> => {
+    const validate = (name?: string|NamedInputEvent, value?: unknown, config?: Config): void => {
         if (typeof name === 'undefined') {
-            return validator(config ?? {})
+            validator(config ?? {})
+
+            return
         }
 
         if (isFile(value) && !validateFiles) {
@@ -287,7 +307,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             setTouched([name, ...touched]).forEach(listener => listener())
         }
 
-        return validator(config ?? {})
+         validator(config ?? {})
     }
 
     /**
@@ -296,8 +316,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     const parseData = (data: Record<string, unknown>): Record<string, unknown> => validateFiles === false
         ? forgetFiles(data)
         : data
-
-    let latestPromise: { resolve: (value: unknown) => void, reject: (error?: any) => void }|null = null
 
     /**
      * The form validator instance.
@@ -310,51 +328,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 input = value = undefined
             }
 
-            if (latestPromise === null) {
-                // There is no pending validation promise. We will call
-                // `validate` and create our "hook" thenable. We only register
-                // our hook once to ensure that once the debounced validate
-                // method is resolved we only invoke the end-user's thenable a
-                // single time.
-                validate(input, value, config).then((result) => {
-                    const resolve = latestPromise!.resolve
+            validate(input, value, config)
 
-                    latestPromise = null
-
-                    resolve(result)
-                }, error => {
-                    // Precognition can often cancel in-flight requests.
-                    // Instead of throwing an exception, we silently discard
-                    // cancelled request errors as this is expected behaviour.
-                    if (isAxiosError(error) && isCancel(error)) {
-                        latestPromise = null
-
-                        return
-                    }
-
-                    const reject = latestPromise!.reject
-
-                    latestPromise = null
-
-                    reject(error)
-                })
-            } else {
-                // We have already registered our "hook" thenable, however the
-                // end-user has invoked our function again before the debounced
-                // validation has run. In this case we will ditch our previous
-                // pending promise and create a new one as our hook.
-                latestPromise = null
-
-                // We also need to invoke the `validate` method to ensure the
-                // debouncing works as expected and we do not validate until
-                // the method has finished being called.
-                validate(input, value, config)
-            }
-
-            // We return a new promise each time to make sure that we only
-            // invoke the latest thenable chain. This ensures duplicate work is
-            // not performed when the promise resovles.
-            return new Promise((resolve, reject) => (latestPromise = { resolve, reject }))
+            return form
         },
         touch(input) {
             const inputs = Array.isArray(input)
