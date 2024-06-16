@@ -228,7 +228,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener())
 
-                return config.onSuccess 
+                return config.onSuccess
                     ? config.onSuccess(response)
                     : response
             },
