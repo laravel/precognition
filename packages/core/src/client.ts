@@ -71,7 +71,7 @@ const mergeConfig = (method: RequestMethod, url: string, data?: Record<string, u
 /**
  * Send and handle a new request.
  */
-const request = async (userConfig: Config = {}): Promise<unknown> => {
+const request = (userConfig: Config = {}): Promise<unknown> => {
     const config = [
         resolveConfig,
         abortMatchingRequests,
@@ -79,7 +79,7 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
     ].reduce((config, callback) => callback(config), userConfig)
 
     if ((config.onBefore ?? (() => true))() === false) {
-        return null
+        return Promise.resolve(null)
     }
 
     (config.onStart ?? (() => null))()
@@ -94,11 +94,11 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
         let payload: any = response
 
         if (config.precognitive && config.onPrecognitionSuccess && successResolver(payload)) {
-            payload = await (config.onPrecognitionSuccess(payload) ?? payload)
+            payload = await Promise.resolve(config.onPrecognitionSuccess(payload) ?? payload)
         }
 
         if (config.onSuccess && isSuccess(status)) {
-            payload = await (config.onSuccess(payload) ?? payload)
+            payload = await Promise.resolve(config.onSuccess(payload) ?? payload)
         }
 
         const statusHandler = resolveStatusHandler(config, status)
@@ -107,7 +107,7 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
         return statusHandler(payload) ?? payload
     }, error => {
         if (isNotServerGeneratedError(error)) {
-            throw error
+            return Promise.reject(error)
         }
 
         if (config.precognitive) {
@@ -115,7 +115,7 @@ const request = async (userConfig: Config = {}): Promise<unknown> => {
         }
 
         const statusHandler = resolveStatusHandler(config, error.response.status)
-            ?? ((_, error) => { throw (error) })
+            ?? ((_, error) => Promise.reject(error))
 
         return statusHandler(error.response, error)
     }).finally(config.onFinish ?? (() => null))
@@ -188,7 +188,7 @@ const refreshAbortController = (config: Config): Config => {
  */
 const validatePrecognitionResponse = (response: AxiosResponse): void => {
     if (response.headers?.precognition !== 'true') {
-        throw new PrecognitionError('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
+        throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     }
 }
 
