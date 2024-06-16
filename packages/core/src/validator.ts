@@ -298,7 +298,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         }
 
         if (isFile(value) && !validateFiles) {
-            throw new PrecognitionError('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
+            console.warn('Precognition file validation is not active. Call the "validateFiles" function on your form to enable it.')
+
+            return
         }
 
         name = resolveName(name)
