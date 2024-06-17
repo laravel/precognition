@@ -150,7 +150,7 @@ export default function (Alpine: TAlpine) {
                 return form
             },
             processing: false,
-            submit(config = {}) {
+            async submit(config = {}) {
                 return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
             },
             validateFiles() {
