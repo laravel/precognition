@@ -95,13 +95,22 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
-            validate(name) {
+            validate(name, config) {
+                if (typeof name === 'object' && ! ('target' in name)) {
+                    config = name
+                    name = undefined
+                }
+
                 if (typeof name === 'undefined') {
-                    return validator.validate()
+                    validator.validate(config)
+
+                    return form
                 } else {
                     name = resolveName(name)
 
-                    return validator.validate(name, get(form.data(), name))
+                    validator.validate(name, get(form.data(), name), config)
+
+                    return form
                 }
             },
             validating: false,
