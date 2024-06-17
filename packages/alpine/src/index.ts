@@ -103,15 +103,13 @@ export default function (Alpine: TAlpine) {
 
                 if (typeof name === 'undefined') {
                     validator.validate(config)
-
-                    return form
                 } else {
                     name = resolveName(name)
 
                     validator.validate(name, get(form.data(), name), config)
-
-                    return form
                 }
+
+                return form
             },
             validating: false,
             valid(name) {
