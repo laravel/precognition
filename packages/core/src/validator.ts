@@ -169,31 +169,34 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce((instanceConfig: Config): Promise<unknown> => callback({
+    const createValidator = () => debounce((instanceConfig: Config) => {
+        callback({
             get: (url, data = {}, globalConfig = {}) => client.get(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             post: (url, data = {}, globalConfig = {}) => client.post(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             put: (url, data = {}, globalConfig = {}) => client.put(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
-        }).catch((e) => {
+        }).catch((error) => {
             // Unlike other status codes, 422 responses are expected and
             // constant behaviour for Precognition requests.  Although slightly
             // inconsistent with other response codes, we will silently ignore
             // these. They should be intercepted by the `onValidationError`
             // config option.
-            if (isAxiosError(e) && e.response?.status === 422) {
-                return
+            console.log(error)
+            if (isAxiosError(error) && error.response?.status === 422) {
+                return null
             }
 
             // Precognition can often cancel in-flight requests.  Instead of
             // throwing an exception, we silently discard cancelled request
             // errors as this is expected behaviour.
-            if (isAxiosError(e) && isCancel(e)) {
-                return
+            if (isAxiosError(error) && isCancel(error)) {
+                return null
             }
 
-            throw e
-        }), debounceTimeoutDuration, { leading: true, trailing: true })
+            return Promise.reject(error)
+        })
+    }, debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
      * Validator state.
