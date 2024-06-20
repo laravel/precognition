@@ -228,7 +228,7 @@ it('does not validate if the field has not been changed', async () => {
 })
 
 it('filters out files', async () => {
-    let config = null
+    let config
     axios.request.mockImplementationOnce((c) => {
         config = c
 
@@ -299,15 +299,12 @@ it('doesnt mark fields as validated while response is pending',  async () => {
 
     let resolver = null
     let rejector = null
-    let promise = null
     let onValidatedChangedCalledTimes = 0
     axios.request.mockImplementation(() => {
-        promise = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             resolver = resolve
             rejector = (response) => reject({ response: response })
         })
-
-        return promise
     })
     let data = {}
     const validator = createValidator((client) => client.post('/foo', data))
@@ -341,24 +338,36 @@ it('doesnt mark fields as validated while response is pending',  async () => {
 })
 
 it('doesnt mark fields as validated on error status', async () => {
-    expect.assertions(5)
+    expect.assertions(6)
 
-    let pendingRequest = null
-    let data = { app: 'Laravel' }
+    let rejector = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(async () => precognitiveResponse({ status: 401, headers: { 'precognition-success' : undefined } }))
-    const validator = createValidator(client => client.post('/users', data))
+    axios.request.mockImplementation(() => {
+        return new Promise((_, reject) => {
+            rejector = (response) => reject({ response: response })
+        })
+    })
+    let data = {}
+    const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
 
-    pendingRequest = validator.validate('app', data.app)
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
 
-    await pendingRequest
+    data = { app: 'Laravel' }
+    expect(validator.valid()).toEqual([])
+
+    validator.validate('app', 'Laravel', {
+        onUnauthorized: () => null,
+    })
+    expect(validator.valid()).toEqual([])
+
+    axios.isAxiosError.mockReturnValue(true)
+    rejector(precognitiveResponse({ status: 401, headers: { 'precognition-success': 'false' } }))
+    await vi.runAllTimersAsync(1500)
+
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
-
-    assertPendingValidateDebounceAndClear()
 })
 
 it('does mark fields as validated on any success status', async () => {

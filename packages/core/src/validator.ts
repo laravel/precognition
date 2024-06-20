@@ -214,6 +214,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         const validate = Array.from(config.validate ?? touched)
 
         return {
+            ...instanceConfig,
             ...mergeConfig(globalConfig, instanceConfig),
             validate,
             timeout: config.timeout ?? 5000,
