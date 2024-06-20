@@ -1,46 +1,37 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod, Validator } from 'laravel-precognition'
-import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
-import { useForm as useInertiaForm } from '@inertiajs/vue3'
-import { FormDataConvertible, Progress, VisitOptions } from '@inertiajs/core'
+import { useForm as usePrecognitiveForm, client }      from 'laravel-precognition-vue'
+import { InertiaForm, useForm as useInertiaForm }        from '@inertiajs/vue3'
+import { Progress } from '@inertiajs/core'
 import { watchEffect } from 'vue'
 
 export { client }
 
 type FormDataType = object;
 
-interface PrecognitionFormProps<TForm extends FormDataType> {
-    validating: boolean,                                                // Patched
-    isDirty: boolean;
-    errors: Partial<Record<keyof TForm, string>>;
-    hasErrors: boolean;
-    processing: boolean;
-    progress: Progress | null;                                          // Patched
-    wasSuccessful: boolean;
-    recentlySuccessful: boolean;
-    data(): TForm;
-    transform(callback: (data: TForm) => object): this;
-    defaults(): this;
-    defaults(field: keyof TForm, value: FormDataConvertible): this;
-    defaults(fields: Partial<TForm>): this;
-    reset(...fields: (keyof TForm)[]): this;
-    clearErrors(...fields: (keyof TForm)[]): this;
-    touched(name: string): boolean,                                     // Patched
-    touch(name: string | string[] | NamedInputEvent): this;             // Patched
-    submit(submitMethod: RequestMethod|Config, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void; // Patched
-    cancel(): void;
-    setErrors(errors: SimpleValidationErrors|ValidationErrors) : this;  // Patched
-    forgetError(name: string|NamedInputEvent): this;                    // Patched
-    setError(field: keyof TForm, value: string): this;                  // Patched
-    validate(name?: string|NamedInputEvent): this;                      // Patched
+interface FormProps<TForm extends FormDataType> {
+    validating: boolean,
+    touched(name: string): boolean,
+    touch(name: string | string[] | NamedInputEvent): this;
+    progress: Progress | null;
+    valid(name: string | NamedInputEvent | string[]): boolean,
+    invalid(name: string): boolean,
+    clearErrors(...fields: (keyof TForm)[]) : this,
+    reset(...fields: (keyof TForm)[]) : void,
+    setErrors(errors: SimpleValidationErrors|ValidationErrors) : this;
+    forgetError(name: string|NamedInputEvent): this;
+    setError(field: keyof TForm, value: string): this;
+    transform(callback: (data: FormDataType) => Record<string, unknown>) : this;
+    validate(name?: string|NamedInputEvent): this;
     setValidationTimeout(duration: number): this;
     validateFiles(): this;
-    validator(): Validator;                                             // Patched
-    valid(name: string | NamedInputEvent | string[]): boolean,          // Patched
-    invalid(name: string): boolean,                                     // Patched
+    submit(submitMethod?: RequestMethod|Config, submitUrl?: string, submitOptions?: any): void
+    validator(): Validator;
 }
 
+export type PrecognitionFormProps<TForm extends FormDataType> = FormProps<TForm> & InertiaForm<TForm>
 
-export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): PrecognitionFormProps<Data> & Data => {
+
+export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): PrecognitionFormProps<Data> => {
     /**
      * The Inertia form.
      */
@@ -82,6 +73,16 @@ export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => 
      * The Inertia set error function.
      */
     const inertiaSetError = inertiaForm.setError.bind(inertiaForm)
+
+    /**
+     * The Inertia trasform function.
+     */
+    const inertiaTransform = inertiaForm.transform.bind(inertiaForm)
+
+    /**
+     * The transform function.
+     */
+    let transformer: (data: Data) => FormDataType = (data) => data
 
     /**
      * Patch the form.
@@ -130,6 +131,13 @@ export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => 
                     ? key
                     : { [key]: value },
             })
+
+            return form
+        },
+        transform(callback: (data: Data) => Record<string, unknown>) {
+            inertiaTransform(callback)
+
+            transformer = callback
 
             return form
         },
