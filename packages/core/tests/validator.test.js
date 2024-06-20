@@ -212,18 +212,19 @@ it('is not valid before it has been validated', async () => {
     expect(validator.valid()).toEqual([])
 })
 
-it('does not validate if the field has not been changed', () => {
-    let requests = 0
-    let data = { name: 'Tim' }
-    axios.request.mockImplementation(async () => {
-        requests++
-
-        return precognitiveResponse()
+it('does not validate if the field has not been changed', async () => {
+    let requestMade = false
+    axios.request.mockImplementation(() => {
+        requestMade = true
+        return Promise.resolve(precognitiveResponse())
     })
-    const validator = createValidator(client => client.post('/users', data), data)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    })
 
-    validator.validate('name', data.name)
-    expect(requests).toBe(0)
+    validator.validate('name', 'Tim')
+    expect(requestMade).toBe(false)
+    await vi.advanceTimersByTimeAsync(1500)
 })
 
 it('filters out files', () => {
