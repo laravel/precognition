@@ -13,11 +13,11 @@ const precognitiveResponse = payload => merge({
     },
 }, payload)
 
-const assertPendingValidateDebounceAndClear = () => {
+const assertPendingValidateDebounceAndClear = async () => {
     const counters = [vi.getTimerCount()]
-    vi.advanceTimersByTime(1499)
+    await vi.advanceTimersByTimeAsync(1499)
     counters.push(vi.getTimerCount())
-    vi.advanceTimersByTime(1)
+    await vi.advanceTimersByTimeAsync(1)
     counters.push(vi.getTimerCount())
 
     expect(counters).toStrictEqual([1, 1, 0])
@@ -55,83 +55,81 @@ afterEach(() => {
 })
 
 it('revalidates data when validate is called', async () => {
-    expect.assertions(5)
+    expect.assertions(4)
 
-    let name = null
-    let requests = 0
-    axios.request.mockImplementation(async () => {
-        requests++
-
-        return precognitiveResponse()
-    })
-    const validator = createValidator(client => client.post('/users', { name }))
-
-    expect(requests).toBe(0)
-
-    name = 'Tim'
-    validator.validate('name', name)
-    expect(requests).toBe(1)
-
-    // THIS IS THE UNLock
-    await vi.advanceTimersByTimeAsync(1500)
-
-    name = 'Jess'
-    validator.validate('name', name)
-    expect(requests).toBe(2)
-
-    await vi.advanceTimersByTimeAsync(1500)
-
-    name = 'Taylor'
-    validator.validate('name', name)
-    expect(requests).toBe(3)
-
-    assertPendingValidateDebounceAndClear()
-})
-
-it('does not revalidate when data is unchanged', async () => {
-    let data = null
     let requests = 0
     axios.request.mockImplementation(() => {
         requests++
 
         return Promise.resolve(precognitiveResponse())
     })
-    const validator = createValidator(client => client.post('/users', data))
+    let data
+    const validator = createValidator((client) => client.post('/foo', data))
 
     expect(requests).toBe(0)
 
     data = { name: 'Tim' }
-    validator.validate('name', data.name)
-    expect(requests).toBe(1)
-
-    await vi.advanceTimersByTimeAsync(1500)
-
-    validator.validate('name', data.name)
+    validator.validate('name', 'Tim')
     expect(requests).toBe(1)
     await vi.advanceTimersByTimeAsync(1500)
 
-    data = { name: 'Tim', location: 'Melbourne' }
-    validator.validate('name', data.name)
+    data = { name: 'Jess' }
+    validator.validate('name', 'Jess')
     expect(requests).toBe(2)
+    await vi.advanceTimersByTimeAsync(1500)
 
-    assertPendingValidateDebounceAndClear()
+    data = { name: 'Taylor' }
+    validator.validate('name', 'Taylor')
+    expect(requests).toBe(3)
+    await vi.advanceTimersByTimeAsync(1500)
+})
+
+it('does not revalidate data when data is unchanged', async () => {
+    expect.assertions(4)
+
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve(precognitiveResponse())
+    })
+    let data = {}
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    expect(requests).toBe(0)
+
+    data = { first: true }
+    validator.validate('name', true)
+    expect(requests).toBe(1)
+    await vi.advanceTimersByTimeAsync(1500)
+
+    data = { first: true }
+    validator.validate('name', true)
+    expect(requests).toBe(1)
+    await vi.advanceTimersByTimeAsync(1500)
+
+    data = { second: true }
+    validator.validate('name', true)
+    expect(requests).toBe(2)
+    await vi.advanceTimersByTimeAsync(1500)
 })
 
 it('accepts laravel formatted validation errors for setErrors', () => {
     expect.assertions(1)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+        location: 'Melbourne',
+    })
 
     validator.setErrors({
         name: ['xxxx'],
         location: ['xxxx', 'yyyy'],
     })
-
     expect(validator.errors()).toEqual({
         name: ['xxxx'],
         location: ['xxxx', 'yyyy'],
-    })
-})
+    })})
 
 it('accepts inertia formatted validation errors for setErrors', () => {
     expect.assertions(1)
