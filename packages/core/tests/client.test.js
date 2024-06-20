@@ -229,7 +229,7 @@ it('throws an error if the precognition header is not present on an error respon
     expect.assertions(2)
 
     axios.request.mockRejectedValueOnce({ response: { status: 500 } })
-    axios.isAxiosError.mockReturnValue(true)
+    axios.isAxiosError.mockReturnValueOnce(true)
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)

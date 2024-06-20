@@ -227,14 +227,14 @@ it('does not validate if the field has not been changed', async () => {
     await vi.advanceTimersByTimeAsync(1500)
 })
 
-it('filters out files', () => {
+it('filters out files', async () => {
     let config = null
-    axios.request.mockImplementationOnce(async c => {
+    axios.request.mockImplementationOnce((c) => {
         config = c
 
-        return precognitiveResponse()
+        return Promise.resolve(precognitiveResponse())
     })
-    const validator = createValidator(client => client.post('/users', {
+    const validator = createValidator((client) => client.post('/foo', {
         name: 'Tim',
         email: null,
         fruits: [
@@ -266,7 +266,7 @@ it('filters out files', () => {
     }))
 
     validator.validate('text', 'Tim')
-    vi.advanceTimersByTime(1500)
+    await vi.advanceTimersByTimeAsync(1500)
 
     expect(config.data).toEqual({
         name: 'Tim',
@@ -298,11 +298,13 @@ it('doesnt mark fields as validated while response is pending',  async () => {
     expect.assertions(10)
 
     let resolver = null
+    let rejector = null
     let promise = null
     let onValidatedChangedCalledTimes = 0
     axios.request.mockImplementation(() => {
-        promise = new Promise(resolve => {
+        promise = new Promise((resolve, reject) => {
             resolver = resolve
+            rejector = (response) => reject({ response: response })
         })
 
         return promise
@@ -320,8 +322,8 @@ it('doesnt mark fields as validated while response is pending',  async () => {
     validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
 
-    resolver({ headers: { precognition: 'true' }, status: 204 })
-    await vi.runAllTimers()
+    resolver(precognitiveResponse())
+    await vi.advanceTimersByTimeAsync(1500)
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
 
@@ -331,9 +333,9 @@ it('doesnt mark fields as validated while response is pending',  async () => {
     validator.validate('version', '10')
     expect(validator.valid()).toEqual(['app'])
 
-    axios.isAxiosError.mockReturnValueOnce(true)
-    resolver({ headers: { precognition: 'true' }, status: 422, data: { errors: {}} })
-    await vi.runAllTimersAsync()
+    axios.isAxiosError.mockReturnValue(true)
+    rejector(precognitiveResponse({ status: 422, data: { errors: {}} }))
+    await vi.advanceTimersByTimeAsync(1500)
     expect(validator.valid()).toEqual(['app', 'version'])
     expect(onValidatedChangedCalledTimes).toEqual(2)
 })
