@@ -1,8 +1,9 @@
 import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod, Validator } from 'laravel-precognition'
-import { useForm as usePrecognitiveForm, client }      from 'laravel-precognition-vue'
-import { InertiaForm, useForm as useInertiaForm }        from '@inertiajs/vue3'
-import { Progress } from '@inertiajs/core'
+import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
+import { InertiaForm, useForm as useInertiaForm }   from '@inertiajs/vue3'
+import { Progress }                               from '@inertiajs/core'
 import { watchEffect } from 'vue'
+
 
 export { client }
 
@@ -15,7 +16,7 @@ interface FormProps<TForm extends FormDataType> {
     progress: Progress | null;
     valid(name: string | NamedInputEvent | string[]): boolean,
     invalid(name: string): boolean,
-    clearErrors(...fields: (keyof TForm)[]) : this,
+    clearErrors(...names: (keyof TForm)[]) : this,
     reset(...fields: (keyof TForm)[]) : void,
     setErrors(errors: SimpleValidationErrors|ValidationErrors) : this;
     forgetError(name: string|NamedInputEvent): this;
@@ -97,22 +98,22 @@ export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => 
         },
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
-        clearErrors(...fields: (keyof Data)[]) {
-            inertiaClearErrors(...fields)
+        clearErrors(...names: (keyof Data)[]) {
+            inertiaClearErrors(...names)
 
-            if (fields.length === 0) {
+            if (names.length === 0) {
                 precognitiveForm.setErrors({})
             } else {
                 // @ts-expect-error
-                fields.forEach(precognitiveForm.forgetError)
+                names.forEach(precognitiveForm.forgetError)
             }
 
             return form
         },
-        reset(...fields: (keyof Data)[]) {
-            inertiaReset(...fields)
+        reset(...names: (keyof Data)[]) {
+            inertiaReset(...names)
 
-            precognitiveForm.reset(...fields as string[])
+            precognitiveForm.reset(...names as string[])
         },
         setErrors(errors: SimpleValidationErrors|ValidationErrors) {
             precognitiveForm.setErrors(errors)
@@ -142,7 +143,8 @@ export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => 
             return form
         },
         validate(name?: string|NamedInputEvent) {
-            precognitiveForm.setData(inertiaForm.data() as Record<string, unknown>)
+            // @ts-expect-error
+            precognitiveForm.setData(transformer(inertiaForm.data()))
 
             precognitiveForm.validate(name)
 
@@ -173,7 +175,7 @@ export const useForm = <Data extends FormDataType>(method: RequestMethod|(() => 
                 ? resolveMethod(method)
                 : submitMethod as RequestMethod
 
-            inertiaSubmit(submitMethod, submitUrl as string, {
+            inertiaSubmit(submitMethod, submitUrl, {
                 ...submitOptions,
                 onError: (errors: SimpleValidationErrors): any => {
                     precognitiveForm.validator().setErrors(errors)
