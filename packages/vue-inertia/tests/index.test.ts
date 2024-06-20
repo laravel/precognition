@@ -1,5 +1,16 @@
-import { it, expect } from 'vitest'
-import { useForm } from '../src/index'
+import { it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { useForm, client } from '../src/index'
+import axios from 'axios'
+import { Config } from 'laravel-precognition'
+
+beforeEach(() => {
+    vi.mock('axios')
+    client.use(axios)
+})
+
+afterEach(() => {
+    vi.restoreAllMocks()
+})
 
 it('can clear all errors via Inertia\'s clearErrors', () => {
     const form = useForm('post', '/register', {
@@ -43,4 +54,50 @@ it('can clear specific errors via Inertia\'s clearErrors', () => {
     expect(form.validator().errors()).toEqual({
         other: ['xxxx'],
     })
+})
+
+it('provides default data for validation requets', () => {
+    const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
+
+    let config: Config
+    axios.request.mockImplementation(async (c: Config) => {
+        config = c
+
+        return response
+    })
+
+    const form = useForm('post', '/register', {
+        emails: '',
+    })
+
+    form.emails = 'taylor@laravel.com, tim@laravel.com'
+    form.validate('emails')
+
+    expect(config!.data.emails).toEqual('taylor@laravel.com, tim@laravel.com')
+    expect(form.emails).toBe('taylor@laravel.com, tim@laravel.com')
+    expect(form.data().emails).toBe('taylor@laravel.com, tim@laravel.com')
+})
+
+it('transforms data for validation requests', () => {
+    const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
+
+    let config: Config
+    axios.request.mockImplementation(async (c: Config) => {
+        config = c
+
+        return response
+    })
+
+    const form = useForm('post', '/register', {
+        emails: '',
+    }).transform((data) => ({
+        emails: data.emails.split(',').map(email => email.trim()),
+    }))
+
+    form.emails = 'taylor@laravel.com, tim@laravel.com'
+    form.validate('emails')
+
+    expect(config!.data.emails).toEqual(['taylor@laravel.com', 'tim@laravel.com'])
+    expect(form.emails).toBe('taylor@laravel.com, tim@laravel.com')
+    expect(form.data().emails).toBe('taylor@laravel.com, tim@laravel.com')
 })

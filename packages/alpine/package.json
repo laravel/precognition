@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-alpine",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "description": "Laravel Precognition (Alpine).",
     "keywords": [
         "laravel",
@@ -31,7 +31,7 @@
         "alpinejs": "^3.12.1"
     },
     "dependencies": {
-        "laravel-precognition": "0.5.4",
+        "laravel-precognition": "0.5.5",
         "lodash-es": "^4.17.21"
     },
     "devDependencies": {

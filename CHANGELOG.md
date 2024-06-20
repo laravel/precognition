@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.4...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.5...main)
+
+## [v0.5.5](https://github.com/laravel/precognition/compare/v0.5.4...v0.5.5) - 2024-06-04
+
+* Support Inertia `transform` by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/72
 
 ## [v0.5.4](https://github.com/laravel/precognition/compare/v0.5.3...v0.5.4) - 2024-01-23
 
