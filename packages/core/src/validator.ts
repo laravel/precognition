@@ -182,7 +182,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             // inconsistent with other response codes, we will silently ignore
             // these. They should be intercepted by the `onValidationError`
             // config option.
-            console.log(error)
             if (isAxiosError(error) && error.response?.status === 422) {
                 return null
             }
