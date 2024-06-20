@@ -4,7 +4,6 @@ import { InertiaForm, useForm as useInertiaForm } from '@inertiajs/vue3'
 import { Progress } from '@inertiajs/core'
 import { watchEffect } from 'vue'
 
-
 export { client }
 
 type FormDataType = object;
