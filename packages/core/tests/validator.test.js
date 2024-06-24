@@ -271,7 +271,6 @@ it('filters out files', async () => {
     }))
 
     validator.validate('text', 'Tim')
-    await vi.advanceTimersByTimeAsync(1500)
 
     expect(config.data).toEqual({
         name: 'Tim',
@@ -297,6 +296,8 @@ it('filters out files', async () => {
             },
         },
     })
+
+    await assertPendingValidateDebounceAndClear()
 })
 
 it('doesnt mark fields as validated while response is pending',  async () => {
