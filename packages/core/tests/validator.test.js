@@ -175,8 +175,11 @@ it('triggers errorsChanged event when setting errors', () => {
 it('doesnt trigger errorsChanged event when errors are the same', () => {
     expect.assertions(2)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    })
     let triggered = 0
+
     validator.on('errorsChanged', () => triggered++)
 
     validator.setErrors({
@@ -193,7 +196,9 @@ it('doesnt trigger errorsChanged event when errors are the same', () => {
 it('returns errors via hasErrors function', () => {
     expect.assertions(3)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    })
 
     expect(validator.hasErrors()).toBe(false)
 
@@ -209,7 +214,9 @@ it('returns errors via hasErrors function', () => {
 it('is not valid before it has been validated', async () => {
     expect.assertions(2)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    })
 
     expect(validator.valid()).toEqual([])
 
@@ -231,6 +238,7 @@ it('does not validate if the field has not been changed', async () => {
     })
 
     validator.validate('name', 'Tim')
+
     expect(requestMade).toBe(false)
     await vi.advanceTimersByTimeAsync(1500)
 })
