@@ -19,7 +19,7 @@ const precognitionFailedResponse = (payload) => precognitionSuccessResponse(merg
     headers: {
         'precognition-success': ''
     },
-}), payload)
+}, payload))
 
 const assertPendingValidateDebounceAndClear = async () => {
     const counters = [vi.getTimerCount()]
@@ -369,8 +369,9 @@ it('doesnt mark fields as validated on error status', async () => {
     expect(validator.valid()).toEqual([])
 
     axios.isAxiosError.mockReturnValue(true)
-    rejector(precognitionSuccessResponse(precognitionFailedResponse({ status: 401 })))
-    await vi.runAllTimersAsync(1500)
+    console.log(precognitionFailedResponse({ status: 401 }))
+    rejector(precognitionFailedResponse({ status: 401 }))
+    await vi.advanceTimersByTimeAsync(1500)
 
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
@@ -379,22 +380,25 @@ it('doesnt mark fields as validated on error status', async () => {
 it('does mark fields as validated on any success status', async () => {
     expect.assertions(5)
 
-    let pendingRequest = null
-    let data = { app: 'Laravel' }
-    let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(async () => precognitionSuccessResponse({ status: 200 }))
-    const validator = createValidator(client => client.post('/users', data))
+    const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
 
     pendingRequest = validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
 
-    await pendingRequest
+    data = { app: 'Laravel' }
+    expect(validator.valid()).toEqual([])
+
+    validator.validate('app', 'Laravel')
+    expect(validator.valid()).toEqual([])
+
+    resolver({ headers: { precognition: 'true' }, status: 200 })
+    await vi.advanceTimersByTimeAsync(1500)
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
 
-    assertPendingValidateDebounceAndClear()
+    await assertPendingValidateDebounceAndClear()
 })
 
 it('can mark fields as touched', () => {
