@@ -229,7 +229,8 @@ it('does not validate if the field has not been changed', async () => {
     validator.validate('name', 'Tim')
 
     expect(requestMade).toBe(false)
-    await vi.advanceTimersByTimeAsync(1500)
+
+    await assertPendingValidateDebounceAndClear()
 })
 
 it('filters out files', async () => {
