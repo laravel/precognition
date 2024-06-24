@@ -377,13 +377,24 @@ it('doesnt mark fields as validated on error status', async () => {
     expect(onValidatedChangedCalledTimes).toEqual(0)
 })
 
-it('does mark fields as validated on any success status', async () => {
-    expect.assertions(5)
+it('does mark fields as validated on success status', async () => {
+    expect.assertions(6)
 
+    let resolver = null
+    let promise = null
+    let onValidatedChangedCalledTimes = 0
+    axios.request.mockImplementation(() => {
+        promise = new Promise(resolve => {
+            resolver = resolve
+        })
+
+        return promise
+    })
+    let data = {}
     const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
 
-    pendingRequest = validator.validate('app', 'Laravel')
+    validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
 
@@ -393,12 +404,10 @@ it('does mark fields as validated on any success status', async () => {
     validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
 
-    resolver({ headers: { precognition: 'true' }, status: 200 })
+    resolver(precognitionSuccessResponse())
     await vi.advanceTimersByTimeAsync(1500)
     expect(validator.valid()).toEqual(['app'])
     expect(onValidatedChangedCalledTimes).toEqual(1)
-
-    await assertPendingValidateDebounceAndClear()
 })
 
 it('can mark fields as touched', () => {
