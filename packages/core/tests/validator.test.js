@@ -126,7 +126,6 @@ it('accepts laravel formatted validation errors for setErrors', () => {
         name: ['xxxx'],
         location: ['xxxx', 'yyyy'],
     })
-
     expect(validator.errors()).toEqual({
         name: ['xxxx'],
         location: ['xxxx', 'yyyy'],
@@ -145,7 +144,6 @@ it('accepts inertia formatted validation errors for setErrors', () => {
         name: 'xxxx',
         location: 'yyyy',
     })
-
     expect(validator.errors()).toEqual({
         name: ['xxxx'],
         location: ['yyyy'],
@@ -247,7 +245,6 @@ it('filters out files', async () => {
     let config
     axios.request.mockImplementationOnce((c) => {
         config = c
-
         return Promise.resolve(precognitiveResponse())
     })
     const validator = createValidator((client) => client.post('/foo', {
