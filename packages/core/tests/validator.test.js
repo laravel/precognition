@@ -117,7 +117,10 @@ it('does not revalidate data when data is unchanged', async () => {
 it('accepts laravel formatted validation errors for setErrors', () => {
     expect.assertions(1)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+        location: 'Melbourne',
+    })
 
     validator.setErrors({
         name: ['xxxx'],
@@ -133,7 +136,10 @@ it('accepts laravel formatted validation errors for setErrors', () => {
 it('accepts inertia formatted validation errors for setErrors', () => {
     expect.assertions(1)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+        location: 'Melbourne',
+    })
 
     validator.setErrors({
         name: 'xxxx',
@@ -149,7 +155,9 @@ it('accepts inertia formatted validation errors for setErrors', () => {
 it('triggers errorsChanged event when setting errors', () => {
     expect.assertions(2)
 
-    const validator = createValidator(() => null)
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    })
     let triggered = 0
     validator.on('errorsChanged', () => triggered++)
 
