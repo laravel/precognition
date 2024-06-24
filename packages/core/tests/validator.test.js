@@ -462,3 +462,53 @@ it('marks fields as valid on precognition success', async () => {
     expect(validator.valid()).toStrictEqual(['name'])
     expect(valid).toStrictEqual(['name'])
 })
+
+it('does not cancel submit requests', async () => {
+    let data = {}
+    let submitConfig
+    let validateConfig
+    axios.request.mockImplementation((config) => {
+        if (config.precognitive) {
+            validateConfig = config
+        } else {
+            submitConfig = config
+        }
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data.name = 'Tim'
+    client.post('/foo', data, { precognitive: false })
+    validator.validate('name', 'Tim')
+
+    expect(submitConfig.signal).toBeUndefined()
+    expect(validateConfig.signal).toBeInstanceOf(AbortSignal)
+    expect(validateConfig.signal.aborted).toBe(false)
+});
+
+it('does not cancel submit requests with custom abort signal', async () => {
+    let data = {}
+    let submitConfig
+    let validateConfig
+    let abortController = new AbortController
+    axios.request.mockImplementation((config) => {
+        if (config.precognitive) {
+            validateConfig = config
+        } else {
+            submitConfig = config
+        }
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    data.name = 'Tim'
+    client.post('/foo', data, { precognitive: false, signal: abortController.signal })
+    validator.validate('name', 'Tim')
+
+    expect(submitConfig.signal).toBe(abortController.signal)
+    expect(submitConfig.signal.aborted).toBe(false)
+    expect(validateConfig.signal).toBeInstanceOf(AbortSignal)
+    expect(validateConfig.signal.aborted).toBe(false)
+});
