@@ -170,6 +170,7 @@ const refreshAbortController = (config: Config): Config => {
         typeof config.fingerprint !== 'string'
         || config.signal
         || config.cancelToken
+        || ! config.precognitive
     ) {
         return config
     }
