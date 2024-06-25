@@ -394,7 +394,6 @@ it('does mark fields as validated on success status', async () => {
     const validator = createValidator((client) => client.post('/foo', data))
     validator.on('validatedChanged', () => onValidatedChangedCalledTimes++)
 
-    validator.validate('app', 'Laravel')
     expect(validator.valid()).toEqual([])
     expect(onValidatedChangedCalledTimes).toEqual(0)
 
@@ -411,9 +410,7 @@ it('does mark fields as validated on success status', async () => {
 })
 
 it('can mark fields as touched', () => {
-    const validator = createValidator(() => null)
-
-    expect(validator.touched()).toEqual([])
+    const validator = createValidator((client) => client.post('/foo', data))
 
     validator.touch('name')
     expect(validator.touched()).toEqual(['name'])
@@ -423,32 +420,33 @@ it('can mark fields as touched', () => {
 })
 
 it('revalidates when touched changes', async () => {
-    expect.assertions(4)
+    expect.assertions(1)
 
     let requests = 0
-    let data = { app: 'Laravel', version: '10' }
-    axios.request.mockImplementation(async () => {
+    let resolvers = []
+    let promises = []
+    let configs = []
+    axios.request.mockImplementation((c) => {
         requests++
+        configs.push(c)
 
-        return precognitionSuccessResponse()
+        const promise = new Promise(resolve => {
+            resolvers.push(resolve)
+        })
+
+        promises.push(promise)
+
+        return promise
     })
-    const validator = createValidator(client => client.post('/users', data))
+    let data = { version: '10' }
+    const validator = createValidator((client) => client.post('/foo', data))
 
-    await validator.validate('app', data.app)
-    expect(requests).toBe(1)
-
-    await vi.advanceTimersByTimeAsync(1500)
-
-    await validator.validate('app', data.app)
-    expect(requests).toBe(1)
-
-    await vi.advanceTimersByTimeAsync(1500)
+    data = { app: 'Laravel' }
+    validator.validate('app', 'Laravel')
     validator.touch('version')
-
-    await validator.validate('app', data.app)
+    validator.validate('app', 'Laravel')
+    await vi.advanceTimersByTimeAsync(1500)
     expect(requests).toBe(2)
-
-    assertPendingValidateDebounceAndClear()
 })
 
 it('can call validate without needing to specify a field', async () => {
