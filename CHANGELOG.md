@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.5...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.6...main)
+
+## [v0.5.6](https://github.com/laravel/precognition/compare/v0.5.5...v0.5.6) - 2024-07-02
+
+* [1.x] Ensures precog requests do not interfere with non-precog requests by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/78
 
 ## [v0.5.5](https://github.com/laravel/precognition/compare/v0.5.4...v0.5.5) - 2024-06-04
 
