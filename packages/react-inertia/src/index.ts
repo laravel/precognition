@@ -95,6 +95,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             if (names.length === 0) {
                 precognitiveForm.setErrors({})
             } else {
+                // @ts-expect-error - React Inertia is not typed sufficiently
                 names.forEach(precognitiveForm.forgetError)
             }
 
@@ -103,6 +104,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         reset(...names: string[]) {
             inertiaReset(...names)
 
+            // @ts-expect-error - React Inertia is not typed sufficiently
             precognitiveForm.reset(...names)
         },
         setErrors(errors: SimpleValidationErrors|ValidationErrors) {
@@ -122,6 +124,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         forgetError(name: string|NamedInputEvent) {
+            // @ts-expect-error - Inertia is not typed sufficiently
             precognitiveForm.forgetError(name)
 
             return form
@@ -136,6 +139,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         validate(name?: string|NamedInputEvent) {
             precognitiveForm.setData(transformer.current(inertiaForm.data))
 
+            // @ts-expect-error - Inertia is not typed sufficiently
             precognitiveForm.validate(name)
 
             return form

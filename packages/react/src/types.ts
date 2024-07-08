@@ -38,9 +38,9 @@ export interface Form<Data extends Record<string, unknown>> {
     hasErrors: boolean,
     valid(name: Paths<Data>): boolean,
     invalid(name: Paths<Data>): boolean,
-    validate(name?: Paths<Data> | NamedInputEvent): Form<Data>,
+    validate(name?: Paths<Data> | keyof NamedInputEvent): Form<Data>,
     setErrors(errors: Partial<Record<Paths<Data>, string | string[]>>): Form<Data>
-    forgetError(string: Paths<Data> | NamedInputEvent): Form<Data>
+    forgetError(string: Paths<Data> | keyof NamedInputEvent): Form<Data>
     setValidationTimeout(duration: number): Form<Data>,
     submit(config?: Config): Promise<unknown>,
     reset(...names: (Paths<Partial<Data>>)[]): Form<Data>,

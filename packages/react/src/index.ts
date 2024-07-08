@@ -150,7 +150,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 // @ts-expect-error
                 name = resolveName(name)
 
-                validator.current!.validate(name, get(payload.current, name))
+                validator.current!.validate(name, get(payload.current, name!))
             }
 
             return form
@@ -171,7 +171,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         forgetError(name) {
-            // @ts-expect-error
             validator.current!.forgetError(name)
 
             return form
@@ -184,7 +183,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
                 setData(original)
             } else {
-                names.forEach(name => (set(payload.current, name, get(original, name))))
+                names.forEach(name => (set(payload.current, name!, get(original, name!))))
 
                 setData(payload.current)
             }
