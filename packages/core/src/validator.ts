@@ -178,17 +178,17 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
         }).catch((error) => {
             // Unlike other status codes, 422 responses are expected and
-            // constant behaviour for Precognition requests.  Although slightly
-            // inconsistent with other response codes, we will silently ignore
-            // these. They should be intercepted by the `onValidationError`
-            // config option.
+            // regularly occurr with Precognition requests. We silently ignore
+            // these so we do not flood the console with expected errors. They
+            // should be intercepted by the `onValidationError` config option.
             if (isAxiosError(error) && error.response?.status === 422) {
                 return null
             }
 
-            // Precognition can often cancel in-flight requests.  Instead of
-            // throwing an exception, we silently discard cancelled request
-            // errors as this is expected behaviour.
+            // Precognition can often cancel in-flight requests. Instead of
+            // throwing an exception for this expected behaviour, we silently
+            // discard cancelled request errors to not flood the console with
+            // expected errors.
             if (isAxiosError(error) && isCancel(error)) {
                 return null
             }
@@ -205,7 +205,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (globalConfig: ValidationConfig, instanceConfig: ValidationConfig, data: Record<string, unknown> = {}): Config => {
+    const resolveConfig = (
+        globalConfig: ValidationConfig,
+        instanceConfig: ValidationConfig,
+        data: Record<string, unknown> = {}
+    ): Config => {
         const config: ValidationConfig = {
             ...globalConfig,
             ...instanceConfig,
@@ -215,6 +219,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
         return {
             ...instanceConfig,
+            // Axios has special rules for merging global and local config. We
+            // use their merge function here to make sure things like headers
+            // merge in an expected way.
             ...mergeConfig(globalConfig, instanceConfig),
             validate,
             timeout: config.timeout ?? 5000,
