@@ -218,7 +218,7 @@ it('does not consider 204 response to be success without "Precognition-Success" 
         },
         onSuccess() {
             responseSuccess = true
-        }
+        },
     })
 
     expect(precognitionSucess).toBe(false)
@@ -229,7 +229,7 @@ it('throws an error if the precognition header is not present on an error respon
     expect.assertions(2)
 
     axios.request.mockRejectedValueOnce({ response: { status: 500 } })
-    axios.isAxiosError.mockReturnValue(true)
+    axios.isAxiosError.mockReturnValueOnce(true)
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
@@ -249,7 +249,7 @@ it('returns a non-axios error via a rejected promise', async () => {
     })
 })
 
-it('returns a canceled request error va rejected promise', async () => {
+it('returns a cancelled request error va rejected promise', async () => {
     expect.assertions(1)
 
     const error = { expected: 'error' }
@@ -519,29 +519,29 @@ it('overrides the request data with the config data', async () => {
     })
 
     await client.get('https://laravel.com', { expected: false }, {
-        data: { expected: true }
+        data: { expected: true },
     })
-    expect(config.data).toEqual({ expected: true})
+    expect(config.data).toEqual({ expected: true })
 
     await client.post('https://laravel.com', { expected: false }, {
-        data: { expected: true }
+        data: { expected: true },
     })
-    expect(config.data).toEqual({ expected: true})
+    expect(config.data).toEqual({ expected: true })
 
     await client.patch('https://laravel.com', { expected: false }, {
-        data: { expected: true }
+        data: { expected: true },
     })
-    expect(config.data).toEqual({ expected: true})
+    expect(config.data).toEqual({ expected: true })
 
     await client.put('https://laravel.com', { expected: false }, {
-        data: { expected: true }
+        data: { expected: true },
     })
-    expect(config.data).toEqual({ expected: true})
+    expect(config.data).toEqual({ expected: true })
 
     await client.delete('https://laravel.com', { expected: false }, {
-        data: { expected: true }
+        data: { expected: true },
     })
-    expect(config.data).toEqual({ expected: true})
+    expect(config.data).toEqual({ expected: true })
 })
 
 it('merges request data with config data', async () => {
@@ -554,28 +554,28 @@ it('merges request data with config data', async () => {
     })
 
     await client.get('https://laravel.com', { request: true }, {
-        data: { config: true }
+        data: { config: true },
     })
     expect(config.data).toEqual({ config: true })
     expect(config.params).toEqual({ request: true })
 
     await client.post('https://laravel.com', { request: true }, {
-        data: { config: true }
+        data: { config: true },
     })
     expect(config.data).toEqual({ request: true, config: true })
 
     await client.patch('https://laravel.com', { request: true }, {
-        data: { config: true }
+        data: { config: true },
     })
     expect(config.data).toEqual({ request: true, config: true })
 
     await client.put('https://laravel.com', { request: true }, {
-        data: { config: true }
+        data: { config: true },
     })
     expect(config.data).toEqual({ request: true, config: true })
 
     await client.delete('https://laravel.com', { request: true }, {
-        data: { config: true }
+        data: { config: true },
     })
     expect(config.data).toEqual({ config: true })
     expect(config.params).toEqual({ request: true })
@@ -591,13 +591,13 @@ it('merges request data with config params for get and delete requests', async (
     })
 
     await client.get('https://laravel.com', { data: true }, {
-        params: { param: true }
+        params: { param: true },
     })
     expect(config.params).toEqual({ data: true, param: true })
     expect(config.data).toBeUndefined()
 
     await client.delete('https://laravel.com', { data: true }, {
-        params: { param: true }
+        params: { param: true },
     })
     expect(config.params).toEqual({ data: true, param: true })
     expect(config.data).toBeUndefined()
