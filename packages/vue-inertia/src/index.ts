@@ -1,11 +1,42 @@
-import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
+import {
+    Config,
+    NamedInputEvent,
+    RequestMethod,
+    SimpleValidationErrors,
+    toSimpleValidationErrors,
+    ValidationConfig,
+    ValidationErrors,
+    resolveUrl,
+    resolveMethod,
+    Validator,
+} from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
-import { useForm as useInertiaForm } from '@inertiajs/vue3'
+import { InertiaForm, useForm as useInertiaForm } from '@inertiajs/vue3'
 import { watchEffect } from 'vue'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
+type Precognitive<Data extends object> = {
+    validating: boolean
+    touched: (name: keyof Data) => boolean
+    valid: (name: keyof Data) => boolean
+    invalid: (name: keyof Data) => boolean
+    clearErrors(...names: string[]): Form<Data>
+    reset(...names: string[]): void
+    setErrors(errors: SimpleValidationErrors | ValidationErrors): Form<Data>
+    forgetError(name: string | NamedInputEvent): Form<Data>
+    setError(key: any, value?: any): Form<Data>
+    transform(callback: (data: Data) => Record<string, unknown>): Form<Data>
+    validate(name?: string | NamedInputEvent): Form<Data>
+    setValidationTimeout(duration: number): Form<Data>
+    validateFiles(): Form<Data>
+    submit(submitMethod: RequestMethod | Config, submitUrl?: string, submitOptions?: any): void
+    validator(): Validator
+};
+
+export type Form<Data extends object> = InertiaForm<Data> & Precognitive<Data>
+
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
      * The Inertia form.
      */
@@ -61,7 +92,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Patch the form.
      */
-    const form = Object.assign(inertiaForm, {
+    const form: Form<Data> = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
         touch(name: Array<string>|string|NamedInputEvent) {
@@ -173,7 +204,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             })
         },
         validator: precognitiveForm.validator,
-    })
+    } as Precognitive<Data>)
 
     // Due to the nature of `reactive` elements, reactivity is not inherited by
     // the patched Inertia form as we have to destructure the Precog form. We
