@@ -101,3 +101,28 @@ it('transforms data for validation requests', () => {
     expect(form.emails).toBe('taylor@laravel.com, tim@laravel.com')
     expect(form.data().emails).toBe('taylor@laravel.com, tim@laravel.com')
 })
+
+it('can change keys in transformation', () => {
+    const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
+
+    let config: Config
+    axios.request.mockImplementation(async (c: Config) => {
+        config = c
+
+        return response
+    })
+
+    const form = useForm('post', '/register', {
+        emailCsv: '',
+    }).transform((data) => {
+        console.log('transforming', data)
+        return { emails: data.emailCsv.split(',').map(email => email.trim()) }
+    })
+
+    form.emailCsv = 'taylor@laravel.com, tim@laravel.com'
+    form.validate('emailCsv')
+
+    expect(config!.data.emails).toEqual(['taylor@laravel.com', 'tim@laravel.com'])
+    expect(form.emails).toBe('taylor@laravel.com, tim@laravel.com')
+    expect(form.data().emails).toBe('taylor@laravel.com, tim@laravel.com')
+})
