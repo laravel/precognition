@@ -20,6 +20,7 @@
         "/dist"
     ],
     "scripts": {
+        "watch": "rm -rf dist && tsc --watch",
         "build": "rm -rf dist && tsc",
         "prepublishOnly": "npm run build",
         "test": "vitest run"

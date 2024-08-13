@@ -9,6 +9,7 @@
         "packages/alpine"
     ],
     "scripts": {
+        "watch": "npm run watch --workspace=packages/core& npm run watch --workspace=packages/react& npm run watch --workspace=packages/react-inertia& npm run watch --workspace=packages/vue& npm run watch --workspace=packages/vue-inertia& npm run watch --workspace=packages/alpine& wait;",
         "build": "npm run build --workspaces",
         "link": "npm link --workspaces",
         "lint": "eslint --ext .ts --ignore-pattern dist ./packages",

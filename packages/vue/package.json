@@ -20,6 +20,7 @@
         "/dist"
     ],
     "scripts": {
+        "watch": "rm -rf dist && tsc --watch",
         "build": "rm -rf dist && tsc",
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
