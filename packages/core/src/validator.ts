@@ -1,7 +1,7 @@
 import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client, isFile } from './client.js'
-import { isAxiosError } from 'axios'
+import { isAxiosError, isCancel, mergeConfig } from 'axios'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -169,15 +169,33 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce(() => {
+    const createValidator = () => debounce((instanceConfig: Config) => {
         callback({
-            get: (url, data = {}, config = {}) => client.get(url, parseData(data), resolveConfig(config, data)),
-            post: (url, data = {}, config = {}) => client.post(url, parseData(data), resolveConfig(config, data)),
-            patch: (url, data = {}, config = {}) => client.patch(url, parseData(data), resolveConfig(config, data)),
-            put: (url, data = {}, config = {}) => client.put(url, parseData(data), resolveConfig(config, data)),
-            delete: (url, data = {}, config = {}) => client.delete(url, parseData(data), resolveConfig(config, data)),
+            get: (url, data = {}, globalConfig = {}) => client.get(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            post: (url, data = {}, globalConfig = {}) => client.post(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            put: (url, data = {}, globalConfig = {}) => client.put(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+        }).catch((error) => {
+            // Precognition can often cancel in-flight requests. Instead of
+            // throwing an exception for this expected behaviour, we silently
+            // discard cancelled request errors to not flood the console with
+            // expected errors.
+            if (isCancel(error)) {
+                return null
+            }
+
+            // Unlike other status codes, 422 responses are expected and
+            // regularly occur with Precognition requests. We silently ignore
+            // these so we do not flood the console with expected errors. If
+            // needed, they can be intercepted by the `onValidationError`
+            // config option instead.
+            if (isAxiosError(error) && error.response?.status === 422) {
+                return null
+            }
+
+            return Promise.reject(error)
         })
-        .catch(error => isAxiosError(error) ? null : Promise.reject(error))
     }, debounceTimeoutDuration, { leading: true, trailing: true })
 
     /**
@@ -188,11 +206,24 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Resolve the configuration.
      */
-    const resolveConfig = (config: ValidationConfig, data: Record<string, unknown> = {}): Config => {
+    const resolveConfig = (
+        globalConfig: ValidationConfig,
+        instanceConfig: ValidationConfig,
+        data: Record<string, unknown> = {}
+    ): Config => {
+        const config: ValidationConfig = {
+            ...globalConfig,
+            ...instanceConfig,
+        }
+
         const validate = Array.from(config.validate ?? touched)
 
         return {
-            ...config,
+            ...instanceConfig,
+            // Axios has special rules for merging global and local config. We
+            // use their merge function here to make sure things like headers
+            // merge in an expected way.
+            ...mergeConfig(globalConfig, instanceConfig),
             validate,
             timeout: config.timeout ?? 5000,
             onValidationError: (response, axiosError) => {
@@ -205,8 +236,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     ? config.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
             },
-            onSuccess: () => {
+            onSuccess: (response) => {
                 setValidated([...validated, ...validate]).forEach(listener => listener())
+
+                return config.onSuccess
+                    ? config.onSuccess(response)
+                    : response
             },
             onPrecognitionSuccess: (response) => {
                 [
@@ -219,11 +254,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : response
             },
             onBefore: () => {
-                const beforeValidationResult = (config.onBeforeValidation ?? ((previous, next) => {
-                    return ! isEqual(previous, next)
-                }))({ data, touched }, { data: oldData, touched: oldTouched })
+                const beforeValidationHandler = config.onBeforeValidation ?? ((newRequest, oldRequest) => {
+                    return newRequest.touched.length > 0 && ! isEqual(newRequest, oldRequest)
+                })
 
-                if (beforeValidationResult === false) {
+                if (beforeValidationHandler({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
                 }
 
@@ -261,9 +296,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name?: string|NamedInputEvent, value?: unknown) => {
+    const validate = (name?: string|NamedInputEvent, value?: unknown, config?: Config): void => {
         if (typeof name === 'undefined') {
-            validator()
+            validator(config ?? {})
 
             return
         }
@@ -280,11 +315,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             setTouched([name, ...touched]).forEach(listener => listener())
         }
 
-        if (touched.length === 0) {
-            return
-        }
-
-        validator()
+         validator(config ?? {})
     }
 
     /**
@@ -299,8 +330,13 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     const form: TValidator = {
         touched: () => touched,
-        validate(input, value) {
-            validate(input, value)
+        validate(name, value, config) {
+            if (typeof name === 'object' && ! ('target' in name)) {
+                config = name
+                name = value = undefined
+            }
+
+            validate(name, value, config)
 
             return form
         },

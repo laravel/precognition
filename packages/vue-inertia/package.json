@@ -23,6 +23,7 @@
     "scripts": {
         "watch": "rm -rf dist && tsc --watch",
         "build": "rm -rf dist && tsc",
+        "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
         "test": "vitest run",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version && npm pkg set dependencies.laravel-precognition-vue=$npm_package_version"
@@ -40,6 +41,6 @@
     },
     "devDependencies": {
         "typescript": "^5.0.0",
-        "vitest": "^0.31.3"
+        "vitest": "^1.6.0"
     }
 }

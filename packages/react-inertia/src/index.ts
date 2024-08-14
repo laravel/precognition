@@ -133,10 +133,19 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        validate(name?: string|NamedInputEvent) {
+        validate(name?: string|NamedInputEvent|ValidationConfig, config?: ValidationConfig) {
             precognitiveForm.setData(transformer.current(inertiaForm.data))
 
-            precognitiveForm.validate(name)
+            if (typeof name === 'object' && !('target' in name)) {
+                config = name
+                name = undefined
+            }
+
+            if (typeof name === 'undefined') {
+                precognitiveForm.validate(config)
+            } else {
+                precognitiveForm.validate(name, config)
+            }
 
             return form
         },
