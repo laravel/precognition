@@ -1,15 +1,4 @@
-import {
-    Config,
-    NamedInputEvent,
-    RequestMethod,
-    SimpleValidationErrors,
-    toSimpleValidationErrors,
-    ValidationConfig,
-    ValidationErrors,
-    resolveUrl,
-    resolveMethod,
-    Validator,
-} from 'laravel-precognition'
+import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod, Validator } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { InertiaForm, useForm as useInertiaForm } from '@inertiajs/vue3'
 import { watchEffect } from 'vue'
