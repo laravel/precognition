@@ -2,7 +2,9 @@ import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, Validat
 import { Form as PrecognitiveForm } from 'laravel-precognition-vue/dist/types'
 import { InertiaForm } from '@inertiajs/vue3'
 
-export type Form<Data extends Record<string, unknown>> = Omit<PrecognitiveForm<Data>, 'setErrors'|'touch'|'forgetError'|'setValidationTimeout'|'submit'|'reset'|'validateFiles'|'setData'|'validate'> & InertiaForm<Data> & {
+type RedefinedProperties = 'setErrors'|'touch'|'forgetError'|'setValidationTimeout'|'submit'|'reset'|'validateFiles'|'setData'|'validate'
+
+export type Form<Data extends Record<string, unknown>> = Omit<PrecognitiveForm<Data>, RedefinedProperties> & InertiaForm<Data> & {
     setErrors(errors: SimpleValidationErrors|ValidationErrors): Form<Data>,
     touch(name: Array<string>|string|NamedInputEvent): Form<Data>,
     forgetError(string: keyof Data|NamedInputEvent): Data&Form<Data>,
