@@ -17,6 +17,6 @@ export interface Form<Data extends Record<string, unknown>> {
     setValidationTimeout(duration: number): Data&Form<Data>,
     submit(config?: Config): Promise<unknown>,
     reset(...keys: (keyof Partial<Data>)[]): Data&Form<Data>,
-    validateFiles(): Form<Data>,
+    validateFiles(): Data&Form<Data>,
     validator(): Validator,
 }
