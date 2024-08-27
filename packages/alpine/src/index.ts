@@ -6,7 +6,7 @@ import { Form } from './types.js'
 export { client }
 
 export default function (Alpine: TAlpine) {
-    Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
+    Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Data & Form<Data> => {
         /**
          * The original data.
          */
@@ -31,7 +31,7 @@ export default function (Alpine: TAlpine) {
         /**
          * The validator instance.
          */
-        const validator = createValidator(client => client[resolveMethod(method)](resolveUrl(url), form.data(), config), originalData)
+        const validator = createValidator((client) => client[resolveMethod(method)](resolveUrl(url), form.data(), config), originalData)
             .on('validatingChanged', () => {
                 form.validating = validator.validating()
             })
@@ -77,7 +77,7 @@ export default function (Alpine: TAlpine) {
         /**
          * Create a new form instance.
          */
-        const createForm = (): Data&Form<Data> => ({
+        const createForm = (): Data & Form<Data> => ({
             ...cloneDeep(inputs),
             data() {
                 const newForm = cloneDeep(form)
@@ -135,9 +135,9 @@ export default function (Alpine: TAlpine) {
 
                 if (names.length === 0) {
                     // @ts-expect-error
-                    originalInputs.forEach(name => (form[name] = original[name]))
+                    originalInputs.forEach((name) => (form[name] = original[name]))
                 } else {
-                    names.forEach(name => set(form, name, get(original, name)))
+                    names.forEach((name) => set(form, name, get(original, name)))
                 }
 
                 validator.reset(...names)
@@ -163,7 +163,7 @@ export default function (Alpine: TAlpine) {
         /**
          * The form instance.
          */
-        const form = Alpine.reactive(createForm()) as Data&Form<Data>
+        const form = Alpine.reactive(createForm()) as Data & Form<Data>
 
         syncWithDom(el, resolveMethod(method), resolveUrl(url), form)
 

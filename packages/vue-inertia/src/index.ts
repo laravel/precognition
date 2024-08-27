@@ -7,7 +7,7 @@ import { Form } from './types'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
      * The Inertia form.
      */
@@ -26,7 +26,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
         inertiaSetError(
             // @ts-expect-error
-            toSimpleValidationErrors(precognitiveForm.validator().errors())
+            toSimpleValidationErrors(precognitiveForm.validator().errors()),
         )
     })
 
@@ -66,7 +66,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const form: Form<Data> = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
-        touch(name: Array<string>|string|NamedInputEvent) {
+        touch(name: Array<string> | string | NamedInputEvent) {
             precognitiveForm.touch(name)
 
             return form
@@ -74,7 +74,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
         setData(data: Record<string, unknown>) {
-            Object.keys(data).forEach(input => {
+            Object.keys(data).forEach((input) => {
                 // @ts-expect-error
                 form[input] = data[input]
             })
@@ -97,18 +97,18 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             precognitiveForm.reset(...names)
         },
-        setErrors(errors: SimpleValidationErrors|ValidationErrors) {
+        setErrors(errors: SimpleValidationErrors | ValidationErrors) {
             // @ts-expect-error
             precognitiveForm.setErrors(errors)
 
             return form
         },
-        forgetError(name: string|NamedInputEvent) {
+        forgetError(name: string | NamedInputEvent) {
             precognitiveForm.forgetError(name)
 
             return form
         },
-        setError(key: (keyof Data)|Record<keyof Data, string>, value?: string) {
+        setError(key: (keyof Data) | Record<keyof Data, string>, value?: string) {
             let errors: SimpleValidationErrors
 
             if (typeof key !== 'object') {
@@ -135,7 +135,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        validate(name?: string|NamedInputEvent|ValidationConfig, config?: ValidationConfig) {
+        validate(name?: string | NamedInputEvent | ValidationConfig, config?: ValidationConfig) {
             precognitiveForm.setData(transformer(inertiaForm.data()))
 
             if (typeof name === 'object' && !('target' in name)) {
@@ -166,7 +166,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        submit(submitMethod: RequestMethod|Partial<VisitOptions> = {}, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void {
+        submit(submitMethod: RequestMethod | Partial<VisitOptions> = {}, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void {
             if (typeof submitMethod !== 'string') {
                 submitOptions = submitMethod
                 submitUrl = resolveUrl(url)

@@ -25,7 +25,7 @@ it('can handle a successful precognition response via config handler', async () 
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can handle a success response via a fulfilled promise', async () => {
@@ -34,7 +34,7 @@ it('can handle a success response via a fulfilled promise', async () => {
     const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
 
-    await client.post('https://laravel.com').then(r => expect(r).toBe(response))
+    await client.post('https://laravel.com').then((r) => expect(r).toBe(response))
 })
 
 it('can handle a validation response via a config handler', async () => {
@@ -60,7 +60,7 @@ it('can handle a validation response via a config handler', async () => {
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can handle an unauthorized response via a config handler', async () => {
@@ -83,7 +83,7 @@ it('can handle an unauthorized response via a config handler', async () => {
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can handle a forbidden response via a config handler', async () => {
@@ -106,7 +106,7 @@ it('can handle a forbidden response via a config handler', async () => {
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can handle a not found response via a config handler', async () => {
@@ -129,7 +129,7 @@ it('can handle a not found response via a config handler', async () => {
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can handle a conflict response via a config handler', async () => {
@@ -152,7 +152,7 @@ it('can handle a conflict response via a config handler', async () => {
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can handle a locked response via a config handler', async () => {
@@ -175,7 +175,7 @@ it('can handle a locked response via a config handler', async () => {
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 })
 
 it('can provide input names to validate via config', async () => {
@@ -290,7 +290,7 @@ it('can handle error responses via a rejected promise', async () => {
     axios.request.mockRejectedValueOnce(error)
     axios.isAxiosError.mockReturnValueOnce(true)
 
-    await client.get('https://laravel.com').catch(e => expect(e).toBe(error))
+    await client.get('https://laravel.com').catch((e) => expect(e).toBe(error))
 })
 
 it('can customize how it determines a successful precognition response', async () => {
@@ -307,7 +307,7 @@ it('can customize how it determines a successful precognition response', async (
 
             return 'expected value'
         },
-    }).then(value => expect(value).toBe('expected value'))
+    }).then((value) => expect(value).toBe('expected value'))
 
     response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
     axios.request.mockResolvedValueOnce(response)
@@ -316,7 +316,7 @@ it('can customize how it determines a successful precognition response', async (
         onPrecognitionSuccess: () => {
             return 'xxxx'
         },
-    }).then(value => expect(value).toBe(response))
+    }).then((value) => expect(value).toBe(response))
 })
 
 it('creates a request fingerprint and an abort signal if none are configured', async () => {

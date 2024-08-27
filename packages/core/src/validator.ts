@@ -54,7 +54,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     const setValidated = (value: Array<string>): (() => void)[] => {
         const uniqueNames = [...new Set(value)]
 
-        if (validated.length !== uniqueNames.length || ! uniqueNames.every(name => validated.includes(name))) {
+        if (validated.length !== uniqueNames.length || ! uniqueNames.every((name) => validated.includes(name))) {
             validated = uniqueNames
 
             return listeners.validatedChanged
@@ -66,7 +66,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Valid validation state.
      */
-    const valid = () => validated.filter(name => typeof errors[name] === 'undefined')
+    const valid = () => validated.filter((name) => typeof errors[name] === 'undefined')
 
     /**
      * Touched input state.
@@ -82,7 +82,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     const setTouched = (value: Array<string>): (() => void)[] => {
         const uniqueNames = [...new Set(value)]
 
-        if (touched.length !== uniqueNames.length || ! uniqueNames.every(name => touched.includes(name))) {
+        if (touched.length !== uniqueNames.length || ! uniqueNames.every((name) => touched.includes(name))) {
             touched = uniqueNames
 
             return listeners.touchedChanged
@@ -102,7 +102,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Returns an array of listeners that should be invoked once all state
      * changes have taken place.
      */
-    const setErrors = (value: ValidationErrors|SimpleValidationErrors): (() => void)[] => {
+    const setErrors = (value: ValidationErrors | SimpleValidationErrors): (() => void)[] => {
         const prepared = toValidationErrors(value)
 
         if (! isEqual(errors, prepared)) {
@@ -120,7 +120,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      * Returns an array of listeners that should be invoked once all state
      * changes have taken place.
      */
-    const forgetError = (name: string|NamedInputEvent): (() => void)[] => {
+    const forgetError = (name: string | NamedInputEvent): (() => void)[] => {
         const newErrors = { ...errors }
 
         delete newErrors[resolveName(name)]
@@ -154,7 +154,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * The data currently being validated.
      */
-    let validatingData: null|Record<string, unknown> = null
+    let validatingData: null | Record<string, unknown> = null
 
     /**
      * The old touched.
@@ -164,7 +164,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * The touched currently being validated.
      */
-    let validatingTouched: null|string[] = null
+    let validatingTouched: null | string[] = null
 
     /**
      * Create a debounced validation callback.
@@ -209,7 +209,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     const resolveConfig = (
         globalConfig: ValidationConfig,
         instanceConfig: ValidationConfig,
-        data: Record<string, unknown> = {}
+        data: Record<string, unknown> = {},
     ): Config => {
         const config: ValidationConfig = {
             ...globalConfig,
@@ -230,14 +230,14 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 [
                     ...setValidated([...validated, ...validate]),
                     ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
-                ].forEach(listener => listener())
+                ].forEach((listener) => listener())
 
                 return config.onValidationError
                     ? config.onValidationError(response, axiosError)
                     : Promise.reject(axiosError)
             },
             onSuccess: (response) => {
-                setValidated([...validated, ...validate]).forEach(listener => listener())
+                setValidated([...validated, ...validate]).forEach((listener) => listener())
 
                 return config.onSuccess
                     ? config.onSuccess(response)
@@ -247,7 +247,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 [
                     ...setValidated([...validated, ...validate]),
                     ...setErrors(omit({ ...errors }, validate)),
-                ].forEach(listener => listener())
+                ].forEach((listener) => listener())
 
                 return config.onPrecognitionSuccess
                     ? config.onPrecognitionSuccess(response)
@@ -275,12 +275,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 return true
             },
             onStart: () => {
-                setValidating(true).forEach(listener => listener());
+                setValidating(true).forEach((listener) => listener());
 
                 (config.onStart ?? (() => null))()
             },
             onFinish: () => {
-                setValidating(false).forEach(listener => listener())
+                setValidating(false).forEach((listener) => listener())
 
                 oldTouched = validatingTouched!
 
@@ -296,7 +296,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name?: string|NamedInputEvent, value?: unknown, config?: Config): void => {
+    const validate = (name?: string | NamedInputEvent, value?: unknown, config?: Config): void => {
         if (typeof name === 'undefined') {
             validator(config ?? {})
 
@@ -312,7 +312,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         name = resolveName(name)
 
         if (get(oldData, name) !== value) {
-            setTouched([name, ...touched]).forEach(listener => listener())
+            setTouched([name, ...touched]).forEach((listener) => listener())
         }
 
          validator(config ?? {})
@@ -345,7 +345,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                 ? input
                 : [resolveName(input)]
 
-            setTouched([...touched, ...inputs]).forEach(listener => listener())
+            setTouched([...touched, ...inputs]).forEach((listener) => listener())
 
             return form
         },
@@ -354,22 +354,22 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
         errors: () => errors,
         hasErrors,
         setErrors(value) {
-            setErrors(value).forEach(listener => listener())
+            setErrors(value).forEach((listener) => listener())
 
             return form
         },
         forgetError(name) {
-            forgetError(name).forEach(listener => listener())
+            forgetError(name).forEach((listener) => listener())
 
             return form
         },
         reset(...names) {
             if (names.length === 0) {
-                setTouched([]).forEach(listener => listener())
+                setTouched([]).forEach((listener) => listener())
             } else {
                 const newTouched = [...touched]
 
-                names.forEach(name => {
+                names.forEach((name) => {
                     if (newTouched.includes(name)) {
                         newTouched.splice(newTouched.indexOf(name), 1)
                     }
@@ -377,7 +377,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     set(oldData, name, get(initialData, name))
                 })
 
-                setTouched(newTouched).forEach(listener => listener())
+                setTouched(newTouched).forEach((listener) => listener())
             }
 
             return form
@@ -405,7 +405,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 /**
  * Normalise the validation errors as Inertia formatted errors.
  */
-export const toSimpleValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): SimpleValidationErrors => {
+export const toSimpleValidationErrors = (errors: ValidationErrors | SimpleValidationErrors): SimpleValidationErrors => {
     return Object.keys(errors).reduce((carry, key) => ({
         ...carry,
         [key]: Array.isArray(errors[key])
@@ -417,7 +417,7 @@ export const toSimpleValidationErrors = (errors: ValidationErrors|SimpleValidati
 /**
  * Normalise the validation errors as Laravel formatted errors.
  */
-export const toValidationErrors = (errors: ValidationErrors|SimpleValidationErrors): ValidationErrors => {
+export const toValidationErrors = (errors: ValidationErrors | SimpleValidationErrors): ValidationErrors => {
     return Object.keys(errors).reduce((carry, key) => ({
         ...carry,
         [key]: typeof errors[key] === 'string' ? [errors[key]] : errors[key],
@@ -427,7 +427,7 @@ export const toValidationErrors = (errors: ValidationErrors|SimpleValidationErro
 /**
  * Resolve the input's "name" attribute.
  */
-export const resolveName = (name: string|NamedInputEvent): string => {
+export const resolveName = (name: string | NamedInputEvent): string => {
     return typeof name !== 'string'
         ? name.target.name
         : name
@@ -439,7 +439,7 @@ export const resolveName = (name: string|NamedInputEvent): string => {
 const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => {
     const newData = { ...data }
 
-    Object.keys(newData).forEach(name => {
+    Object.keys(newData).forEach((name) => {
         const value = newData[name]
 
         if (value === null) {

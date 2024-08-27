@@ -4,7 +4,7 @@ import { client } from '../src/client'
 import { createValidator } from '../src/validator'
 import { merge } from 'lodash-es'
 
-const precognitionSuccessResponse = payload => merge({
+const precognitionSuccessResponse = (payload) => merge({
     status: 204,
     data: {},
     headers: {
@@ -397,7 +397,7 @@ it('does mark fields as validated on success status', async () => {
     let promise = null
     let onValidatedChangedCalledTimes = 0
     axios.request.mockImplementation(() => {
-        promise = new Promise(resolve => {
+        promise = new Promise((resolve) => {
             resolver = resolve
         })
 
@@ -443,7 +443,7 @@ it('revalidates when touched changes', async () => {
         requests++
         configs.push(c)
 
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve) => {
             resolvers.push(resolve)
         })
 
@@ -509,7 +509,7 @@ it('marks fields as valid on precognition success', async () => {
 it('calls locally configured onSuccess handler', async () => {
     let response = null
     axios.request.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
-    const validator = createValidator(client => client.post('/users', {}))
+    const validator = createValidator((client) => client.post('/users', {}))
 
     validator.validate('name', 'Tim', {
         onSuccess: (r) => response = r,
@@ -522,7 +522,7 @@ it('calls locally configured onSuccess handler', async () => {
 it('calls globally configured onSuccess handler', async () => {
     let response = null
     axios.request.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
-    const validator = createValidator(client => client.post('/users', {}, {
+    const validator = createValidator((client) => client.post('/users', {}, {
         onSuccess: (r) => response = r,
     }))
 
@@ -535,9 +535,9 @@ it('calls globally configured onSuccess handler', async () => {
 it('local config overrides global config', async () => {
     let response
     axios.request.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
-    const validator = createValidator(client => client.post('/users', { name: 'Tim' }, {
+    const validator = createValidator((client) => client.post('/users', { name: 'Tim' }, {
         onPrecognitionSuccess: (r) => {
-            r.data = r.data+':global-handler'
+            r.data = r.data + ':global-handler'
             response = r
         },
     }))
@@ -545,7 +545,7 @@ it('local config overrides global config', async () => {
 
     validator.validate({
         onPrecognitionSuccess: (r) => {
-            r.data = r.data+':local-handler'
+            r.data = r.data + ':local-handler'
 
             response = r
         },
@@ -557,12 +557,12 @@ it('local config overrides global config', async () => {
 
 it('correctly merges axios config', async () => {
     let config = null
-    axios.request.mockImplementation(async c => {
+    axios.request.mockImplementation(async (c) => {
         config = c
 
         return precognitionSuccessResponse()
     })
-    const validator = createValidator(client => client.post('/users', {}, {
+    const validator = createValidator((client) => client.post('/users', {}, {
         headers: {
             'X-Global': '1',
             'X-Both': ['global'],
@@ -590,13 +590,13 @@ it('correctly merges axios config', async () => {
 
 it('uses the lastest config values', async () => {
     const config = []
-    axios.request.mockImplementation(async c => {
+    axios.request.mockImplementation(async (c) => {
         config.push(c)
 
         return precognitionSuccessResponse()
     })
     let data = {}
-    const validator = createValidator(client => client.post('/users', data))
+    const validator = createValidator((client) => client.post('/users', data))
 
     data = { name: 'Tim' }
     validator.validate('name', data.name, {

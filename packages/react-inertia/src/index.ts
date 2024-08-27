@@ -5,7 +5,7 @@ import { useRef } from 'react'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): any => {
     const booted = useRef<boolean>(false)
 
     /**
@@ -62,7 +62,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             inertiaSetError(
                 // @ts-expect-error
-                toSimpleValidationErrors(precognitiveForm.validator().errors())
+                toSimpleValidationErrors(precognitiveForm.validator().errors()),
             )
         })
 
@@ -75,7 +75,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     const form = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
-        touch(name: Array<string>|string|NamedInputEvent) {
+        touch(name: Array<string> | string | NamedInputEvent) {
             precognitiveForm.touch(name)
 
             return form
@@ -105,7 +105,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             precognitiveForm.reset(...names)
         },
-        setErrors(errors: SimpleValidationErrors|ValidationErrors) {
+        setErrors(errors: SimpleValidationErrors | ValidationErrors) {
             // @ts-expect-error
             precognitiveForm.setErrors(errors)
 
@@ -121,7 +121,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        forgetError(name: string|NamedInputEvent) {
+        forgetError(name: string | NamedInputEvent) {
             precognitiveForm.forgetError(name)
 
             return form
@@ -133,7 +133,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        validate(name?: string|NamedInputEvent|ValidationConfig, config?: ValidationConfig) {
+        validate(name?: string | NamedInputEvent | ValidationConfig, config?: ValidationConfig) {
             precognitiveForm.setData(transformer.current(inertiaForm.data))
 
             if (typeof name === 'object' && !('target' in name)) {
@@ -159,7 +159,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        submit(submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void {
+        submit(submitMethod: RequestMethod | Config = {}, submitUrl?: string, submitOptions?: any): void {
             const isPatchedCall = typeof submitMethod !== 'string'
 
             submitOptions = isPatchedCall

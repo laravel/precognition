@@ -91,7 +91,7 @@ it('transforms data for validation requests', () => {
     const form = useForm('post', '/register', {
         emails: '',
     }).transform((data) => ({
-        emails: data.emails.split(',').map(email => email.trim()),
+        emails: data.emails.split(',').map((email) => email.trim()),
     }))
 
     form.emails = 'taylor@laravel.com, tim@laravel.com'
