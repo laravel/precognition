@@ -2,10 +2,11 @@ import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpl
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
 import { watchEffect } from 'vue'
+import { Form } from './types'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): any => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
      * The Inertia form.
      */
@@ -61,7 +62,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Patch the form.
      */
-    const form = Object.assign(inertiaForm, {
+    const form: Form<Data> = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
         touch(name: Array<string>|string|NamedInputEvent) {
@@ -71,6 +72,14 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
+        setData(data: Record<string, unknown>) {
+            Object.keys(data).forEach(input => {
+                // @ts-expect-error
+                form[input] = data[input]
+            })
+
+            return form
+        },
         clearErrors(...names: string[]) {
             inertiaClearErrors(...names)
 
