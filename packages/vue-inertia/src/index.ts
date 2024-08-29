@@ -1,6 +1,7 @@
-import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
+import { NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
+import { VisitOptions } from '@inertiajs/core'
 import { watchEffect } from 'vue'
 import { Form } from './types'
 
@@ -107,12 +108,22 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        setError(key: any, value?: any) {
+        setError(key: (keyof Data)|Record<keyof Data, string>, value?: string) {
+            let errors: SimpleValidationErrors
+
+            if (typeof key !== 'object') {
+                if (typeof value === 'undefined') {
+                    throw new Error('The `value` is required.')
+                }
+
+                errors = { key: value }
+            } else {
+                errors = key
+            }
+
             form.setErrors({
                 ...inertiaForm.errors,
-                ...typeof value === 'undefined'
-                    ? key
-                    : { [key]: value },
+                ...errors,
             })
 
             return form
@@ -155,28 +166,20 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        submit(submitMethod: RequestMethod|Config = {}, submitUrl?: string, submitOptions?: any): void {
-            const isPatchedCall = typeof submitMethod !== 'string'
+        submit(submitMethod: RequestMethod|Partial<VisitOptions> = {}, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void {
+            if (typeof submitMethod !== 'string') {
+                submitOptions = submitMethod
+                submitUrl = resolveUrl(url)
+                submitMethod = resolveMethod(method)
+            }
 
-            submitOptions = isPatchedCall
-                ? submitMethod
-                : submitOptions
-
-            submitUrl = isPatchedCall
-                ? resolveUrl(url)
-                : submitUrl!
-
-            submitMethod = isPatchedCall
-                ? resolveMethod(method)
-                : submitMethod as RequestMethod
-
-            inertiaSubmit(submitMethod, submitUrl, {
+            inertiaSubmit(submitMethod, submitUrl!, {
                 ...submitOptions,
-                onError: (errors: SimpleValidationErrors): any => {
+                onError: (errors: SimpleValidationErrors): void => {
                     precognitiveForm.validator().setErrors(errors)
 
-                    if (submitOptions.onError) {
-                        return submitOptions.onError(errors)
+                    if (submitOptions!.onError) {
+                        return submitOptions!.onError(errors)
                     }
                 },
             })
