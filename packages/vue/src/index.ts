@@ -5,7 +5,7 @@ import { cloneDeep, get, set } from 'lodash-es'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), inputs: Data, config: ValidationConfig = {}): Data&Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Data & Form<Data> => {
     /**
      * The original data.
      */
@@ -29,7 +29,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = createValidator(client => client[resolveMethod(method)](resolveUrl(url), form.data(), config), originalData)
+    const validator = createValidator((client) => client[resolveMethod(method)](resolveUrl(url), form.data(), config), originalData)
         .on('validatingChanged', () => {
             form.validating = validator.validating()
         })
@@ -79,7 +79,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Create a new form instance.
      */
-    let form: Data&Form<Data> = {
+    let form: Data & Form<Data> = {
         ...cloneDeep(originalData),
         data() {
             const data = cloneDeep(toRaw(form))
@@ -90,7 +90,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             }), {}) as Data
         },
         setData(data: Record<string, unknown>) {
-            Object.keys(data).forEach(input => {
+            Object.keys(data).forEach((input) => {
                 // @ts-expect-error
                 form[input] = data[input]
             })
@@ -150,9 +150,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             if (names.length === 0) {
                 // @ts-expect-error
-                originalInputs.forEach(name => (form[name] = original[name]))
+                originalInputs.forEach((name) => (form[name] = original[name]))
             } else {
-                names.forEach(name => set(form, name, get(original, name)))
+                names.forEach((name) => set(form, name, get(original, name)))
             }
 
             // @ts-expect-error
@@ -179,7 +179,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
     }
 
-    form = reactive(form) as Data&Form<Data>
+    form = reactive(form) as Data & Form<Data>
 
     return form
 }

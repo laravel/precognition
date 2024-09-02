@@ -6,11 +6,11 @@ export type ValidationErrors = Record<string, Array<string>>
 
 export type SimpleValidationErrors = Record<string, string>
 
-export type Config = AxiosRequestConfig&{
+export type Config = AxiosRequestConfig & {
     precognitive?: boolean,
-    validate?: Iterable<string>|ArrayLike<string>,
-    fingerprint?: string|null,
-    onBefore?: () => boolean|undefined,
+    validate?: Iterable<string> | ArrayLike<string>,
+    fingerprint?: string | null,
+    onBefore?: () => boolean | undefined,
     onStart?: () => void,
     onSuccess?: (response: AxiosResponse) => unknown,
     onPrecognitionSuccess?: (response: AxiosResponse) => unknown,
@@ -24,15 +24,15 @@ export type Config = AxiosRequestConfig&{
 }
 
 interface RevalidatePayload {
-    data: Record<string, unknown>|null,
+    data: Record<string, unknown> | null,
     touched: Array<string>,
 }
 
-export type ValidationConfig = Config&{
-    onBeforeValidation?: (newRequest: RevalidatePayload, oldRequest: RevalidatePayload) => boolean|undefined,
+export type ValidationConfig = Config & {
+    onBeforeValidation?: (newRequest: RevalidatePayload, oldRequest: RevalidatePayload) => boolean | undefined,
 }
 
-export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string|null
+export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string | null
 
 export type SuccessResolver = (response: AxiosResponse) => boolean
 
@@ -43,21 +43,21 @@ export interface Client {
     put(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     delete(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     use(axios: AxiosInstance): Client,
-    fingerprintRequestsUsing(callback: RequestFingerprintResolver|null): Client,
+    fingerprintRequestsUsing(callback: RequestFingerprintResolver | null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,
     axios(): AxiosInstance,
 }
 
 export interface Validator {
     touched(): Array<string>,
-    validate(input?: string|NamedInputEvent|ValidationConfig, value?: unknown, config?: ValidationConfig): Validator,
-    touch(input: string|NamedInputEvent|Array<string>): Validator,
+    validate(input?: string | NamedInputEvent | ValidationConfig, value?: unknown, config?: ValidationConfig): Validator,
+    touch(input: string | NamedInputEvent | Array<string>): Validator,
     validating(): boolean,
     valid(): Array<string>,
     errors(): ValidationErrors,
-    setErrors(errors: ValidationErrors|SimpleValidationErrors): Validator,
+    setErrors(errors: ValidationErrors | SimpleValidationErrors): Validator,
     hasErrors(): boolean,
-    forgetError(error: string|NamedInputEvent): Validator,
+    forgetError(error: string | NamedInputEvent): Validator,
     reset(...names: string[]): Validator,
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
@@ -71,7 +71,7 @@ export interface ValidatorListeners {
     validatedChanged: Array<() => void>,
 }
 
-export type RequestMethod = 'get'|'post'|'patch'|'put'|'delete'
+export type RequestMethod = 'get' | 'post' | 'patch' | 'put' | 'delete'
 
 export type ValidationCallback = (client: {
     get(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,

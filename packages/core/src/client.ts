@@ -83,7 +83,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
     (config.onStart ?? (() => null))()
 
-    return axiosClient.request(config).then(async response => {
+    return axiosClient.request(config).then(async (response) => {
         if (config.precognitive) {
             validatePrecognitionResponse(response)
         }
@@ -104,7 +104,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
             ?? ((response) => response)
 
         return statusHandler(payload) ?? payload
-    }, error => {
+    }, (error) => {
         if (isNotServerGeneratedError(error)) {
             return Promise.reject(error)
         }
@@ -202,7 +202,7 @@ const isNotServerGeneratedError = (error: unknown): boolean => {
 /**
  * Resolve the handler for the given HTTP response status.
  */
-const resolveStatusHandler = (config: Config, code: number): StatusHandler|undefined => ({
+const resolveStatusHandler = (config: Config, code: number): StatusHandler | undefined => ({
     401: config.onUnauthorized,
     403: config.onForbidden,
     404: config.onNotFound,
@@ -237,13 +237,13 @@ export const isFile = (value: unknown): boolean => (typeof File !== 'undefined' 
 /**
  * Resolve the url from a potential callback.
  */
-export const resolveUrl = (url: string|(() => string)): string => typeof url === 'string'
+export const resolveUrl = (url: string | (() => string)): string => typeof url === 'string'
     ? url
     : url()
 
 /**
  * Resolve the method from a potential callback.
  */
-export const resolveMethod = (method: RequestMethod|(() => RequestMethod)): RequestMethod => typeof method === 'string'
+export const resolveMethod = (method: RequestMethod | (() => RequestMethod)): RequestMethod => typeof method === 'string'
     ? method.toLowerCase() as RequestMethod
     : method()

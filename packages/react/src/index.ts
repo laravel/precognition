@@ -5,11 +5,11 @@ import { Form } from './types.js'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod|(() => RequestMethod), url: string|(() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
      * The original data.
      */
-    const originalData = useRef<Data|null>(null)
+    const originalData = useRef<Data | null>(null)
 
     if (originalData.current === null) {
         originalData.current = cloneDeep(input)
@@ -18,7 +18,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The original input names.
      */
-    const originalInputs = useRef<(keyof Data)[]|null>(null)
+    const originalInputs = useRef<(keyof Data)[] | null>(null)
 
     if (originalInputs.current === null) {
         originalInputs.current = Object.keys(originalData)
@@ -67,10 +67,10 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = useRef<Validator|null>(null)
+    const validator = useRef<Validator | null>(null)
 
     if (validator.current === null) {
-        validator.current = createValidator(client => client[resolveMethod(method)](resolveUrl(url), payload.current, config), input)
+        validator.current = createValidator((client) => client[resolveMethod(method)](resolveUrl(url), payload.current, config), input)
             .on('validatingChanged', () => {
                 setValidating(validator.current!.validating())
             })
@@ -189,7 +189,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
                 setData(original)
             } else {
-                names.forEach(name => (set(payload.current, name, get(original, name))))
+                names.forEach((name) => (set(payload.current, name, get(original, name))))
 
                 setData(payload.current)
             }
