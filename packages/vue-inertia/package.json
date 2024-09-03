@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-vue-inertia",
-    "version": "0.5.7",
+    "version": "0.5.8",
     "description": "Laravel Precognition (Vue w/ Inertia).",
     "keywords": [
         "laravel",
@@ -36,8 +36,8 @@
         "vue": "^3.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "0.5.7",
-        "laravel-precognition-vue": "0.5.7"
+        "laravel-precognition": "0.5.8",
+        "laravel-precognition-vue": "0.5.8"
     },
     "devDependencies": {
         "typescript": "^5.0.0",
