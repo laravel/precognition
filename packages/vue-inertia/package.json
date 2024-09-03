@@ -28,9 +28,6 @@
         "test": "vitest run",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version && npm pkg set dependencies.laravel-precognition-vue=$npm_package_version"
     },
-    "engines": {
-        "node": ">=14"
-    },
     "peerDependencies": {
         "@inertiajs/vue3": "^1.0.0",
         "vue": "^3.0.0"

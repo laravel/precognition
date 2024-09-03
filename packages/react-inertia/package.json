@@ -27,9 +27,6 @@
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version && npm pkg set dependencies.laravel-precognition-react=$npm_package_version"
     },
-    "engines": {
-        "node": ">=14"
-    },
     "peerDependencies": {
         "@inertiajs/react": "^1.0.0",
         "react": "^18.0.0"

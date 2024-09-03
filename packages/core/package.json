@@ -26,9 +26,6 @@
         "prepublishOnly": "npm run build",
         "test": "vitest run"
     },
-    "engines": {
-        "node": ">=14"
-    },
     "dependencies": {
         "axios": "^1.4.0",
         "lodash-es": "^4.17.21"

@@ -26,9 +26,6 @@
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
     },
-    "engines": {
-        "node": ">=14"
-    },
     "peerDependencies": {
         "alpinejs": "^3.12.1"
     },
