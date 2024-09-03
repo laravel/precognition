@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.6...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.7...main)
+
+## [v0.5.7](https://github.com/laravel/precognition/compare/v0.5.6...v0.5.7) - 2024-08-20
+
+* [0.5.x] Removes unused ignore comments by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/86
+* [0.5.x] Async validate by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/69
 
 ## [v0.5.6](https://github.com/laravel/precognition/compare/v0.5.5...v0.5.6) - 2024-07-02
 
