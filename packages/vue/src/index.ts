@@ -34,11 +34,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             form.validating = validator.validating()
         })
         .on('validatedChanged', () => {
-            // @ts-expect-error
             valid.value = validator.valid()
         })
         .on('touchedChanged', () => {
-            // @ts-expect-error
             touched.value = validator.touched()
         })
         .on('errorsChanged', () => {
@@ -47,7 +45,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             // @ts-expect-error
             form.errors = toSimpleValidationErrors(validator.errors())
 
-            // @ts-expect-error
             valid.value = validator.valid()
         })
 
