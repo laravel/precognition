@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.7...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.8...main)
+
+## [v0.5.8](https://github.com/laravel/precognition/compare/v0.5.7...v0.5.8) - 2024-09-03
+
+* [0.5.x] Type `vue-inertia` by [@ncphillips](https://github.com/ncphillips) in https://github.com/laravel/precognition/pull/88
+* [0.5.x] Further improve Vue types by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/91
+* [0.5.x] Update linting rules by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/90
 
 ## [v0.5.7](https://github.com/laravel/precognition/compare/v0.5.6...v0.5.7) - 2024-08-20
 
