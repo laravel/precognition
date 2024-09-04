@@ -1,5 +1,6 @@
 {
     "private": true,
+    "type": "module",
     "workspaces": [
         "packages/core",
         "packages/react",
@@ -13,8 +14,7 @@
         "build": "npm run build --workspaces",
         "link": "npm link --workspaces",
         "typeCheck": "npm run typeCheck --workspaces",
-        "lint": "eslint --ignore-pattern /packages/**/dist/** ./packages/**",
-        "lint:fix": "eslint --fix --ignore-pattern /packages/**/dist/** ./packages/**",
+        "lint": "eslint",
         "test": "npm run test --workspaces --if-present"
     },
     "devDependencies": {
@@ -24,6 +24,9 @@
         "@typescript-eslint/eslint-plugin": "^8.3.0",
         "@typescript-eslint/parser": "^8.3.0",
         "eslint": "^9.9.1",
-        "globals": "^15.9.0"
+        "eslint-plugin-react": "^7.35.2",
+        "eslint-plugin-vue": "^9.28.0",
+        "globals": "^15.9.0",
+        "typescript-eslint": "^8.4.0"
     }
 }

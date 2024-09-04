@@ -436,9 +436,9 @@ it('revalidates when touched changes', async () => {
     expect.assertions(1)
 
     let requests = 0
-    let resolvers = []
-    let promises = []
-    let configs = []
+    const resolvers = []
+    const promises = []
+    const configs = []
     axios.request.mockImplementation((c) => {
         requests++
         configs.push(c)
@@ -471,7 +471,7 @@ it('can validate without needing to specify a field', async () => {
 
         return Promise.resolve(precognitionSuccessResponse())
     })
-    let data = { name: 'Tim', framework: 'Laravel' }
+    const data = { name: 'Tim', framework: 'Laravel' }
     const validator = createValidator((client) => client.post('/foo', data))
 
     validator.touch(['name', 'framework']).validate()
@@ -624,7 +624,7 @@ it('uses the lastest config values', async () => {
 })
 
 it('does not cancel submit requests', async () => {
-    let data = {}
+    const data = {}
     let submitConfig
     let validateConfig
     axios.request.mockImplementation((config) => {
@@ -650,10 +650,10 @@ it('does not cancel submit requests', async () => {
 })
 
 it('does not cancel submit requests with custom abort signal', async () => {
-    let data = {}
+    const data = {}
     let submitConfig
     let validateConfig
-    let abortController = new AbortController
+    const abortController = new AbortController
     axios.request.mockImplementation((config) => {
         if (config.precognitive) {
             validateConfig = config

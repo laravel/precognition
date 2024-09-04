@@ -37,7 +37,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             return listeners.validatingChanged
         }
 
-         return []
+        return []
     }
 
     /**
@@ -315,7 +315,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             setTouched([name, ...touched]).forEach((listener) => listener())
         }
 
-         validator(config ?? {})
+        validator(config ?? {})
     }
 
     /**
