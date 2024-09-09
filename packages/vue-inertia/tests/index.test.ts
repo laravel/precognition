@@ -105,7 +105,7 @@ it('transforms data for validation requests', () => {
 it('can set individual errors', function () {
     const form = useForm('post', '/register', {
         name: '',
-    });
+    })
 
     form.setError('name', 'The name is required.')
 
