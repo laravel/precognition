@@ -101,3 +101,13 @@ it('transforms data for validation requests', () => {
     expect(form.emails).toBe('taylor@laravel.com, tim@laravel.com')
     expect(form.data().emails).toBe('taylor@laravel.com, tim@laravel.com')
 })
+
+it('can set individual errors', function () {
+    const form = useForm('post', '/register', {
+        name: '',
+    })
+
+    form.setError('name', 'The name is required.')
+
+    expect(form.errors.name).toBe('The name is required.')
+})

@@ -116,7 +116,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                     throw new Error('The `value` is required.')
                 }
 
-                errors = { key: value }
+                errors = { [key]: value }
             } else {
                 errors = key
             }
