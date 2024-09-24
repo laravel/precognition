@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-react-inertia",
-    "version": "0.5.9",
+    "version": "0.5.10",
     "description": "Laravel Precognition (React w/ Inertia).",
     "keywords": [
         "laravel",
@@ -32,8 +32,8 @@
         "react": "^18.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "0.5.9",
-        "laravel-precognition-react": "0.5.9"
+        "laravel-precognition": "0.5.10",
+        "laravel-precognition-react": "0.5.10"
     },
     "devDependencies": {
         "@types/react-dom": "^18.2.4",
