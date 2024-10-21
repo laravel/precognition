@@ -171,7 +171,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 onError: (errors: SimpleValidationErrors): any => {
                     precognitiveForm.validator().setErrors(errors)
 
-                    if (submitOptions!.onError) {
+                    if (submitOptions?.onError) {
                         return submitOptions.onError(errors)
                     }
                 },
