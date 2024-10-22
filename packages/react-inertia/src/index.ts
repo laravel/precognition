@@ -160,26 +160,18 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         submit(submitMethod: RequestMethod | Config = {}, submitUrl?: string, submitOptions?: any): void {
-            const isPatchedCall = typeof submitMethod !== 'string'
+            if (typeof submitMethod !== 'string') {
+                submitOptions = submitMethod
+                submitUrl = resolveUrl(url)
+                submitMethod = resolveMethod(method)
+            }
 
-            submitOptions = isPatchedCall
-                ? submitMethod
-                : submitOptions
-
-            submitUrl = isPatchedCall
-                ? resolveUrl(url)
-                : submitUrl!
-
-            submitMethod = isPatchedCall
-                ? resolveMethod(method)
-                : submitMethod as RequestMethod
-
-            inertiaSubmit(submitMethod, submitUrl, {
+            inertiaSubmit(submitMethod, submitUrl!, {
                 ...submitOptions,
                 onError: (errors: SimpleValidationErrors): any => {
                     precognitiveForm.validator().setErrors(errors)
 
-                    if (submitOptions.onError) {
+                    if (submitOptions?.onError) {
                         return submitOptions.onError(errors)
                     }
                 },
