@@ -1,0 +1,40 @@
+{
+    "name": "laravel-precognition-svelte",
+    "version": "0.0.1",
+    "description": "Laravel Precognition (Svelte).",
+    "keywords": [
+        "laravel",
+        "precognition",
+        "svelte"
+    ],
+    "homepage": "https://github.com/laravel/precognition",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/laravel/precognition"
+    },
+    "license": "MIT",
+    "author": "Laravel",
+    "main": "dist/index.svelte.js",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "watch": "rm -rf dist && tsc --watch",
+        "build": "rm -rf dist && tsc",
+        "typeCheck": "tsc --noEmit",
+        "prepublishOnly": "npm run build",
+        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
+    },
+    "peerDependencies": {
+        "svelte": "^5.0.0"
+    },
+    "dependencies": {
+        "laravel-precognition": "0.5.11",
+        "lodash-es": "^4.17.21"
+    },
+    "devDependencies": {
+        "@types/lodash-es": "^4.17.12",
+        "typescript": "^5.0.0"
+    }
+}
