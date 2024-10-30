@@ -129,11 +129,19 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         validate(name: string | undefined, config: any) {
-            if (name === undefined) {
+            if (typeof name === 'object' && !('target' in name)) {
+                config = name
+                name = undefined
+            }
+
+            if (typeof name === 'undefined') {
                 validator.validate(config)
             } else {
+                name = resolveName(name)
+
                 validator.validate(name, get(data, name), config)
             }
+
             return form
         },
         valid(name: string) {
