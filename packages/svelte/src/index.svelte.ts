@@ -175,7 +175,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             validator.setTimeout(duration)
             return form
         },
-        submit(config = {}) {
+        async submit(config = {}) {
             return client[resolveMethod(method)](resolveUrl(url), form.getData(), resolveSubmitConfig(config))
         },
         validateFiles() {
