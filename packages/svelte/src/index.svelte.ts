@@ -121,7 +121,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         touched(name: string) {
-            return touched.includes(resolveName(name))
+            return touched.includes(name)
         },
         touch(name: string) {
             validator.touch(name)
