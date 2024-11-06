@@ -1,5 +1,4 @@
-import { client, type RequestMethod, type ValidationConfig, type Config, type NamedInputEvent, type Validator } from 'laravel-precognition'
-export { client }
+import { type ValidationConfig, type Config, type NamedInputEvent, type Validator } from 'laravel-precognition'
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean;
     validating: boolean;
@@ -21,4 +20,3 @@ export interface Form<Data extends Record<string, unknown>> {
     validator(): Validator;
     getData(): Data;
 }
-export declare const useForm: <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config?: ValidationConfig) => Form<Data>
