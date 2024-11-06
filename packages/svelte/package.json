@@ -17,8 +17,18 @@
     "author": "Laravel",
     "main": "dist/index.svelte.js",
     "files": [
-        "/dist"
+        "dist",
+        "!dist/**/*.test.*",
+        "!dist/**/*.spec.*"
     ],
+    "svelte": "./dist/index.svelte.js",
+    "types": "./dist/index.svelte.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.svelte.d.ts",
+            "svelte": "./dist/index.svelte.js"
+        }
+    },
     "scripts": {
         "watch": "rm -rf dist && tsc --watch --preserveWatchOutput",
         "build": "rm -rf dist && tsc",
