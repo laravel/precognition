@@ -47,7 +47,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * Reactive hasErrors.
      */
     // @ts-ignore
-    let hasErrors = $state<boolean>(false)
+    const hasErrors = $derived<boolean>(Object.keys(errors).length > 0)
 
     /**
      * Reactive Validating.
@@ -81,7 +81,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             touched = validator.touched()
         })
         .on('errorsChanged', () => {
-            hasErrors = validator.hasErrors()
             errors = toSimpleValidationErrors(validator.errors())
             valid = validator.valid()
         })
