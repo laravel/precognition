@@ -1,20 +1,10 @@
+import { Config, RequestMethod, client, createValidator, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod , resolveName } from 'laravel-precognition'
+import { Form } from './types.js'
 import { get, cloneDeep, set } from 'lodash-es'
 
-import {
-    client,
-    createValidator,
-    type RequestMethod,
-    resolveName,
-    toSimpleValidationErrors,
-    type ValidationConfig,
-    resolveUrl,
-    resolveMethod,
-} from 'laravel-precognition'
-
-import { Form } from './types.js'
-
 export { client }
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
+
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Data & Form<Data> => {
     /**
      * The original data.
      */
@@ -29,19 +19,19 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
      * Reactive valid state.
      */
     // @ts-ignore
-    let valid = $state<string[]>([])
+    let valid = $state<(keyof Data)[]>([])
 
     /**
      * Reactive touched state.
      */
     // @ts-ignore
-    let touched = $state<string[]>([])
+    let touched = $state<(keyof Partial<Data>)[]>([])
 
     /**
      * Reactive errors.
      */
     // @ts-ignore
-    let errors = $state<Record<string, any>>({})
+    let errors = $state<Record<keyof Data , any>>({})
 
     /**
      * Reactive hasErrors.
@@ -70,7 +60,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The validator instance.
      */
-    const validator = createValidator((client) => client[resolveMethod(method)](resolveUrl(url), form.getData(), config), originalData)
+    const validator = createValidator((client) => client[resolveMethod(method)](resolveUrl(url), form.data(), config), originalData)
         .on('validatingChanged', () => {
             validating = validator.validating()
         })
@@ -81,26 +71,29 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             touched = validator.touched()
         })
         .on('errorsChanged', () => {
-            errors = toSimpleValidationErrors(validator.errors())
+            errors = toSimpleValidationErrors(validator.errors()) as Record<keyof Data, any>
             valid = validator.valid()
         })
 
     /**
      * Resolve the config for a form submission.
      */
-    const resolveSubmitConfig = (config: any) => ({
+    const resolveSubmitConfig = (config: Config): Config => ({
         ...config,
         precognitive: false,
         onStart: () => {
             processing = true
+
             config.onStart?.()
         },
         onFinish: () => {
             processing = false
+
             config.onFinish?.()
         },
         onValidationError: (response: any, error: any) => {
             validator.setErrors(response.data.errors)
+
             return config.onValidationError
                 ? config.onValidationError(response)
                 // @ts-ignore
@@ -111,8 +104,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Create a new form instance.
      */
-    const form: Record<string, any> = {
-        data,
+    const form: Data & Form<Data> = {
+        ...cloneDeep(originalData),
+        data() {
+            // @ts-ignore
+            return $state.snapshot(data) as Data
+        },
         setData(newData: Record<string, unknown>) {
             Object.keys(newData).forEach((input) => {
                 // @ts-ignore
@@ -125,9 +122,10 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         touch(name: string) {
             validator.touch(name)
+
             return form
         },
-        validate(name: string | undefined, config: any) {
+        validate(name: string | undefined, config: Config) {
             if (typeof name === 'object' && !('target' in name)) {
                 config = name
                 name = undefined
@@ -143,11 +141,20 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
+        get validating() {
+            return validating
+        },
         valid(name: string) {
             return valid.includes(resolveName(name))
         },
         invalid(name: string) {
             return typeof form.errors[name] !== 'undefined'
+        },
+        get errors() {
+            return errors
+        },
+        get hasErrors() {
+            return hasErrors
         },
         setErrors(newErrors: any) {
             validator.setErrors(newErrors)
@@ -155,6 +162,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         forgetError(name: string) {
             validator.forgetError(name)
+
             return form
         },
         reset(...names: string[]) {
@@ -172,34 +180,35 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         setValidationTimeout(duration: number) {
             validator.setTimeout(duration)
+
             return form
         },
+        get processing() {
+            return processing
+        },
         async submit(config = {}) {
-            return client[resolveMethod(method)](resolveUrl(url), form.getData(), resolveSubmitConfig(config))
+            return client[resolveMethod(method)](resolveUrl(url), form.data(), resolveSubmitConfig(config))
         },
         validateFiles() {
             validator.validateFiles()
+
             return form
         },
         validator() {
             return validator
         },
-        get validating() {
-            return validating
-        },
-        get processing() {
-            return processing
-        },
-        get errors() {
-            return errors
-        },
-        get hasErrors() {
-            return hasErrors
-        },
-        getData() {
-            return cloneDeep(data)
-        },
-    }
+    };
 
-    return form as Form<Data>
+    (Object.keys(data) as Array<keyof Data>).forEach((key) => {
+        Object.defineProperty(form, key, {
+            get() {
+                return data[key]
+            },
+            set(value: Data[keyof Data]) {
+                data[key] = value
+            },
+        })
+    })
+
+    return form as Data & Form<Data>
 }

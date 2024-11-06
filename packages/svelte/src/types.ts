@@ -1,13 +1,14 @@
 import { type ValidationConfig, type Config, type NamedInputEvent, type Validator } from 'laravel-precognition'
+
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean;
     validating: boolean;
-    errors: Partial<Record<keyof Data, string>>;
-    hasErrors: boolean;
     touched(name: keyof Data): boolean;
     touch(name: string | NamedInputEvent | Array<string>): Data & Form<Data>;
-    data: Data;
+    data(): Data,
     setData(data: Record<string, unknown>): Data & Form<Data>;
+    errors: Record<keyof Data, string>;
+    hasErrors: boolean;
     valid(name: keyof Data): boolean;
     invalid(name: keyof Data): boolean;
     validate(name?: (keyof Data | NamedInputEvent) | ValidationConfig, config?: ValidationConfig): Data & Form<Data>;
@@ -18,5 +19,4 @@ export interface Form<Data extends Record<string, unknown>> {
     reset(...keys: (keyof Partial<Data>)[]): Data & Form<Data>;
     validateFiles(): Data & Form<Data>;
     validator(): Validator;
-    getData(): Data;
 }
