@@ -254,11 +254,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : response
             },
             onBefore: () => {
-                const beforeValidationHandler = config.onBeforeValidation ?? ((newRequest, oldRequest) => {
-                    return newRequest.touched.length > 0 && ! isEqual(newRequest, oldRequest)
-                })
-
-                if (beforeValidationHandler({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
+                if (config.onBeforeValidation && config.onBeforeValidation({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
                 }
 
@@ -313,9 +309,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
         if (get(oldData, name) !== value) {
             setTouched([name, ...touched]).forEach((listener) => listener())
-        }
 
-        validator(config ?? {})
+            validator(config ?? {})
+        }
     }
 
     /**
