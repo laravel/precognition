@@ -294,8 +294,6 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     const validate = (name?: string | NamedInputEvent, value?: unknown, config?: ValidationConfig): void => {
         if (typeof name === 'undefined') {
-            // validator.cancel()
-
             validator(config ?? {})
 
             return
