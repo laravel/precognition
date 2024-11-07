@@ -20,7 +20,7 @@
         "/dist"
     ],
     "scripts": {
-        "watch": "rm -rf dist && tsc --watch",
+        "watch": "rm -rf dist && tsc --watch --preserveWatchOutput",
         "build": "rm -rf dist && tsc",
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
