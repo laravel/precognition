@@ -169,7 +169,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Create a debounced validation callback.
      */
-    const createValidator = () => debounce((instanceConfig: Config) => {
+    const createValidator = () => debounce((instanceConfig: ValidationConfig) => {
         callback({
             get: (url, data = {}, globalConfig = {}) => client.get(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             post: (url, data = {}, globalConfig = {}) => client.post(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
@@ -254,11 +254,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : response
             },
             onBefore: () => {
-                const beforeValidationHandler = config.onBeforeValidation ?? ((newRequest, oldRequest) => {
-                    return newRequest.touched.length > 0 && ! isEqual(newRequest, oldRequest)
-                })
-
-                if (beforeValidationHandler({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
+                if (config.onBeforeValidation && config.onBeforeValidation({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
                 }
 
@@ -296,7 +292,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
     /**
      * Validate the given input.
      */
-    const validate = (name?: string | NamedInputEvent, value?: unknown, config?: Config): void => {
+    const validate = (name?: string | NamedInputEvent, value?: unknown, config?: ValidationConfig): void => {
         if (typeof name === 'undefined') {
             validator(config ?? {})
 
@@ -313,9 +309,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
         if (get(oldData, name) !== value) {
             setTouched([name, ...touched]).forEach((listener) => listener())
-        }
 
-        validator(config ?? {})
+            validator(config ?? {})
+        }
     }
 
     /**

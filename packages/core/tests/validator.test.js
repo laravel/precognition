@@ -105,17 +105,17 @@ it('does not revalidate data when data is unchanged', async () => {
     expect(requests).toBe(0)
 
     data = { first: true }
-    validator.validate('name', true)
+    validator.validate('first', true)
     expect(requests).toBe(1)
     await vi.advanceTimersByTimeAsync(1500)
 
     data = { first: true }
-    validator.validate('name', true)
+    validator.validate('first', true)
     expect(requests).toBe(1)
     await vi.advanceTimersByTimeAsync(1500)
 
     data = { second: true }
-    validator.validate('name', true)
+    validator.validate('second', true)
     expect(requests).toBe(2)
     await vi.advanceTimersByTimeAsync(1500)
 })
@@ -245,8 +245,6 @@ it('does not validate if the field has not been changed', async () => {
     validator.validate('name', 'Tim')
 
     expect(requestMade).toBe(false)
-
-    await assertPendingValidateDebounceAndClear()
 })
 
 it('filters out files', async () => {
