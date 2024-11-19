@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.10...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.5.13...main)
+
+## [v0.5.13](https://github.com/laravel/precognition/compare/v0.5.10...v0.5.13) - 2024-11-12
+
+* [0.5.x] Re-work on-change validation by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/105
 
 ## [v0.5.10](https://github.com/laravel/precognition/compare/v0.5.8...v0.5.10) - 2024-09-24
 
