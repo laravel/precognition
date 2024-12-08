@@ -123,24 +123,28 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 /**
  * Resolve the configuration.
  */
-const resolveConfig = (config: Config): Config => ({
-    ...config,
-    timeout: config.timeout ?? axiosClient.defaults['timeout'] ?? 30000,
-    precognitive: config.precognitive !== false,
-    fingerprint: typeof config.fingerprint === 'undefined'
-        ? requestFingerprintResolver(config, axiosClient)
-        : config.fingerprint,
-    headers: {
-        ...config.headers,
-        'Content-Type': resolveContentType(config),
-        ...config.precognitive !== false ? {
-            Precognition: true,
-        } : {},
-        ...config.validate ? {
-            'Precognition-Validate-Only': Array.from(config.validate).join(),
-        } : {},
-    },
-})
+const resolveConfig = (config: Config): Config => {
+    const only = config.only ?? config.validate
+
+    return {
+        ...config,
+        timeout: config.timeout ?? axiosClient.defaults['timeout'] ?? 30000,
+        precognitive: config.precognitive !== false,
+        fingerprint: typeof config.fingerprint === 'undefined'
+            ? requestFingerprintResolver(config, axiosClient)
+            : config.fingerprint,
+        headers: {
+            ...config.headers,
+            'Content-Type': resolveContentType(config),
+            ...config.precognitive !== false ? {
+                Precognition: true,
+            } : {},
+            ...only ? {
+                'Precognition-Validate-Only': Array.from(only).join(),
+            } : {},
+        },
+    }
+}
 
 /**
  * Determine if the status is successful.
