@@ -216,7 +216,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             ...instanceConfig,
         }
 
-        const validate = Array.from(config.validate ?? touched)
+        const only = Array.from(config.only ?? config.validate ?? touched)
 
         return {
             ...instanceConfig,
@@ -224,12 +224,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             // use their merge function here to make sure things like headers
             // merge in an expected way.
             ...mergeConfig(globalConfig, instanceConfig),
-            validate,
+            only,
             timeout: config.timeout ?? 5000,
             onValidationError: (response, axiosError) => {
                 [
-                    ...setValidated([...validated, ...validate]),
-                    ...setErrors(merge(omit({ ...errors }, validate), response.data.errors)),
+                    ...setValidated([...validated, ...only]),
+                    ...setErrors(merge(omit({ ...errors }, only), response.data.errors)),
                 ].forEach((listener) => listener())
 
                 return config.onValidationError
@@ -237,7 +237,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : Promise.reject(axiosError)
             },
             onSuccess: (response) => {
-                setValidated([...validated, ...validate]).forEach((listener) => listener())
+                setValidated([...validated, ...only]).forEach((listener) => listener())
 
                 return config.onSuccess
                     ? config.onSuccess(response)
@@ -245,8 +245,8 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             },
             onPrecognitionSuccess: (response) => {
                 [
-                    ...setValidated([...validated, ...validate]),
-                    ...setErrors(omit({ ...errors }, validate)),
+                    ...setValidated([...validated, ...only]),
+                    ...setErrors(omit({ ...errors }, only)),
                 ].forEach((listener) => listener())
 
                 return config.onPrecognitionSuccess
@@ -294,6 +294,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
      */
     const validate = (name?: string | NamedInputEvent, value?: unknown, config?: ValidationConfig): void => {
         if (typeof name === 'undefined') {
+            const only = Array.from(config?.only ?? config?.validate ?? [])
+
+            setTouched([...touched, ...only]).forEach((listener) => listener())
+
             validator(config ?? {})
 
             return

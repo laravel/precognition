@@ -674,3 +674,74 @@ it('does not cancel submit requests with custom abort signal', async () => {
 
     await assertPendingValidateDebounceAndClear()
 })
+
+it('supports async validate with only key for untouched values', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+    validator.validate({
+        only: ['name', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('name,email')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('supports async validate with depricated validate key for untouched values', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+    validator.validate({
+        validate: ['name', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('name,email')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('does not include already touched keys when specifying keys via only', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+
+    validator.touch(['email']).validate({
+        only: ['name'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('name')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('marks fields as touched when the input has been included in validation', async () => {
+    axios.request.mockImplementation(() => {
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+
+    validator.touch(['email']).validate({
+        only: ['name'],
+    })
+
+    expect(validator.touched()).toEqual(['email', 'name'])
+
+    await assertPendingValidateDebounceAndClear()
+})

@@ -8,7 +8,9 @@ export type SimpleValidationErrors = Record<string, string>
 
 export type Config = AxiosRequestConfig & {
     precognitive?: boolean,
+    /** @deprecated Use `only` instead */
     validate?: Iterable<string> | ArrayLike<string>,
+    only?: Iterable<string> | ArrayLike<string>,
     fingerprint?: string | null,
     onBefore?: () => boolean | undefined,
     onStart?: () => void,
