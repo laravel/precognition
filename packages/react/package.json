@@ -27,7 +27,7 @@
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
     },
     "peerDependencies": {
-        "react": "^18.0.0"
+        "react": "^18.0.0 || ^19.0.0"
     },
     "dependencies": {
         "laravel-precognition": "0.5.14",
@@ -35,7 +35,7 @@
     },
     "devDependencies": {
         "@types/lodash-es": "^4.17.12",
-        "@types/react": "^18.2.6",
+        "@types/react": "^18.2.6 || ^19.0.0",
         "typescript": "^5.0.0"
     }
 }
