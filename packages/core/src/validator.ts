@@ -436,35 +436,24 @@ export const resolveName = (name: string | NamedInputEvent): string => {
 /**
  * Forget any files from the payload.
  */
-const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => {
-    const newData = { ...data }
+const forgetFiles = (data: any): any => {
+    if (Array.isArray(data)) {
+        return data.map((item) => forgetFiles(item))
+    }
 
-    Object.keys(newData).forEach((name) => {
-        const value = newData[name]
+    if (typeof data === 'object' && data !== null) {
+        const newData = { ...data }
+        Object.getOwnPropertyNames(newData).forEach((key) => {
+            const value = newData[key]
+            if (isFile(value)) {
+                delete newData[key]
+            } else {
+                newData[key] = forgetFiles(value)
+            }
+        })
 
-        if (value === null) {
-            return
-        }
+        return newData
+    }
 
-        if (isFile(value)) {
-            delete newData[name]
-
-            return
-        }
-
-        if (Array.isArray(value)) {
-            newData[name] = value.filter((value) => !isFile(value))
-
-            return
-        }
-
-        if (typeof value === 'object') {
-            // @ts-expect-error
-            newData[name] = forgetFiles(newData[name])
-
-            return
-        }
-    })
-
-    return newData
+    return data
 }
