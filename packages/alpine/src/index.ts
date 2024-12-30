@@ -165,7 +165,7 @@ export default function (Alpine: TAlpine) {
          */
         const form = Alpine.reactive(createForm()) as Data & Form<Data>
 
-        syncWithDom(el, resolveMethod(method), resolveUrl(url), form)
+        syncWithDom(Alpine, el, resolveMethod(method), resolveUrl(url), form)
 
         return form
     })
@@ -174,7 +174,7 @@ export default function (Alpine: TAlpine) {
 /**
  * Sync the DOM form with the Precognitive form.
  */
-const syncWithDom = <Data extends Record<string, unknown>>(el: Node, method: RequestMethod, url: string, form: Form<Data>): void => {
+const syncWithDom = <Data extends Record<string, unknown>>(Alpine: TAlpine, el: Node, method: RequestMethod, url: string, form: Form<Data>): void => {
     if (! (el instanceof Element && el.nodeName === 'FORM')) {
         return
     }
@@ -182,7 +182,7 @@ const syncWithDom = <Data extends Record<string, unknown>>(el: Node, method: Req
     syncSyntheticMethodInput(el, method)
     syncMethodAttribute(el, method)
     syncActionAttribute(el, url)
-    addProcessingListener(el, form)
+    addProcessingListener(Alpine, el, form)
 }
 
 /**
@@ -231,4 +231,6 @@ const syncSyntheticMethodInput = (el: Element, method: RequestMethod) => {
 /**
  * Add processing listener.
  */
-const addProcessingListener = <Data extends Record<string, unknown>>(el: Element, form: Form<Data>) => el.addEventListener('submit', () => (form.processing = true))
+const addProcessingListener = <Data extends Record<string, unknown>>(Alpine: TAlpine, el: Element, form: Form<Data>) => el.addEventListener('submit', () => {
+    Alpine.nextTick(() => form.processing = true)
+})
