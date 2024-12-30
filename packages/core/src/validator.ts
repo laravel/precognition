@@ -438,7 +438,9 @@ export const resolveName = (name: string | NamedInputEvent): string => {
  */
 const forgetFiles = (data: any): any => {
     if (Array.isArray(data)) {
-        return data.map((item) => forgetFiles(item))
+        return data
+            .filter((item) => ! isFile(item))
+            .map((item) => forgetFiles(item))
     }
 
     if (typeof data === 'object' && data !== null) {
