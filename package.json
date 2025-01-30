@@ -7,10 +7,11 @@
         "packages/react-inertia",
         "packages/vue",
         "packages/vue-inertia",
-        "packages/alpine"
+        "packages/alpine",
+        "packages/svelte"
     ],
     "scripts": {
-        "watch": "npx concurrently \"npm run watch --workspace=packages/core\" \"npm run watch --workspace=packages/react\" \"npm run watch --workspace=packages/react-inertia\" \"npm run watch --workspace=packages/vue\" \"npm run watch --workspace=packages/vue-inertia\" \"npm run watch --workspace=packages/alpine\" --names=core,react,react-inertia,vue,vue-inertia,alpine",
+        "watch": "npx concurrently \"npm run watch --workspace=packages/core\" \"npm run watch --workspace=packages/react\" \"npm run watch --workspace=packages/react-inertia\" \"npm run watch --workspace=packages/vue\" \"npm run watch --workspace=packages/vue-inertia\" \"npm run watch --workspace=packages/alpine\" \"npm run watch --workspace=packages/svelte\" --names=core,react,react-inertia,vue,vue-inertia,alpine,svelte",
         "build": "npm run build --workspaces",
         "link": "npm link --workspaces",
         "typeCheck": "npm run typeCheck --workspaces",
