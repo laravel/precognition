@@ -7,7 +7,7 @@ import { Form } from './types'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Form<Data> => {
     /**
      * The Inertia form.
      */
