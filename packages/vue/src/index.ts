@@ -5,11 +5,11 @@ import { cloneDeep, get, set } from 'lodash-es'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Data & Form<Data> => {
+export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Data & Form<Data> => {
     /**
      * The original data.
      */
-    const originalData = cloneDeep(inputs)
+    const originalData = typeof inputs === 'function' ? cloneDeep(inputs()) : cloneDeep(inputs)
 
     /**
      * The original input names.
@@ -143,7 +143,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         reset(...names) {
-            const original = cloneDeep(originalData)
+            const original = typeof inputs === 'function' ? cloneDeep(inputs()) : cloneDeep(originalData)
 
             if (names.length === 0) {
                 // @ts-expect-error

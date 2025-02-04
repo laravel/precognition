@@ -111,3 +111,22 @@ it('can set individual errors', function () {
 
     expect(form.errors.name).toBe('The name is required.')
 })
+
+it('allows getter as data inputs', function () {
+    let dynamicEmail = 'taylor@laravel.com'
+
+    function getData() {
+        return {
+            email: dynamicEmail,
+        }
+    }
+
+    const form = useForm('post', '/register', getData)
+
+    expect(form.email).toBe('taylor@laravel.com')
+
+    dynamicEmail = 'tim@laravel.com'
+    form.reset()
+
+    expect(form.email).toBe('tim@laravel.com')
+})
