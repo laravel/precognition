@@ -453,7 +453,7 @@ const forgetFiles = (data: Record<string, unknown>): Record<string, unknown> => 
         }
 
         if (Array.isArray(value)) {
-            newData[name] = value.filter((value) => !isFile(value))
+            newData[name] = Object.values(forgetFiles({ ...value }))
 
             return
         }
