@@ -3,11 +3,11 @@ import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
 import { VisitOptions } from '@inertiajs/core'
 import { watchEffect } from 'vue'
-import { Form } from './types'
+import { Form, FormDataConvertible } from './types'
 
 export { client }
 
-export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Form<Data> => {
+export const useForm = <Data extends Record<string, FormDataConvertible>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Form<Data> => {
     /**
      * The Inertia form.
      */
@@ -58,7 +58,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The transform function.
      */
-    let transformer: (data: Data) => Record<string, unknown> = (data) => data
+    let transformer: (data: Data) => Record<string, FormDataConvertible> = (data) => data
 
     /**
      * Patch the form.
@@ -73,7 +73,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         valid: precognitiveForm.valid,
         invalid: precognitiveForm.invalid,
-        setData(data: Record<string, unknown>) {
+        setData(data: Record<string, FormDataConvertible>) {
             Object.keys(data).forEach((input) => {
                 // @ts-expect-error
                 form[input] = data[input]
@@ -128,7 +128,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
-        transform(callback: (data: Data) => Record<string, unknown>) {
+        transform(callback: (data: Data) => Record<string, FormDataConvertible>) {
             inertiaTransform(callback)
 
             transformer = callback

@@ -260,6 +260,12 @@ it('filters out files', async () => {
             'apple',
             'banana',
             new Blob([], { type: 'image/png' }),
+            ['nested', new Blob([], { type: 'image/png' })],
+            {
+                name: 'Tim',
+                email: null,
+                avatar: new Blob([], { type: 'image/png' }),
+            },
         ],
         avatar: new Blob([], { type: 'image/png' }),
         nested: {
@@ -292,6 +298,11 @@ it('filters out files', async () => {
         fruits: [
             'apple',
             'banana',
+            ['nested'],
+            {
+                name: 'Tim',
+                email: null,
+            },
         ],
         nested: {
             name: 'Tim',
