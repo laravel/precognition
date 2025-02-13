@@ -1,7 +1,6 @@
 # Laravel Precognition
 
 <a href="https://github.com/laravel/precognition/actions"><img src="https://github.com/laravel/precognition/workflows/tests/badge.svg" alt="Test Status"></a>
-<a href="https://github.com/laravel/precognition/actions"><img src="https://github.com/laravel/precognition/workflows/build/badge.svg" alt="Build Status"></a>
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/dt/laravel-precognition" alt="Total Downloads"></a>
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/v/laravel-precognition" alt="Latest Stable Version"></a>
 <a href="https://www.npmjs.com/package/laravel-precognition"><img src="https://img.shields.io/npm/l/laravel-precognition" alt="License"></a>
