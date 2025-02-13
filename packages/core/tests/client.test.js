@@ -188,6 +188,22 @@ it('can provide input names to validate via config', async () => {
     })
 
     await client.get('https://laravel.com', {}, {
+        only: ['username', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('username,email')
+})
+
+it('continues to support the deprecated "validate" key as fallback of "only"', async () => {
+    expect.assertions(1)
+
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true' } })
+    })
+
+    await client.get('https://laravel.com', {}, {
         validate: ['username', 'email'],
     })
 

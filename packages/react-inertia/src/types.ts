@@ -17,3 +17,11 @@ export type Form<Data extends Record<string, unknown>> = Omit<PrecognitiveForm<D
     setData(data: Record<string, unknown>): Data & Form<Data>,
     validate(name?: (keyof Data | NamedInputEvent) | ValidationConfig, config?: ValidationConfig): Data & Form<Data>,
 }
+
+// This type has been duplicated from @inertiajs/core to
+// continue supporting Inertia 1. When we drop version 1
+// support we can import this directly from Inertia.
+export type FormDataConvertible = Array<FormDataConvertible> | {
+    [key: string]: FormDataConvertible;
+} | Blob | FormDataEntryValue | Date | boolean | number | null | undefined;
+

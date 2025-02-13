@@ -260,6 +260,12 @@ it('filters out files', async () => {
             'apple',
             'banana',
             new Blob([], { type: 'image/png' }),
+            ['nested', new Blob([], { type: 'image/png' })],
+            {
+                name: 'Tim',
+                email: null,
+                avatar: new Blob([], { type: 'image/png' }),
+            },
         ],
         avatar: new Blob([], { type: 'image/png' }),
         nested: {
@@ -292,6 +298,11 @@ it('filters out files', async () => {
         fruits: [
             'apple',
             'banana',
+            ['nested'],
+            {
+                name: 'Tim',
+                email: null,
+            },
         ],
         nested: {
             name: 'Tim',
@@ -671,6 +682,77 @@ it('does not cancel submit requests with custom abort signal', async () => {
     expect(submitConfig.signal.aborted).toBe(false)
     expect(validateConfig.signal).toBeInstanceOf(AbortSignal)
     expect(validateConfig.signal.aborted).toBe(false)
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('supports async validate with only key for untouched values', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+    validator.validate({
+        only: ['name', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('name,email')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('supports async validate with depricated validate key for untouched values', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+    validator.validate({
+        validate: ['name', 'email'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('name,email')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('does not include already touched keys when specifying keys via only', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+
+    validator.touch(['email']).validate({
+        only: ['name'],
+    })
+
+    expect(config.headers['Precognition-Validate-Only']).toBe('name')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('marks fields as touched when the input has been included in validation', async () => {
+    axios.request.mockImplementation(() => {
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+
+    validator.touch(['email']).validate({
+        only: ['name'],
+    })
+
+    expect(validator.touched()).toEqual(['email', 'name'])
 
     await assertPendingValidateDebounceAndClear()
 })
