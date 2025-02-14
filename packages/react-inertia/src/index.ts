@@ -2,8 +2,7 @@ import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpl
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
 import { useRef } from 'react'
-import { Form } from './types'
-import { FormDataConvertible } from './types'
+import { Form, FormDataConvertible } from './types'
 
 export { client }
 
