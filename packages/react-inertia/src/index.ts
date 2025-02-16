@@ -1,6 +1,7 @@
-import { Config, NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
+import { NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
+import { VisitOptions } from '@inertiajs/core'
 import { useRef } from 'react'
 import { Form, FormDataConvertible } from './types'
 
@@ -160,7 +161,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        submit(submitMethod: RequestMethod | Config = {}, submitUrl?: string, submitOptions?: any): void {
+        submit(submitMethod: RequestMethod | Partial<VisitOptions> = {}, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void {
             if (typeof submitMethod !== 'string') {
                 submitOptions = submitMethod
                 submitUrl = resolveUrl(url)
