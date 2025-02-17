@@ -11,7 +11,7 @@ export type Form<Data extends Record<string, FormDataConvertible>> = Omit<Precog
     forgetError(string: keyof Data | NamedInputEvent): Form<Data>,
     setValidationTimeout(duration: number): Form<Data>,
     submit(config?: Partial<VisitOptions>): void,
-    submit(method: RequestMethod, url: string, options?: Partial<VisitOptions>): void,
+    submit(method: RequestMethod, url: string, options?: Omit<VisitOptions, 'data'>): void,
     reset(...keys: (keyof Partial<Data>)[]): void,
     validateFiles(): Form<Data>,
     setData(data: Record<string, FormDataConvertible>): Form<Data>,
