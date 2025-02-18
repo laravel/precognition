@@ -1,6 +1,8 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.7.0...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.7.1...main)
+
+## [v0.7.1](https://github.com/laravel/precognition/compare/v0.7.0...v0.7.1) - 2025-02-18
 
 ## [v0.7.0](https://github.com/laravel/precognition/compare/v0.6.1...v0.7.0) - 2025-02-18
 
