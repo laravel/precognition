@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.6.1...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.7.0...main)
+
+## [v0.7.0](https://github.com/laravel/precognition/compare/v0.6.1...v0.7.0) - 2025-02-18
+
+* Fix Inertia types by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/118
+* [0.5.x] Improve forgetFiles to handle nested structures and edge cases by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/precognition/pull/119
+* [0.6.x]: Data Getter Support in vue and vue-inertia Forms by [@parafeu](https://github.com/parafeu) in https://github.com/laravel/precognition/pull/117
+* [0.6.x] Typescript return type for React Inertia useForm() by [@joelstein](https://github.com/joelstein) in https://github.com/laravel/precognition/pull/110
 
 ## [v0.6.1](https://github.com/laravel/precognition/compare/v0.5.14...v0.6.1) - 2025-01-28
 
