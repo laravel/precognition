@@ -6,6 +6,7 @@ import { useRef } from 'react'
 import { Form, FormDataConvertible } from './types'
 
 export { client }
+export { Form as PrecognitionForm }
 
 export const useForm = <Data extends Record<string, FormDataConvertible>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
     const booted = useRef<boolean>(false)
