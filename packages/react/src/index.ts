@@ -3,7 +3,7 @@ import { cloneDeep, get, set } from 'lodash-es'
 import { useRef, useState } from 'react'
 import { Form } from './types.js'
 
-export { client }
+export { client, Form }
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
     /**

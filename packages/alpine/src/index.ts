@@ -3,7 +3,7 @@ import { client, Config, createValidator, RequestMethod, resolveName, toSimpleVa
 import { cloneDeep, get, set } from 'lodash-es'
 import { Form } from './types.js'
 
-export { client }
+export { client, Form }
 
 export default function (Alpine: TAlpine) {
     Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Data & Form<Data> => {
