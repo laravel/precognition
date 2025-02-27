@@ -3,7 +3,7 @@ import { Form } from './types.js'
 import { reactive, ref, toRaw } from 'vue'
 import { cloneDeep, get, set } from 'lodash-es'
 
-export { client }
+export { client, Form }
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Data & Form<Data> => {
     /**

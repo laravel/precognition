@@ -5,7 +5,7 @@ import { VisitOptions } from '@inertiajs/core'
 import { watchEffect } from 'vue'
 import { Form, FormDataConvertible } from './types'
 
-export { client }
+export { client, Form }
 
 export const useForm = <Data extends Record<string, FormDataConvertible>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Form<Data> => {
     /**
