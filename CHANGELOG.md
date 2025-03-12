@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.7.1...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.7.2...main)
+
+## [v0.7.2](https://github.com/laravel/precognition/compare/v0.7.1...v0.7.2) - 2025-03-04
+
+* [0.7.x] Export the Form type by [@joelstein](https://github.com/joelstein) in https://github.com/laravel/precognition/pull/121
 
 ## [v0.7.1](https://github.com/laravel/precognition/compare/v0.7.0...v0.7.1) - 2025-02-18
 
