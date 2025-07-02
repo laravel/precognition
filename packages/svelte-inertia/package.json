@@ -1,0 +1,53 @@
+{
+    "name": "laravel-precognition-svelte-inertia",
+    "version": "0.0.1",
+    "description": "Laravel Precognition (Svelte w/ Inertia).",
+    "keywords": [
+        "laravel",
+        "precognition",
+        "svelte",
+        "inertia"
+    ],
+    "homepage": "https://github.com/laravel/precognition",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/laravel/precognition"
+    },
+    "license": "MIT",
+    "author": "Laravel",
+    "main": "dist/index.js",
+    "files": [
+        "dist",
+        "!dist/**/*.test.*",
+        "!dist/**/*.spec.*"
+    ],
+    "svelte": "./dist/index.svelte.js",
+    "types": "./dist/index.svelte.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.svelte.d.ts",
+            "svelte": "./dist/index.svelte.js"
+        }
+    },
+    "scripts": {
+        "watch": "rm -rf dist && tsc --watch --preserveWatchOutput",
+        "build": "rm -rf dist && tsc",
+        "typeCheck": "tsc --noEmit",
+        "prepublishOnly": "npm run build",
+        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
+    },
+    "peerDependencies": {
+        "@inertiajs/svelte": "^1.0.0 || ^2.0.0",
+        "svelte": "^5.0.0"
+    },
+    "dependencies": {
+        "laravel-precognition": "0.7.2",
+        "laravel-precognition-svelte": "0.0.1",
+        "lodash-es": "^4.17.21"
+    },
+    "devDependencies": {
+        "@types/lodash-es": "^4.17.12",
+        "typescript": "^5.0.0"
+    }
+}
