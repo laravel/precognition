@@ -1,13 +1,15 @@
 import { NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
-import { VisitOptions } from '@inertiajs/core'
+import type { VisitOptions, FormDataKeys, FormDataType, FormDataErrors, ErrorValue } from '@inertiajs/core'
 import { watchEffect } from 'vue'
-import { Form, FormDataConvertible } from './types'
+import type { Form, FormDataConvertible } from './types'
 
-export { client, Form }
+export { client }
+export type { Form }
+export { Form as PrecognitionForm } from "./form";
 
-export const useForm = <Data extends Record<string, FormDataConvertible>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Form<Data> => {
+export const useForm = <Data extends FormDataType<Data>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data | (() => Data), config: ValidationConfig = {}): Form<Data> => {
     /**
      * The Inertia form.
      */
@@ -66,7 +68,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
     const form: Form<Data> = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
-        touch(name: Array<string> | string | NamedInputEvent) {
+        touch(name: Array<FormDataKeys<Data>> | FormDataKeys<Data> | NamedInputEvent) {
             precognitiveForm.touch(name)
 
             return form
@@ -81,34 +83,63 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        clearErrors(...names: string[]) {
+        clearErrors<K extends FormDataKeys<Data>>(...names: K[]) {
             inertiaClearErrors(...names)
 
             if (names.length === 0) {
                 precognitiveForm.setErrors({})
             } else {
-                names.forEach(precognitiveForm.forgetError)
+                names.forEach((n) =>
+                    precognitiveForm.forgetError(
+                        String(n) as unknown as keyof Data,
+                    ),
+                )
             }
 
             return form
         },
-        reset(...names: string[]) {
+        reset<K extends FormDataKeys<Data>>(...names: K[]) {
             inertiaReset(...names)
 
-            precognitiveForm.reset(...names)
+            if (names.length === 0) {
+                precognitiveForm.reset();
+            } else {
+                const str = names.map((n) => String(n));
+                precognitiveForm.reset(
+                    ...(str as unknown as Array<keyof Data>),
+                );
+            }
+
+            return form;
         },
         setErrors(errors: SimpleValidationErrors | ValidationErrors) {
-            // @ts-expect-error
-            precognitiveForm.setErrors(errors)
+            const anyErr = errors as unknown as Record<string, unknown>
+            const firstVal = anyErr ? Object.values(anyErr)[0] : undefined
+            const simple: SimpleValidationErrors =
+                typeof firstVal === "string"
+                    ? (errors as SimpleValidationErrors)
+                    : toSimpleValidationErrors(errors as ValidationErrors)
+
+            precognitiveForm.setErrors(
+                simple as unknown as Partial<
+                    Record<keyof Data, string | string[]>
+                >,
+            )
 
             return form
         },
-        forgetError(name: string | NamedInputEvent) {
-            precognitiveForm.forgetError(name)
+        forgetError(name: FormDataKeys<Data> | NamedInputEvent) {
+            if (typeof name === "object" && "target" in name) {
+                precognitiveForm.forgetError(name)
+            } else {
+                precognitiveForm.forgetError(
+                    String(name) as unknown as keyof Data,
+                )
+            }
 
             return form
         },
-        setError(key: (keyof Data) | Record<keyof Data, string>, value?: string) {
+        setError(key: FormDataKeys<Data> | FormDataErrors<Data>, value?: ErrorValue) {
             let errors: SimpleValidationErrors
 
             if (typeof key !== 'object') {
@@ -135,7 +166,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        validate(name?: string | NamedInputEvent | ValidationConfig, config?: ValidationConfig) {
+        validate(name?: FormDataKeys<Data> | NamedInputEvent | ValidationConfig, config?: ValidationConfig) {
             precognitiveForm.setData(transformer(inertiaForm.data()))
 
             if (typeof name === 'object' && !('target' in name)) {
@@ -150,8 +181,13 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             if (typeof name === 'undefined') {
                 precognitiveForm.validate(config)
-            } else {
+            } else if (typeof name === "object" && "target" in name) {
                 precognitiveForm.validate(name, config)
+            } else {
+                precognitiveForm.validate(
+                    String(name) as unknown as keyof Data,
+                    config,
+                )
             }
 
             return form
