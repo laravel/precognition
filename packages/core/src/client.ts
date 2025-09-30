@@ -139,7 +139,7 @@ const resolveConfig = (config: Config): Config => {
             ...config.precognitive !== false ? {
                 Precognition: true,
             } : {},
-            ...only ? {
+            ...only && Array.from(only).length ? {
                 'Precognition-Validate-Only': Array.from(only).join(),
             } : {},
         },

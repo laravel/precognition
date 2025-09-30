@@ -704,6 +704,22 @@ it('supports async validate with only key for untouched values', async () => {
     await assertPendingValidateDebounceAndClear()
 })
 
+it('supports async validate without only key', async () => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
+
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
+    })
+    const validator = createValidator((client) => client.post('/foo', {}))
+
+    validator.validate()
+
+    expect(config.headers).not.toHaveProperty('Precognition-Validate-Only')
+
+    await assertPendingValidateDebounceAndClear()
+})
+
 it('supports async validate with depricated validate key for untouched values', async () => {
     let config
     axios.request.mockImplementation((c) => {
