@@ -471,11 +471,13 @@ it('revalidates when touched changes', async () => {
     expect(requests).toBe(2)
 })
 
-it('can validate without needing to specify a field', async () => {
+it('validates touched fields when calling validate without specifying any fields', async () => {
     expect.assertions(2)
 
     let requests = 0
-    axios.request.mockImplementation(() => {
+    let config
+    axios.request.mockImplementation((c) => {
+        config = c
         requests++
 
         return Promise.resolve(precognitionSuccessResponse())
@@ -484,7 +486,7 @@ it('can validate without needing to specify a field', async () => {
     const validator = createValidator((client) => client.post('/foo', data))
 
     validator.touch(['name', 'framework']).validate()
-    expect(requests).toBe(1)
+    expect(config.headers['Precognition-Validate-Only']).toBe('name,framework')
 
     await assertPendingValidateDebounceAndClear()
 })
