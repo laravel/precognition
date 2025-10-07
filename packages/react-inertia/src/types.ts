@@ -10,7 +10,7 @@ export type Form<Data extends Record<string, FormDataConvertible>> = Omit<Precog
     touch(name: Array<string> | string | NamedInputEvent): Form<Data>,
     forgetError(string: keyof Data | NamedInputEvent): Form<Data>,
     setValidationTimeout(duration: number): Form<Data>,
-    submit(config?: Partial<VisitOptions>): void,
+    submit(config?: Omit<VisitOptions, 'data'>): void,
     submit(method: RequestMethod, url: string, options?: Omit<VisitOptions, 'data'>): void,
     reset(...keys: (keyof Partial<Data>)[]): void,
     validateFiles(): Form<Data>,
