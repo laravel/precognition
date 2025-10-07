@@ -88,7 +88,11 @@ export default function (Alpine: TAlpine) {
                 }), {}) as Data
             },
             touched(name) {
-                return state.touched.includes(name)
+                if (typeof name === 'string') {
+                    return state.touched.includes(name)
+                } else {
+                    return state.touched.length > 0
+                }
             },
             touch(name) {
                 validator.touch(name)

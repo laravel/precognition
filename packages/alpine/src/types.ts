@@ -3,7 +3,7 @@ import { Config, NamedInputEvent, SimpleValidationErrors, ValidationConfig, Vali
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
     validating: boolean,
-    touched(name: string): boolean,
+    touched(name?: string): boolean,
     touch(name: string | NamedInputEvent | Array<string>): Data & Form<Data>,
     data(): Data,
     errors: Record<string, string>,
