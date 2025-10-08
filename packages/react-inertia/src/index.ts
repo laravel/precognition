@@ -161,7 +161,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        submit(submitMethod: RequestMethod | Partial<VisitOptions> = {}, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void {
+        submit(submitMethod: RequestMethod | Omit<VisitOptions, 'data'> = {}, submitUrl?: string, submitOptions?: Omit<VisitOptions, 'data'>): void {
             if (typeof submitMethod !== 'string') {
                 submitOptions = submitMethod
                 submitUrl = resolveUrl(url)
