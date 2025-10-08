@@ -95,8 +95,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         touched(name) {
-            // @ts-expect-error
-            return touched.value.includes(name)
+            if (typeof name === 'string') {
+                // @ts-expect-error
+                return touched.value.includes(name)
+            } else {
+                return touched.value.length > 0
+            }
         },
         touch(name) {
             validator.touch(name)

@@ -3,7 +3,7 @@ import { ValidationConfig, Config, NamedInputEvent, Validator } from 'laravel-pr
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
     validating: boolean,
-    touched(name: keyof Data): boolean,
+    touched(name?: keyof Data): boolean,
     touch(name: string | NamedInputEvent | Array<string>): Data & Form<Data>,
     data(): Data,
     setData(data: Record<string, unknown>): Data & Form<Data>,

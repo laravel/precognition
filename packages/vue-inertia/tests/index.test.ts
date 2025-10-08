@@ -130,3 +130,31 @@ it('allows getter as data inputs', function () {
 
     expect(form.email).toBe('tim@laravel.com')
 })
+
+it('can check that specific fields have been touched', () => {
+    const form = useForm('post', '/register', {
+        name: '',
+        email: '',
+    })
+
+    expect(form.touched('name')).toBe(false)
+    expect(form.touched('email')).toBe(false)
+
+    form.touch('name')
+
+    expect(form.touched('name')).toBe(true)
+    expect(form.touched('email')).toBe(false)
+})
+
+it('can check it any fields have been touched', () => {
+    const form = useForm('post', '/register', {
+        name: '',
+        email: '',
+    })
+
+    expect(form.touched()).toBe(false)
+
+    form.touch('name')
+
+    expect(form.touched()).toBe(true)
+})
