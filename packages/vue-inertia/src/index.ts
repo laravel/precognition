@@ -1,7 +1,7 @@
 import { NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-vue'
 import { useForm as useInertiaForm } from '@inertiajs/vue3'
-import { VisitOptions } from '@inertiajs/core'
+import { FormDataKeys, FormDataType, VisitOptions } from '@inertiajs/core'
 import { watchEffect } from 'vue'
 import { Form, FormDataConvertible } from './types'
 
@@ -11,6 +11,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
     /**
      * The Inertia form.
      */
+    // @ts-expect-error
     const inertiaForm = useInertiaForm(inputs)
 
     /**
@@ -63,6 +64,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
     /**
      * Patch the form.
      */
+    // @ts-expect-error
     const form: Form<Data> = Object.assign(inertiaForm, {
         validating: precognitiveForm.validating,
         touched: precognitiveForm.touched,
@@ -81,7 +83,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        clearErrors(...names: string[]) {
+        clearErrors(...names: FormDataKeys<FormDataType<Data>>[]) {
             inertiaClearErrors(...names)
 
             if (names.length === 0) {
@@ -92,7 +94,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        reset(...names: string[]) {
+        reset(...names: FormDataKeys<FormDataType<Data>>[]) {
             inertiaReset(...names)
 
             precognitiveForm.reset(...names)

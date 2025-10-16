@@ -1,7 +1,7 @@
 import { NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidationErrors, ValidationConfig, ValidationErrors, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
-import { VisitOptions } from '@inertiajs/core'
+import { FormDataKeys, FormDataType, VisitOptions } from '@inertiajs/core'
 import { useRef } from 'react'
 import { Form, FormDataConvertible } from './types'
 
@@ -91,7 +91,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        clearErrors(...names: string[]) {
+        clearErrors(...names: FormDataKeys<FormDataType<Data>>[]) {
             inertiaClearErrors(...names)
 
             if (names.length === 0) {
@@ -102,7 +102,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        reset(...names: string[]) {
+        reset(...names: FormDataKeys<FormDataType<Data>>[]) {
             inertiaReset(...names)
 
             precognitiveForm.reset(...names)
