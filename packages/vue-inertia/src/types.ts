@@ -3,10 +3,9 @@ import { Form as PrecognitiveForm } from 'laravel-precognition-vue/dist/types'
 import { InertiaForm } from '@inertiajs/vue3'
 import { FormDataErrors, VisitOptions } from '@inertiajs/core'
 
-type RedefinedProperties = 'setErrors' | 'touch' | 'forgetError' | 'setValidationTimeout' | 'submit' | 'reset' | 'validateFiles' | 'setData' | 'validate' | 'errors'
+type RedefinedProperties = 'setErrors' | 'touch' | 'forgetError' | 'setValidationTimeout' | 'submit' | 'reset' | 'validateFiles' | 'setData' | 'validate'
 
 export type Form<Data extends Record<string, FormDataConvertible>> = Omit<PrecognitiveForm<Data>, RedefinedProperties> & InertiaForm<Data> & {
-    errors: FormDataErrors<Data>;
     setErrors(errors: SimpleValidationErrors | ValidationErrors): Data & Form<Data>,
     touch(name: Array<string> | string | NamedInputEvent): Data & Form<Data>,
     forgetError(string: keyof Data | NamedInputEvent): Data & Form<Data>,
