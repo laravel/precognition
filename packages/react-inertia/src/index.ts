@@ -13,6 +13,7 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
     /**
      * The Inertia form.
      */
+    // @ts-expect-error
     const inertiaForm = useInertiaForm(inputs)
 
     /**
@@ -182,5 +183,6 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
         validator: precognitiveForm.validator,
     })
 
+    // @ts-expect-error
     return form
 }
