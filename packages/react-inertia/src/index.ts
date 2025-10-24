@@ -2,10 +2,10 @@ import { NamedInputEvent, RequestMethod, SimpleValidationErrors, toSimpleValidat
 import { useForm as usePrecognitiveForm, client } from 'laravel-precognition-react'
 import { useForm as useInertiaForm } from '@inertiajs/react'
 import { FormDataKeys, FormDataType, VisitOptions } from '@inertiajs/core'
-import { useRef } from 'react'
-import { Form, FormDataConvertible } from './types'
+import { ReactNode, useCallback, useMemo, useRef } from 'react'
+import { Field, Form, FormDataConvertible } from './types'
 
-export { client, Form }
+export { client, Field, Form }
 
 export const useForm = <Data extends Record<string, FormDataConvertible>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Form<Data> => {
     const booted = useRef<boolean>(false)
@@ -185,4 +185,76 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
     // @ts-expect-error
     return form
+}
+
+export function Controller<
+    TData extends Record<string, FormDataConvertible> = Record<string, FormDataConvertible>,
+    TName extends FormDataKeys<TData> = FormDataKeys<TData>
+>({
+    form,
+    name,
+    children
+}: {
+    form: Form<TData>;
+    name: TName;
+    children: ((field: Field<TData, TName>) => ReactNode) | ReactNode;
+}): ReactNode {
+    const state = useMemo(
+        () => ({
+            value: form.data[name],
+            touched: form.touched(name),
+            error: form.errors[name],
+            valid: form.valid(name),
+            invalid: form.invalid(name)
+        }),
+        [form, name]
+    );
+
+    const setValue = useCallback(
+        (value: TData[TName]) => {
+            form.setData({ [name]: value });
+        },
+        [form, name]
+    );
+
+    const validate = useCallback(() => {
+        form.validate(name);
+    }, [form, name]);
+
+    const touch = useCallback(() => {
+        form.touch(name);
+    }, [form, name]);
+
+    const setError = useCallback(
+        (error: string | string[]) => {
+            form.setErrors({ [name]: error } as
+                | SimpleValidationErrors
+                | ValidationErrors);
+        },
+        [form, name]
+    );
+    const clearError = useCallback(() => {
+        form.forgetError(name);
+    }, [form, name]);
+
+    const reset = useCallback(() => {
+        form.reset(name);
+    }, [form, name]);
+    const resetAndClearError = useCallback(() => {
+        form.resetAndClearErrors(name);
+    }, [form, name]);
+
+    return typeof children === 'function'
+        ? children({
+              name,
+              state,
+              setValue,
+              validate,
+              touch,
+              setError,
+              clearError,
+              reset,
+              resetAndClearError
+          })
+        : children;
 }

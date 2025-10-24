@@ -1,7 +1,7 @@
 import { NamedInputEvent, RequestMethod, SimpleValidationErrors, ValidationConfig, ValidationErrors } from 'laravel-precognition'
 import { Form as PrecognitiveForm } from 'laravel-precognition-react/dist/types'
 import { InertiaFormProps } from '@inertiajs/react'
-import { VisitOptions } from '@inertiajs/core'
+import { FormDataKeys, VisitOptions } from '@inertiajs/core'
 
 type RedefinedProperties = 'setErrors' | 'touch' | 'forgetError' | 'setValidationTimeout' | 'submit' | 'reset' | 'validateFiles' | 'setData' | 'validate'
 
@@ -25,3 +25,24 @@ export type FormDataConvertible = Array<FormDataConvertible> | {
     [key: string]: FormDataConvertible;
 } | Blob | FormDataEntryValue | Date | boolean | number | null | undefined;
 
+
+export interface Field<
+    TData extends Record<string, FormDataConvertible> = Record<string, FormDataConvertible>,
+    TName extends FormDataKeys<TData> = FormDataKeys<TData>,
+> {
+    name: TName;
+    state: {
+        value: TData[TName];
+        touched: boolean;
+        error: string | undefined;
+        valid: boolean;
+        invalid: boolean;
+    };
+    setValue: (value: TData[TName]) => void;
+    validate: () => void;
+    touch: () => void;
+    setError: (error: string) => void;
+    clearError: () => void;
+    reset: () => void;
+    resetAndClearError: () => void;
+}
