@@ -20,3 +20,24 @@ export interface Form<Data extends Record<string, unknown>> {
     validateFiles(): Form<Data>,
     validator(): Validator,
 }
+
+export interface Field<
+    TData extends Record<string, unknown> = Record<string, unknown>,
+    TName extends Extract<keyof TData, string> = Extract<keyof TData, string>
+> {
+    name: TName;
+    state: {
+        value: TData[TName];
+        touched: boolean;
+        error: string | undefined;
+        valid: boolean;
+        invalid: boolean;
+    };
+    setValue: (value: TData[TName]) => void;
+    validate: () => void;
+    touch: () => void;
+    setError: (error: string) => void;
+    clearError: () => void;
+    reset: () => void;
+    resetAndClearError: () => void;
+}

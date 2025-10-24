@@ -1,9 +1,9 @@
 import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
 import { cloneDeep, get, set } from 'lodash-es'
-import { useRef, useState } from 'react'
-import { Form } from './types.js'
+import { ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { Field, Form } from './types.js'
 
-export { client, Form }
+export { client, Field, Form }
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
     /**
@@ -223,4 +223,80 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     }
 
     return form
+}
+
+
+export function Controller<
+    TData extends Record<string, unknown> = Record<string, unknown>,
+    TName extends Extract<keyof TData, string> = Extract<keyof TData, string>
+>({
+    form,
+    name,
+    children
+}: {
+    form: Form<TData>;
+    name: TName;
+    children:
+        | ((field: Field<TData, TName>) => ReactNode)
+        | ReactNode;
+}): ReactNode {
+    const state = useMemo(
+        () => ({
+            value: form.data[name],
+            touched: form.touched(name),
+            error: form.errors[name],
+            valid: form.valid(name),
+            invalid: form.invalid(name)
+        }),
+        [form, name]
+    );
+
+    const setValue = useCallback(
+        (value: TData[TName]) => {
+            form.setData(name, value);
+        },
+        [form, name]
+    );
+
+    const validate = useCallback(() => {
+        form.validate(name);
+    }, [form, name]);
+
+    const touch = useCallback(() => {
+        form.touch(name);
+    }, [form, name]);
+
+    const setError = useCallback(
+        (error: string | string[]) => {
+            form.setErrors({ [name]: error } as Partial<
+                Record<keyof TData, string | string[]>
+            >);
+        },
+        [form, name]
+    );
+    const clearError = useCallback(() => {
+        form.forgetError(name);
+    }, [form, name]);
+
+    const reset = useCallback(() => {
+        form.reset(name);
+    }, [form, name]);
+    const resetAndClearError = useCallback(() => {
+        form.reset(name);
+        form.forgetError(name);
+    }, [form, name]);
+
+    return typeof children === 'function'
+        ? children({
+              name,
+              state,
+              setValue,
+              validate,
+              touch,
+              setError,
+              clearError,
+              reset,
+              resetAndClearError
+          })
+        : children;
 }
