@@ -168,6 +168,11 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
+        disableFileValidation() {
+            precognitiveForm.disableFileValidation()
+
+            return form
+        },
         submit(submitMethod: RequestMethod | Partial<VisitOptions> = {}, submitUrl?: string, submitOptions?: Partial<VisitOptions>): void {
             if (typeof submitMethod !== 'string') {
                 submitOptions = submitMethod
