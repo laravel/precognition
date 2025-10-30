@@ -343,7 +343,7 @@ it('doesnt filter data when file validation is enabled', async () => {
     validator.validateFiles()
     validator.validate('text', 'Tim')
 
-    expect(config.data).toEqual(data);
+    expect(config.data).toEqual(data)
 
     await assertPendingValidateDebounceAndClear()
 })
@@ -368,7 +368,7 @@ it('can disable file validation after enabling it', async () => {
     expect(config.data).toEqual({
         name: 'Tim',
         email: null,
-    });
+    })
 
     await assertPendingValidateDebounceAndClear()
 })
