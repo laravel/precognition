@@ -1,7 +1,7 @@
 import { NamedInputEvent, RequestMethod, SimpleValidationErrors, ValidationConfig, ValidationErrors } from 'laravel-precognition'
 import { Form as PrecognitiveForm } from 'laravel-precognition-vue/dist/types'
 import { InertiaForm } from '@inertiajs/vue3'
-import { FormDataErrors, VisitOptions } from '@inertiajs/core'
+import { VisitOptions } from '@inertiajs/core'
 
 type RedefinedProperties = 'setErrors' | 'touch' | 'forgetError' | 'setValidationTimeout' | 'submit' | 'reset' | 'validateFiles' | 'setData' | 'validate'
 

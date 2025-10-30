@@ -474,12 +474,9 @@ it('revalidates when touched changes', async () => {
 it('validates touched fields when calling validate without specifying any fields', async () => {
     expect.assertions(2)
 
-    let requests = 0
     let config
     axios.request.mockImplementation((c) => {
         config = c
-        requests++
-
         return Promise.resolve(precognitionSuccessResponse())
     })
     const data = { name: 'Tim', framework: 'Laravel' }
