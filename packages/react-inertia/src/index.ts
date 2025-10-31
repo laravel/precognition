@@ -162,6 +162,11 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
+        withoutFileValidation() {
+            precognitiveForm.withoutFileValidation()
+
+            return form
+        },
         submit(submitMethod: RequestMethod | Omit<VisitOptions, 'data'> = {}, submitUrl?: string, submitOptions?: Omit<VisitOptions, 'data'>): void {
             if (typeof submitMethod !== 'string') {
                 submitOptions = submitMethod

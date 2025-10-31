@@ -397,6 +397,11 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             return form
         },
+        withoutFileValidation() {
+            validateFiles = false
+
+            return form
+        },
     }
 
     return form

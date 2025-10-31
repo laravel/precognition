@@ -162,6 +162,11 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
+            withoutFileValidation() {
+                validator.withoutFileValidation()
+
+                return form
+            },
         })
 
         /**

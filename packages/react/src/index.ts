@@ -217,6 +217,11 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
 
             return form
         },
+        withoutFileValidation() {
+            validator.current!.withoutFileValidation()
+
+            return form
+        },
         validator() {
             return validator.current!
         },

@@ -64,6 +64,7 @@ export interface Validator {
     setTimeout(duration: number): Validator,
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
     validateFiles(): Validator,
+    withoutFileValidation(): Validator,
 }
 
 export interface ValidatorListeners {

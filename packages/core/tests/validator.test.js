@@ -325,6 +325,54 @@ it('filters out files', async () => {
     await assertPendingValidateDebounceAndClear()
 })
 
+it('doesnt filter data when file validation is enabled', async () => {
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve(precognitionSuccessResponse())
+    })
+
+    const data = {
+        name: 'Tim',
+        email: null,
+        avatar: new Blob([], { type: 'image/png' }),
+    }
+
+    const validator = createValidator((client) => client.post('/foo', data))
+
+    validator.validateFiles()
+    validator.validate('text', 'Tim')
+
+    expect(config.data).toEqual(data)
+
+    await assertPendingValidateDebounceAndClear()
+})
+
+it('can disable file validation after enabling it', async () => {
+    let config
+    axios.request.mockImplementationOnce((c) => {
+        config = c
+        return Promise.resolve(precognitionSuccessResponse())
+    })
+
+    const validator = createValidator((client) => client.post('/foo', {
+        name: 'Tim',
+        email: null,
+        avatar: new Blob([], { type: 'image/png' }),
+    }))
+
+    validator.validateFiles()
+    validator.withoutFileValidation()
+    validator.validate('text', 'Tim')
+
+    expect(config.data).toEqual({
+        name: 'Tim',
+        email: null,
+    })
+
+    await assertPendingValidateDebounceAndClear()
+})
+
 it('doesnt mark fields as validated while response is pending',  async () => {
     expect.assertions(10)
 
