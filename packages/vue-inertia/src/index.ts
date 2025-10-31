@@ -168,8 +168,8 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
 
             return form
         },
-        disableFileValidation() {
-            precognitiveForm.disableFileValidation()
+        withoutFileValidation() {
+            precognitiveForm.withoutFileValidation()
 
             return form
         },

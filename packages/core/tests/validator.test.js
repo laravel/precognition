@@ -362,7 +362,7 @@ it('can disable file validation after enabling it', async () => {
     }))
 
     validator.validateFiles()
-    validator.disableFileValidation()
+    validator.withoutFileValidation()
     validator.validate('text', 'Tim')
 
     expect(config.data).toEqual({

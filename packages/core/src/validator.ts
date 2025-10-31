@@ -397,7 +397,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             return form
         },
-        disableFileValidation() {
+        withoutFileValidation() {
             validateFiles = false
 
             return form

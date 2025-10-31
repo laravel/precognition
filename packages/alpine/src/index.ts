@@ -162,8 +162,8 @@ export default function (Alpine: TAlpine) {
 
                 return form
             },
-            disableFileValidation() {
-                validator.disableFileValidation()
+            withoutFileValidation() {
+                validator.withoutFileValidation()
 
                 return form
             },

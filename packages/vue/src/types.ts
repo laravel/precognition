@@ -18,6 +18,6 @@ export interface Form<Data extends Record<string, unknown>> {
     submit(config?: Config): Promise<unknown>,
     reset(...keys: (keyof Partial<Data>)[]): Data & Form<Data>,
     validateFiles(): Data & Form<Data>,
-    disableFileValidation(): Data & Form<Data>,
+    withoutFileValidation(): Data & Form<Data>,
     validator(): Validator,
 }
