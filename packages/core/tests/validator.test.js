@@ -803,3 +803,48 @@ it('marks fields as touched when the input has been included in validation', asy
 
     await assertPendingValidateDebounceAndClear()
 })
+
+it('can override the old data via the defaults function', () => {
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve(precognitionSuccessResponse())
+    })
+
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    })
+
+    expect(validator.defaults({
+        name: 'Jess',
+    })).toBe(validator)
+
+    validator.validate('name', 'Jess')
+    expect(requests).toBe(0)
+})
+
+it('can override the initial data via the defaults function', async () => {
+    expect.assertions(2)
+    let requests = 0
+    axios.request.mockImplementation(() => {
+        requests++
+
+        return Promise.resolve(precognitionSuccessResponse())
+    })
+
+    const validator = createValidator((client) => client.post('/foo', {}), {
+        name: 'Tim',
+    }).defaults({
+        name: 'Jess',
+    })
+
+    validator.validate('name', 'Taylor')
+    expect(requests).toBe(1)
+
+    await vi.advanceTimersByTimeAsync(1500)
+
+    validator.reset('name')
+    validator.validate('name', 'Jess')
+    expect(requests).toBe(1)
+})

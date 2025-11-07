@@ -363,6 +363,12 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
             return form
         },
+        defaults(data) {
+            initialData = data
+            oldData = data
+
+            return form
+        },
         reset(...names) {
             if (names.length === 0) {
                 setTouched([]).forEach((listener) => listener())
