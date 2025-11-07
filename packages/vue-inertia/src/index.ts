@@ -32,6 +32,11 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
     })
 
     /**
+     * The Inertia defaults function.
+     */
+    const inertiaDefaults = inertiaForm.defaults.bind(inertiaForm)
+
+    /**
      * The Inertia submit function.
      */
     const inertiaSubmit = inertiaForm.submit.bind(inertiaForm)
@@ -93,6 +98,28 @@ export const useForm = <Data extends Record<string, FormDataConvertible>>(method
             }
 
             return form
+        },
+        defaults(field?: keyof Data | Partial<FormDataType<Data>> | ((previousData: FormDataType<Data>) => FormDataType<Data>), value?: Data[keyof Data]){
+            const data = ((): Partial<FormDataType<Data>> => {
+                if (typeof field === 'undefined') {
+                    return inertiaForm.data()
+                }
+
+                if (typeof field === 'function') {
+                    return field(inertiaForm.data())
+                }
+
+                if (typeof field === 'object') {
+                    return field
+                }
+
+                // @ts-ignore
+                return { [field]: value }
+            })()
+
+            inertiaDefaults(data)
+
+            precognitiveForm.validator().defaults(data)
         },
         reset(...names: FormDataKeys<FormDataType<Data>>[]) {
             inertiaReset(...names)

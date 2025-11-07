@@ -158,3 +158,92 @@ it('can check it any fields have been touched', () => {
 
     expect(form.touched()).toBe(true)
 })
+
+it('can set defaults with no arguments', () => {
+    let requests = 0
+    axios.request.mockImplementation(async () => {
+        requests++
+    })
+
+    const form = useForm('post', '/register', {
+        name: 'John',
+    })
+
+    form.name = 'Jane'
+    form.defaults()
+
+    form.name = 'John'
+    form.reset()
+    expect(form.name).toBe('Jane')
+
+    form.validate('name')
+    expect(requests).toBe(0)
+})
+
+it('can set defaults with an object', () => {
+    let requests = 0
+    axios.request.mockImplementation(async () => {
+        requests++
+    })
+
+    const form = useForm('post', '/register', {
+        name: 'John',
+    })
+
+    form.defaults({ name: 'Jane' })
+
+    form.name = 'John'
+    form.reset()
+    expect(form.name).toBe('Jane')
+
+    form.validate('name')
+    expect(requests).toBe(0)
+})
+
+it('can set defaults with a function', () => {
+    let requests = 0
+    axios.request.mockImplementation(async () => {
+        requests++
+    })
+
+    const form = useForm('post', '/register', {
+        name: 'John',
+    })
+
+    form.defaults((prevData: any) => {
+        expect(prevData).toEqual({
+            name: 'John',
+        })
+
+        return {
+            name: 'Jane',
+        }
+    })
+
+    form.name = 'John'
+    form.reset()
+    expect(form.name).toBe('Jane')
+
+    form.validate('name')
+    expect(requests).toBe(0)
+})
+
+it('can set defaults with a field and value', () => {
+    let requests = 0
+    axios.request.mockImplementation(async () => {
+        requests++
+    })
+
+    const form = useForm('post', '/register', {
+        name: 'John',
+    })
+
+    form.defaults('name', 'Jane')
+
+    form.name = 'John'
+    form.reset()
+    expect(form.name).toBe('Jane')
+
+    form.validate('name')
+    expect(requests).toBe(0)
+})
