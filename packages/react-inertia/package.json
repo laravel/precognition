@@ -25,6 +25,7 @@
         "build": "rm -rf dist && tsc",
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
+        "test": "vitest run",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version && npm pkg set dependencies.laravel-precognition-react=$npm_package_version"
     },
     "peerDependencies": {
@@ -36,7 +37,10 @@
         "laravel-precognition-react": "0.7.3"
     },
     "devDependencies": {
+        "@testing-library/react": "^16.3.0",
         "@types/react-dom": "^18.2.4 || ^19.0.0",
-        "typescript": "^5.0.0"
+        "jsdom": "^27.2.0",
+        "typescript": "^5.0.0",
+        "vitest": "^2.0.5"
     }
 }
