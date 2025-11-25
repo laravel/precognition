@@ -56,7 +56,7 @@ it('can clear specific errors via Inertia\'s clearErrors', () => {
     })
 })
 
-it('provides default data for validation requets', () => {
+it('provides default data for validation requests', () => {
     const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
 
     let config: Config
