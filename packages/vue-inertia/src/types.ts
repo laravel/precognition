@@ -17,6 +17,10 @@ export type Form<Data extends Record<string, FormDataConvertible>> = Omit<Precog
     withoutFileValidation(): Data & Form<Data>,
     setData(data: Record<string, FormDataConvertible>): Data & Form<Data>,
     validate(name?: (keyof Data | NamedInputEvent) | ValidationConfig, config?: ValidationConfig): Data & Form<Data>,
+    defaults(): void,
+    defaults(defaults: Partial<Data>): void,
+    defaults(defaults: (previousData: Data) => Data): void,
+    defaults<K extends keyof Data>(field: K, value: Data[K]): void,
 }
 
 // This type has been duplicated from @inertiajs/core to

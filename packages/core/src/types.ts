@@ -65,6 +65,7 @@ export interface Validator {
     on(event: keyof ValidatorListeners, callback: () => void): Validator,
     validateFiles(): Validator,
     withoutFileValidation(): Validator,
+    defaults(data: Record<string, unknown>): Validator,
 }
 
 export interface ValidatorListeners {
