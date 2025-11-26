@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.7.2...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v0.8.0...main)
+
+## [v0.8.0](https://github.com/laravel/precognition/compare/v0.7.2...v0.8.0) - 2025-11-26
+
+* Remove unused variable and import by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/134
+* Add `disableFileValidation()` to disable file validation after enabling by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/133
+* Add `defaults()` to Core validator + React/Vue Inertia implementation by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/135
 
 ## [v0.7.2](https://github.com/laravel/precognition/compare/v0.7.1...v0.7.2) - 2025-03-04
 
