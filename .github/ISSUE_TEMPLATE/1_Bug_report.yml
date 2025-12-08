@@ -25,9 +25,7 @@ body:
       options:
         - Alpine
         - React
-        - React w/ Inertia
         - Vue
-        - Vue w/ Inertia
     validations:
       required: true
   - type: textarea
