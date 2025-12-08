@@ -13,7 +13,5 @@ fi
 npm version $1 \
     --workspace=packages/core \
     --workspace=packages/react \
-    --workspace=packages/react-inertia \
     --workspace=packages/vue \
-    --workspace=packages/vue-inertia \
     --workspace=packages/alpine

@@ -30,21 +30,7 @@ updates:
     open-pull-requests-limit: 0
 
   - package-ecosystem: "npm"
-    directory: "/packages/react-inertia"
-    schedule:
-      interval: "daily"
-    # Only open pull requests for security updates...
-    open-pull-requests-limit: 0
-
-  - package-ecosystem: "npm"
     directory: "/packages/vue"
-    schedule:
-      interval: "daily"
-    # Only open pull requests for security updates...
-    open-pull-requests-limit: 0
-
-  - package-ecosystem: "npm"
-    directory: "/packages/vue-inertia"
     schedule:
       interval: "daily"
     # Only open pull requests for security updates...
