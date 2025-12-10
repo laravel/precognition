@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v0.8.0...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v1.0.0...main)
+
+## [v1.0.0](https://github.com/laravel/precognition/compare/v0.8.0...v1.0.0) - 2025-12-10
+
+* [1.x] Remove Inertia packages by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/136
 
 ## [v0.8.0](https://github.com/laravel/precognition/compare/v0.7.2...v0.8.0) - 2025-11-26
 
