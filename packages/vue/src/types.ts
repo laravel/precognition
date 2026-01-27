@@ -1,5 +1,14 @@
 import { ValidationConfig, Config, NamedInputEvent, Validator } from 'laravel-precognition'
 
+export type PrecognitionPath<Data> = {
+    [K in Extract<keyof Data, string>]:
+    Data[K] extends Array<infer U>
+        ? `${K}` | `${K}.*` | `${K}.*.${Extract<keyof U, string>}`
+        : Data[K] extends object
+            ? `${K}` | `${K}.*`
+            : `${K}`
+}[Extract<keyof Data, string>]
+
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
     validating: boolean,
@@ -11,7 +20,7 @@ export interface Form<Data extends Record<string, unknown>> {
     hasErrors: boolean,
     valid(name: keyof Data): boolean,
     invalid(name: keyof Data): boolean,
-    validate(name?: (keyof Data | NamedInputEvent) | ValidationConfig, config?: ValidationConfig): Data & Form<Data>,
+    validate(name?: PrecognitionPath<Data> | NamedInputEvent | ValidationConfig, config?: ValidationConfig): Data & Form<Data>,
     setErrors(errors: Partial<Record<keyof Data, string | string[]>>): Data & Form<Data>
     forgetError(string: keyof Data | NamedInputEvent): Data & Form<Data>
     setValidationTimeout(duration: number): Data & Form<Data>,

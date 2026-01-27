@@ -119,6 +119,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 // @ts-expect-error
                 name = resolveName(name)
 
+                // @ts-expect-error
                 validator.validate(name, get(form.data(), name), config)
             }
 
