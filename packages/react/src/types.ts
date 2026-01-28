@@ -1,4 +1,4 @@
-import { Config, NamedInputEvent, ValidationConfig, Validator } from 'laravel-precognition'
+import { Config, NamedInputEvent, PrecognitionPath, ValidationConfig, Validator } from 'laravel-precognition'
 
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
@@ -11,7 +11,7 @@ export interface Form<Data extends Record<string, unknown>> {
     hasErrors: boolean,
     valid(name: keyof Data): boolean,
     invalid(name: keyof Data): boolean,
-    validate(name?: keyof Data | NamedInputEvent | ValidationConfig, config?: ValidationConfig): Form<Data>,
+    validate(name?: PrecognitionPath<Data> | NamedInputEvent | ValidationConfig, config?: ValidationConfig): Form<Data>,
     setErrors(errors: Partial<Record<keyof Data, string | string[]>>): Form<Data>
     forgetError(string: keyof Data | NamedInputEvent): Form<Data>
     setValidationTimeout(duration: number): Form<Data>,
