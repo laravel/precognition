@@ -2,9 +2,13 @@ import { describe, it, expectTypeOf } from 'vitest'
 import type { Form } from '../src/types.js'
 
 type User = {
-    email: string;
     name: string;
-    street: string;
+    email: string;
+};
+
+type Company = {
+    name: string;
+    addresses: string[];
 };
 
 type FormData = {
@@ -12,6 +16,10 @@ type FormData = {
     profile: {
         age: number;
         city: string;
+    };
+    company: Company;
+    nested: {
+        companies: Company[];
     };
 };
 
@@ -22,15 +30,27 @@ describe('PrecognitionPath type safety', () => {
     it('accepts valid array field paths', () => {
         expectTypeOf<'users'>().toExtend<ValidateParam>()
         expectTypeOf<'users.*'>().toExtend<ValidateParam>()
-
         expectTypeOf<'users.*.email'>().toExtend<ValidateParam>()
         expectTypeOf<'users.*.name'>().toExtend<ValidateParam>()
-        expectTypeOf<'users.*.street'>().toExtend<ValidateParam>()
+        expectTypeOf<'users.*.*'>().toExtend<ValidateParam>()
     })
 
     it('accepts valid object field paths', () => {
         expectTypeOf<'profile'>().toExtend<ValidateParam>()
         expectTypeOf<'profile.*'>().toExtend<ValidateParam>()
+        expectTypeOf<'profile.age'>().toExtend<ValidateParam>()
+    })
+
+    it('accepts valid nested paths', () => {
+        expectTypeOf<'company'>().toExtend<ValidateParam>()
+        expectTypeOf<'company.addresses'>().toExtend<ValidateParam>()
+
+        expectTypeOf<'nested'>().toExtend<ValidateParam>()
+        expectTypeOf<'nested.companies'>().toExtend<ValidateParam>()
+        expectTypeOf<'nested.companies.*'>().toExtend<ValidateParam>()
+        expectTypeOf<'nested.companies.*.name'>().toExtend<ValidateParam>()
+        expectTypeOf<'nested.companies.*.addresses'>().toExtend<ValidateParam>()
+        expectTypeOf<'nested.companies.*.*'>().toExtend<ValidateParam>()
     })
 
     it('rejects invalid paths', () => {
@@ -45,5 +65,11 @@ describe('PrecognitionPath type safety', () => {
 
         // @ts-expect-error field does not exist
         expectTypeOf<'nonexistent'>().toExtend<ValidateParam>()
+
+        // @ts-expect-error no such field
+        expectTypeOf<'profile.country'>().toExtend<ValidateParam>()
+
+        // @ts-expect-error no such depth
+        expectTypeOf<'profile.*.*'>().toExtend<ValidateParam>()
     })
 })

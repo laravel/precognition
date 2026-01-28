@@ -1,13 +1,13 @@
 import { ValidationConfig, Config, NamedInputEvent, Validator } from 'laravel-precognition'
 
-export type PrecognitionPath<Data> = {
-    [K in Extract<keyof Data, string>]:
-    Data[K] extends Array<infer U>
-        ? `${K}` | `${K}.*` | `${K}.*.${Extract<keyof U, string>}`
-        : Data[K] extends object
-            ? `${K}` | `${K}.*`
-            : `${K}`
-}[Extract<keyof Data, string>]
+type FormDataValue = string | number | boolean | null | undefined | Date | Blob | File | FileList
+
+export type PrecognitionPath<Data> = 0 extends 1 & Data ? never : Data extends object ? {
+    [K in Extract<keyof Data, string>]: 0 extends 1 & Data[K] ? never
+        : Data[K] extends Array<infer U>
+            ? K | `${K}.*` | (U extends FormDataValue ? never : `${K}.*.${Extract<keyof U, string>}` | `${K}.*.*`)
+            : Data[K] extends FormDataValue ? K : K | `${K}.*` | `${K}.${PrecognitionPath<Data[K]>}`
+}[Extract<keyof Data, string>] : never
 
 export interface Form<Data extends Record<string, unknown>> {
     processing: boolean,
