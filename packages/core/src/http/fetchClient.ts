@@ -1,5 +1,6 @@
 import { HttpClient, HttpRequestConfig, HttpResponse } from './types.js'
 import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './errors.js'
+import { buildUrl } from './url.js'
 import { hasFiles } from '../form.js'
 
 export interface FetchClientOptions {
@@ -29,52 +30,6 @@ function getAjaxHeader(): string | null {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (window as any).axios?.defaults?.headers?.common?.['X-Requested-With'] ?? null
-}
-
-/**
- * Build a query string from params.
- */
-function buildQueryString(params: Record<string, unknown>): string {
-    const searchParams = new URLSearchParams()
-
-    Object.entries(params).forEach(([key, value]) => {
-        if (value === undefined || value === null) {
-            return
-        }
-
-        if (Array.isArray(value)) {
-            value.forEach((item) => searchParams.append(`${key}[]`, String(item)))
-        } else if (typeof value === 'object') {
-            searchParams.append(key, JSON.stringify(value))
-        } else {
-            searchParams.append(key, String(value))
-        }
-    })
-
-    return searchParams.toString()
-}
-
-/**
- * Build the full URL with base URL and query params.
- */
-function buildUrl(config: HttpRequestConfig, baseURL?: string): string {
-    let url = config.url
-
-    const effectiveBaseURL = config.baseURL ?? baseURL
-
-    if (effectiveBaseURL && !url.startsWith('http://') && !url.startsWith('https://')) {
-        url = effectiveBaseURL.replace(/\/$/, '') + '/' + url.replace(/^\//, '')
-    }
-
-    if (config.params && Object.keys(config.params).length > 0) {
-        const queryString = buildQueryString(config.params)
-
-        if (queryString) {
-            url += (url.includes('?') ? '&' : '?') + queryString
-        }
-    }
-
-    return url
 }
 
 /**
@@ -154,7 +109,7 @@ function parseHeaders(headers: Headers): Record<string, string> {
 export function createFetchClient(options: FetchClientOptions = {}): HttpClient {
     return {
         async request(config: HttpRequestConfig): Promise<HttpResponse> {
-            const url = buildUrl(config, options.baseURL)
+            const url = buildUrl(config.url, config.baseURL ?? options.baseURL, config.params)
             const method = config.method.toUpperCase()
 
             const headers: Record<string, string> = {}
