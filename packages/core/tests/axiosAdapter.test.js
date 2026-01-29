@@ -96,6 +96,7 @@ describe('axiosAdapter', () => {
             headers: { Authorization: 'Bearer token' },
             signal,
             timeout: 5000,
+            withCredentials: false,
         })
     })
 

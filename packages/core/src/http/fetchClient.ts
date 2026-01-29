@@ -3,10 +3,6 @@ import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './error
 import { buildUrl } from './url.js'
 import { hasFiles } from '../form.js'
 
-export interface FetchClientOptions {
-    baseURL?: string
-}
-
 /**
  * Read the XSRF token from cookies.
  */
@@ -106,10 +102,10 @@ function parseHeaders(headers: Headers): Record<string, string> {
 /**
  * Create a fetch-based HTTP client.
  */
-export function createFetchClient(options: FetchClientOptions = {}): HttpClient {
+export function createFetchClient(): HttpClient {
     return {
         async request(config: HttpRequestConfig): Promise<HttpResponse> {
-            const url = buildUrl(config.url, config.baseURL ?? options.baseURL, config.params)
+            const url = buildUrl(config.url, config.baseURL, config.params)
             const method = config.method.toUpperCase()
 
             const headers: Record<string, string> = {}
@@ -170,7 +166,7 @@ export function createFetchClient(options: FetchClientOptions = {}): HttpClient 
                     headers,
                     body,
                     signal,
-                    credentials: 'same-origin',
+                    credentials: config.credentials ?? 'same-origin',
                 })
 
                 if (timeoutId) {

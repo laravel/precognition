@@ -2,7 +2,7 @@ import { merge } from 'lodash-es'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types.js'
 import { hasFiles } from './form.js'
 import { HttpClient, HttpResponse } from './http/types.js'
-import { HttpResponseError, HttpCancelledError } from './http/errors.js'
+import { HttpResponseError } from './http/errors.js'
 import { fetchHttpClient } from './http/fetchClient.js'
 
 /**
@@ -19,6 +19,11 @@ let baseURL: string | undefined = undefined
  * The configured default timeout.
  */
 let timeout: number | undefined = undefined
+
+/**
+ * The configured credentials mode.
+ */
+let credentials: RequestCredentials = 'same-origin'
 
 /**
  * The request fingerprint resolver.
@@ -49,6 +54,9 @@ export const client: Client = {
 
         return client
     },
+    getHttpClient() {
+        return httpClient
+    },
     setBaseURL(url) {
         baseURL = url
 
@@ -64,6 +72,14 @@ export const client: Client = {
     },
     getTimeout() {
         return timeout
+    },
+    setCredentials(value) {
+        credentials = value
+
+        return client
+    },
+    getCredentials() {
+        return credentials
     },
     fingerprintRequestsUsing(callback) {
         requestFingerprintResolver = callback === null
@@ -118,6 +134,7 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
         headers: config.headers as Record<string, string>,
         signal: config.signal,
         timeout: config.timeout,
+        credentials,
     }).then(async (response) => {
         if (config.precognitive) {
             validatePrecognitionResponse(response)
@@ -236,7 +253,7 @@ const validatePrecognitionResponse = (response: HttpResponse): void => {
  * Determine if the error was not triggered by a server response.
  */
 const isNotServerGeneratedError = (error: unknown): boolean => {
-    return !(error instanceof HttpResponseError) || typeof error.response?.status !== 'number' || error instanceof HttpCancelledError
+    return !(error instanceof HttpResponseError) || typeof error.response?.status !== 'number'
 }
 
 /**

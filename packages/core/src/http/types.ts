@@ -11,6 +11,7 @@ export interface HttpRequestConfig {
     headers?: Record<string, string | number | boolean | undefined>
     signal?: AbortSignal
     timeout?: number
+    credentials?: RequestCredentials
 }
 
 export interface HttpResponse {

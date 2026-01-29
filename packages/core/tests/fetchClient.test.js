@@ -71,7 +71,7 @@ describe('fetchClient', () => {
     })
 
     it('builds URL with base URL', async () => {
-        const client = createFetchClient({ baseURL: 'https://laravel.com' })
+        const client = createFetchClient()
 
         global.fetch = vi.fn().mockResolvedValueOnce({
             ok: true,
@@ -83,32 +83,11 @@ describe('fetchClient', () => {
         await client.request({
             method: 'get',
             url: '/api/users',
+            baseURL: 'https://laravel.com',
         })
 
         expect(global.fetch).toHaveBeenCalledWith(
             'https://laravel.com/api/users',
-            expect.any(Object),
-        )
-    })
-
-    it('config baseURL takes precedence over client baseURL', async () => {
-        const client = createFetchClient({ baseURL: 'https://laravel.com' })
-
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            status: 200,
-            headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({}),
-        })
-
-        await client.request({
-            method: 'get',
-            url: '/api/users',
-            baseURL: 'https://forge.laravel.com',
-        })
-
-        expect(global.fetch).toHaveBeenCalledWith(
-            'https://forge.laravel.com/api/users',
             expect.any(Object),
         )
     })
