@@ -333,4 +333,48 @@ describe('fetchClient', () => {
             }),
         )
     })
+
+    it('does not set Content-Type for FormData uploads', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        const formData = new FormData()
+        formData.append('file', new Blob(['test'], { type: 'text/plain' }), 'test.txt')
+
+        await fetchHttpClient.request({
+            method: 'post',
+            url: 'https://laravel.com/api/upload',
+            data: formData,
+        })
+
+        const callArgs = global.fetch.mock.calls[0][1]
+        expect(callArgs.headers['Content-Type']).toBeUndefined()
+        expect(callArgs.body).toBeInstanceOf(FormData)
+    })
+
+    it('does not set Content-Type when data contains files', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        await fetchHttpClient.request({
+            method: 'post',
+            url: 'https://laravel.com/api/upload',
+            data: {
+                name: 'test',
+                file: new Blob(['test'], { type: 'text/plain' }),
+            },
+        })
+
+        const callArgs = global.fetch.mock.calls[0][1]
+        expect(callArgs.headers['Content-Type']).toBeUndefined()
+        expect(callArgs.body).toBeInstanceOf(FormData)
+    })
 })

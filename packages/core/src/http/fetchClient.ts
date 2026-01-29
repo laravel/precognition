@@ -186,6 +186,10 @@ export function createFetchClient(options: FetchClientOptions = {}): HttpClient 
                 ? undefined
                 : prepareBody(config.data, headers)
 
+            if (body instanceof FormData) {
+                delete headers['Content-Type']
+            }
+
             try {
                 const response = await fetch(url, {
                     method,
