@@ -65,11 +65,7 @@ export const client: Client = {
         return client
     },
     withCredentials(value) {
-        credentials = value === true
-            ? 'include'
-            : value === false
-                ? 'omit'
-                : value
+        credentials = typeof value === 'string' ? value : (value ? 'include' : 'omit')
 
         return client
     },
