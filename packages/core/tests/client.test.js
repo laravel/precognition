@@ -527,3 +527,66 @@ it('can get and set base URL', () => {
     client.setBaseURL(undefined)
     expect(client.getBaseURL()).toBeUndefined()
 })
+
+it('can get and set timeout', () => {
+    client.setTimeout(5000)
+    expect(client.getTimeout()).toBe(5000)
+
+    client.setTimeout(undefined)
+    expect(client.getTimeout()).toBeUndefined()
+})
+
+it('returns a cancelled request error via rejected promise', async () => {
+    expect.assertions(1)
+
+    const { HttpCancelledError } = await import('../src/http/errors')
+    mockClient.mockRejectedValueOnce(new HttpCancelledError())
+
+    await client.get('https://laravel.com').catch((e) => {
+        expect(e).toBeInstanceOf(HttpCancelledError)
+    })
+})
+
+it('can specify the request fingerprint via config', async () => {
+    expect.assertions(1)
+
+    mockClient.mockImplementationOnce(() => {
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
+    })
+
+    await client.get('/docs', {}, {
+        fingerprint: 'expected-id',
+    })
+
+    expect(mockClient.getLastConfig().signal).toBeInstanceOf(AbortSignal)
+})
+
+it('can customize how the request fingerprint is created', async () => {
+    expect.assertions(1)
+
+    mockClient.mockImplementationOnce(() => {
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
+    })
+    client.fingerprintRequestsUsing(() => 'custom-fingerprint')
+
+    await client.get('/docs')
+
+    expect(mockClient.getLastConfig().signal).toBeInstanceOf(AbortSignal)
+
+    // Reset fingerprint resolver
+    client.fingerprintRequestsUsing((config) => `${config.method}:${config.url}`)
+})
+
+it('can opt out of automatic request aborting', async () => {
+    expect.assertions(1)
+
+    mockClient.mockImplementationOnce(() => {
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
+    })
+
+    await client.get('/docs', {}, {
+        fingerprint: null,
+    })
+
+    expect(mockClient.getLastConfig().signal).toBeUndefined()
+})
