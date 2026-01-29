@@ -27,12 +27,20 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "axios": "^1.4.0",
         "lodash-es": "^4.17.21"
+    },
+    "peerDependencies": {
+        "axios": "^1.4.0"
+    },
+    "peerDependenciesMeta": {
+        "axios": {
+            "optional": true
+        }
     },
     "devDependencies": {
         "@types/lodash-es": "^4.17.12",
         "@types/node": "^22.5.0",
+        "axios": "^1.4.0",
         "typescript": "^5.0.0",
         "vitest": "^2.0.5"
     }

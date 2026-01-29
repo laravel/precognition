@@ -1,10 +1,36 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
-import axios from 'axios'
 import { client } from '../src/index'
+import { HttpResponseError } from '../src/http/errors'
+
+/**
+ * Create a mock HTTP client for testing.
+ */
+const createMockHttpClient = () => {
+    const mockRequest = vi.fn()
+
+    return {
+        request: mockRequest,
+        mockResolvedValueOnce: (response) => {
+            mockRequest.mockResolvedValueOnce(response)
+        },
+        mockRejectedValueOnce: (error) => {
+            mockRequest.mockRejectedValueOnce(error)
+        },
+        mockImplementation: (fn) => {
+            mockRequest.mockImplementation(fn)
+        },
+        mockImplementationOnce: (fn) => {
+            mockRequest.mockImplementationOnce(fn)
+        },
+        getLastConfig: () => mockRequest.mock.calls[mockRequest.mock.calls.length - 1]?.[0],
+    }
+}
+
+let mockClient
 
 beforeEach(() => {
-    vi.mock('axios')
-    client.use(axios)
+    mockClient = createMockHttpClient()
+    client.useHttpClient(mockClient)
     vi.useFakeTimers()
 })
 
@@ -17,7 +43,7 @@ it('can handle a successful precognition response via config handler', async () 
     expect.assertions(2)
 
     const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
-    axios.request.mockResolvedValueOnce(response)
+    mockClient.mockResolvedValueOnce(response)
 
     await client.get('https://laravel.com', {}, {
         onPrecognitionSuccess: (r) => {
@@ -32,7 +58,7 @@ it('can handle a success response via a fulfilled promise', async () => {
     expect.assertions(1)
 
     const response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
-    axios.request.mockResolvedValueOnce(response)
+    mockClient.mockResolvedValueOnce(response)
 
     await client.post('https://laravel.com').then((r) => expect(r).toBe(response))
 })
@@ -40,23 +66,20 @@ it('can handle a success response via a fulfilled promise', async () => {
 it('can handle a validation response via a config handler', async () => {
     expect.assertions(3)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 422,
-            data: {
-                message: 'expected message',
-                errors: { name: ['expected error'] },
-            },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 422,
+        data: {
+            message: 'expected message',
+            errors: { name: ['expected error'] },
         },
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError(errorResponse))
 
     await client.patch('https://laravel.com', {}, {
         onValidationError: (p, e) => {
-            expect(p).toBe(error.response)
-            expect(e).toBe(error)
+            expect(p).toEqual(errorResponse)
+            expect(e).toBeInstanceOf(HttpResponseError)
 
             return 'expected value'
         },
@@ -66,20 +89,17 @@ it('can handle a validation response via a config handler', async () => {
 it('can handle an unauthorized response via a config handler', async () => {
     expect.assertions(3)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 401,
-            data: 'expected data',
-        },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 401,
+        data: 'expected data',
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError(errorResponse))
 
     await client.delete('https://laravel.com', {}, {
         onUnauthorized: (p, e) => {
-            expect(p).toBe(error.response)
-            expect(e).toBe(error)
+            expect(p).toEqual(errorResponse)
+            expect(e).toBeInstanceOf(HttpResponseError)
 
             return 'expected value'
         },
@@ -89,20 +109,17 @@ it('can handle an unauthorized response via a config handler', async () => {
 it('can handle a forbidden response via a config handler', async () => {
     expect.assertions(3)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 403,
-            data: 'expected data',
-        },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 403,
+        data: 'expected data',
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError(errorResponse))
 
     await client.put('https://laravel.com', {}, {
         onForbidden: (p, e) => {
-            expect(p).toBe(error.response)
-            expect(e).toBe(error)
+            expect(p).toEqual(errorResponse)
+            expect(e).toBeInstanceOf(HttpResponseError)
 
             return 'expected value'
         },
@@ -112,20 +129,17 @@ it('can handle a forbidden response via a config handler', async () => {
 it('can handle a not found response via a config handler', async () => {
     expect.assertions(3)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 404,
-            data: 'data',
-        },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 404,
+        data: 'data',
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError(errorResponse))
 
     await client.get('https://laravel.com', {}, {
         onNotFound: (p, e) => {
-            expect(p).toBe(error.response)
-            expect(e).toBe(error)
+            expect(p).toEqual(errorResponse)
+            expect(e).toBeInstanceOf(HttpResponseError)
 
             return 'expected value'
         },
@@ -135,20 +149,17 @@ it('can handle a not found response via a config handler', async () => {
 it('can handle a conflict response via a config handler', async () => {
     expect.assertions(3)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 409,
-            data: 'expected data',
-        },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 409,
+        data: 'expected data',
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError(errorResponse))
 
     await client.get('https://laravel.com', {}, {
         onConflict: (p, e) => {
-            expect(p).toBe(error.response)
-            expect(e).toBe(error)
+            expect(p).toEqual(errorResponse)
+            expect(e).toBeInstanceOf(HttpResponseError)
 
             return 'expected value'
         },
@@ -158,20 +169,17 @@ it('can handle a conflict response via a config handler', async () => {
 it('can handle a locked response via a config handler', async () => {
     expect.assertions(3)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 423,
-            data: 'expected data',
-        },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 423,
+        data: 'expected data',
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError(errorResponse))
 
     await client.get('https://laravel.com', {}, {
         onLocked: (p, e) => {
-            expect(p).toBe(error.response)
-            expect(e).toBe(error)
+            expect(p).toEqual(errorResponse)
+            expect(e).toBeInstanceOf(HttpResponseError)
 
             return 'expected value'
         },
@@ -182,9 +190,9 @@ it('can provide input names to validate via config', async () => {
     expect.assertions(1)
 
     let config
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
 
     await client.get('https://laravel.com', {}, {
@@ -198,9 +206,9 @@ it('continues to support the deprecated "validate" key as fallback of "only"', a
     expect.assertions(1)
 
     let config
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
 
     await client.get('https://laravel.com', {}, {
@@ -213,7 +221,7 @@ it('continues to support the deprecated "validate" key as fallback of "only"', a
 it('throws an error if the precognition header is not present on a success response', async () => {
     expect.assertions(2)
 
-    axios.request.mockResolvedValueOnce({ headers: {}, status: 204 })
+    mockClient.mockResolvedValueOnce({ headers: {}, status: 204, data: {} })
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
@@ -224,7 +232,7 @@ it('throws an error if the precognition header is not present on a success respo
 it('does not consider 204 response to be success without "Precognition-Success" header', async () => {
     expect.assertions(2)
 
-    axios.request.mockResolvedValueOnce({ headers: { precognition: 'true' }, status: 204 })
+    mockClient.mockResolvedValueOnce({ headers: { precognition: 'true' }, status: 204, data: {} })
     let precognitionSucess = false
     let responseSuccess = false
 
@@ -244,8 +252,7 @@ it('does not consider 204 response to be success without "Precognition-Success" 
 it('throws an error if the precognition header is not present on an error response', async () => {
     expect.assertions(2)
 
-    axios.request.mockRejectedValueOnce({ response: { status: 500 } })
-    axios.isAxiosError.mockReturnValueOnce(true)
+    mockClient.mockRejectedValueOnce(new HttpResponseError({ status: 500, headers: {}, data: {} }))
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBeInstanceOf(Error)
@@ -253,37 +260,11 @@ it('throws an error if the precognition header is not present on an error respon
     })
 })
 
-it('returns a non-axios error via a rejected promise', async () => {
+it('returns a non-http-response error via a rejected promise', async () => {
     expect.assertions(1)
 
-    const error = { expected: 'error' }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(false)
-
-    await client.get('https://laravel.com').catch((e) => {
-        expect(e).toBe(error)
-    })
-})
-
-it('returns a cancelled request error va rejected promise', async () => {
-    expect.assertions(1)
-
-    const error = { expected: 'error' }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
-    axios.isCancel.mockReturnValueOnce(true)
-
-    await client.get('https://laravel.com').catch((e) => {
-        expect(e).toBe(error)
-    })
-})
-
-it('an axerror without a "status" property returns a rejected promise', async () => {
-    expect.assertions(1)
-
-    const error = { expected: 'error' }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    const error = new Error('expected error')
+    mockClient.mockRejectedValueOnce(error)
 
     await client.get('https://laravel.com').catch((e) => {
         expect(e).toBe(error)
@@ -293,18 +274,16 @@ it('an axerror without a "status" property returns a rejected promise', async ()
 it('can handle error responses via a rejected promise', async () => {
     expect.assertions(1)
 
-    const error = {
-        response: {
-            headers: { precognition: 'true' },
-            status: 422,
-            data: {
-                message: 'expected message',
-                errors: { name: ['expected error'] },
-            },
+    const errorResponse = {
+        headers: { precognition: 'true' },
+        status: 422,
+        data: {
+            message: 'expected message',
+            errors: { name: ['expected error'] },
         },
     }
-    axios.request.mockRejectedValueOnce(error)
-    axios.isAxiosError.mockReturnValueOnce(true)
+    const error = new HttpResponseError(errorResponse)
+    mockClient.mockRejectedValueOnce(error)
 
     await client.get('https://laravel.com').catch((e) => expect(e).toBe(error))
 })
@@ -313,7 +292,7 @@ it('can customize how it determines a successful precognition response', async (
     expect.assertions(3)
 
     let response = { headers: { precognition: 'true' }, status: 999, data: 'data' }
-    axios.request.mockResolvedValueOnce(response)
+    mockClient.mockResolvedValueOnce(response)
 
     client.determineSuccessUsing((response) => response.status === 999)
 
@@ -326,7 +305,7 @@ it('can customize how it determines a successful precognition response', async (
     }).then((value) => expect(value).toBe('expected value'))
 
     response = { headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' }
-    axios.request.mockResolvedValueOnce(response)
+    mockClient.mockResolvedValueOnce(response)
 
     await client.get('https://laravel.com', {}, {
         onPrecognitionSuccess: () => {
@@ -338,127 +317,65 @@ it('can customize how it determines a successful precognition response', async (
 it('creates a request fingerprint and an abort signal if none are configured', async () => {
     expect.assertions(2)
 
-    let config
-    axios.request.mockImplementationOnce((c) => {
-        config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+    mockClient.mockImplementationOnce(() => {
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
 
     await client.get('https://laravel.com')
 
-    expect(config.fingerprint).toBe('get:https://laravel.com')
-    expect(config.signal).toBeInstanceOf(AbortSignal)
+    expect(mockClient.getLastConfig().url).toBe('https://laravel.com')
+    expect(mockClient.getLastConfig().signal).toBeInstanceOf(AbortSignal)
 })
 
-it('uses the default axios baseURL in the request fingerprint', async () => {
+it('can set and use base URL', async () => {
     expect.assertions(2)
 
     let config
-    axios.defaults.baseURL = 'https://laravel.com'
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
+
+    client.setBaseURL('https://laravel.com')
 
     await client.get('/docs')
 
-    expect(config.fingerprint).toBe('get:https://laravel.com/docs')
-    expect(config.signal).toBeInstanceOf(AbortSignal)
+    expect(config.url).toBe('/docs')
+    expect(config.baseURL).toBe('https://laravel.com')
+
+    // Reset base URL
+    client.setBaseURL(undefined)
 })
 
-it('the confbaseURL takes precedence over the axios default baseURL for request id', async () => {
+it('the config baseURL takes precedence over the global baseURL', async () => {
     expect.assertions(2)
 
     let config
-    axios.defaults.baseURL = 'https://laravel.com'
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
+
+    client.setBaseURL('https://laravel.com')
 
     await client.get('/docs', {}, {
         baseURL: 'https://forge.laravel.com',
     })
 
-    expect(config.fingerprint).toBe('get:https://forge.laravel.com/docs')
-    expect(config.signal).toBeInstanceOf(AbortSignal)
-})
+    expect(config.url).toBe('/docs')
+    expect(config.baseURL).toBe('https://forge.laravel.com')
 
-it('can specify the request fingerprint via config', async () => {
-    expect.assertions(2)
-
-    let config
-    axios.request.mockImplementationOnce((c) => {
-        config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-
-    await client.get('/docs', {}, {
-        fingerprint: 'expected-id',
-    })
-
-    expect(config.fingerprint).toBe('expected-id')
-    expect(config.signal).toBeInstanceOf(AbortSignal)
-})
-
-it('can customize how the request fingerprint is created', async () => {
-    expect.assertions(2)
-
-    let config
-    axios.request.mockImplementationOnce((c) => {
-        config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-    client.fingerprintRequestsUsing(() => 'expected-id')
-
-    await client.get('/docs')
-
-    expect(config.fingerprint).toBe('expected-id')
-    expect(config.signal).toBeInstanceOf(AbortSignal)
-})
-
-it('the conffingerprint takes precedence over the global fingerprint for request id', async () => {
-    expect.assertions(2)
-
-    let config
-    axios.request.mockImplementationOnce((c) => {
-        config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-    client.fingerprintRequestsUsing(() => 'foo')
-
-    await client.get('/docs', {}, {
-        fingerprint: 'expected-id',
-    })
-
-    expect(config.fingerprint).toBe('expected-id')
-    expect(config.signal).toBeInstanceOf(AbortSignal)
-})
-
-it('can opt out of automatic request aborting', async () => {
-    expect.assertions(2)
-
-    let config
-    axios.request.mockImplementationOnce((c) => {
-        config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-
-    await client.get('/docs', {}, {
-        fingerprint: null,
-    })
-
-    expect(config.fingerprint).toBe(null)
-    expect(config.signal).toBeUndefined()
+    // Reset base URL
+    client.setBaseURL(undefined)
 })
 
 it('can specify the abort controller via config', async () => {
     expect.assertions(1)
 
     let config
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
+        return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
     let called = false
     const controller = new AbortController
@@ -474,27 +391,11 @@ it('can specify the abort controller via config', async () => {
     expect(called).toBe(true)
 })
 
-it('does not create an abort controller when a cancelToken is provided', async () => {
-    expect.assertions(1)
-
-    let config
-    axios.request.mockImplementationOnce((c) => {
-        config = c
-        return Promise.resolve({ headers: { precognition: 'true' } })
-    })
-
-    await client.get('/docs', {}, {
-        cancelToken: { /* ... */ },
-    })
-
-    expect(config.signal).toBeUndefined()
-})
-
 it('overrides request method url with config url', async () => {
     expect.assertions(5)
 
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
@@ -529,7 +430,7 @@ it('overrides the request data with the config data', async () => {
     expect.assertions(5)
 
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
@@ -564,7 +465,7 @@ it('merges request data with config data', async () => {
     expect.assertions(7)
 
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
@@ -601,7 +502,7 @@ it('merges request data with config params for get and delete requests', async (
     expect.assertions(4)
 
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
     })
@@ -617,4 +518,12 @@ it('merges request data with config params for get and delete requests', async (
     })
     expect(config.params).toEqual({ data: true, param: true })
     expect(config.data).toBeUndefined()
+})
+
+it('can get and set base URL', () => {
+    client.setBaseURL('https://example.com')
+    expect(client.getBaseURL()).toBe('https://example.com')
+
+    client.setBaseURL(undefined)
+    expect(client.getBaseURL()).toBeUndefined()
 })

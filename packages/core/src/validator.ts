@@ -1,7 +1,8 @@
 import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
+import { HttpResponseError, HttpCancelledError } from './http/errors.js'
+import { isFile } from './form.js'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
-import { client, isFile } from './client.js'
-import { isAxiosError, isCancel, mergeConfig } from 'axios'
+import { client } from './client.js'
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -181,7 +182,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             // throwing an exception for this expected behaviour, we silently
             // discard cancelled request errors to not flood the console with
             // expected errors.
-            if (isCancel(error)) {
+            if (error instanceof HttpCancelledError) {
                 return null
             }
 
@@ -190,7 +191,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             // these so we do not flood the console with expected errors. If
             // needed, they can be intercepted by the `onValidationError`
             // config option instead.
-            if (isAxiosError(error) && error.response?.status === 422) {
+            if (error instanceof HttpResponseError && error.response?.status === 422) {
                 return null
             }
 
@@ -220,21 +221,18 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
         return {
             ...instanceConfig,
-            // Axios has special rules for merging global and local config. We
-            // use their merge function here to make sure things like headers
-            // merge in an expected way.
-            ...mergeConfig(globalConfig, instanceConfig),
+            ...merge({}, globalConfig, instanceConfig),
             only,
             timeout: config.timeout ?? 5000,
-            onValidationError: (response, axiosError) => {
+            onValidationError: (response, error) => {
                 [
                     ...setValidated([...validated, ...only]),
                     ...setErrors(merge(omit({ ...errors }, only), response.data.errors)),
                 ].forEach((listener) => listener())
 
                 return config.onValidationError
-                    ? config.onValidationError(response, axiosError)
-                    : Promise.reject(axiosError)
+                    ? config.onValidationError(response, error)
+                    : Promise.reject(error)
             },
             onSuccess: (response) => {
                 setValidated([...validated, ...only]).forEach((listener) => listener())

@@ -1,0 +1,20 @@
+export interface HttpClient {
+    request(config: HttpRequestConfig): Promise<HttpResponse>
+}
+
+export interface HttpRequestConfig {
+    method: 'get' | 'post' | 'put' | 'patch' | 'delete'
+    url: string
+    baseURL?: string
+    data?: unknown
+    params?: Record<string, unknown>
+    headers?: Record<string, string | number | boolean | undefined>
+    signal?: AbortSignal
+    timeout?: number
+}
+
+export interface HttpResponse {
+    status: number
+    data: any
+    headers: Record<string, string>
+}

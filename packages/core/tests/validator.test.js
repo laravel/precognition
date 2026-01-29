@@ -1,8 +1,34 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
-import axios from 'axios'
-import { client } from '../src/client'
+import { client } from '../src/index'
+import { HttpResponseError } from '../src/http/errors'
 import { createValidator } from '../src/validator'
 import { merge } from 'lodash-es'
+
+/**
+ * Create a mock HTTP client for testing.
+ */
+const createMockHttpClient = () => {
+    const mockRequest = vi.fn()
+
+    return {
+        request: mockRequest,
+        mockResolvedValueOnce: (response) => {
+            mockRequest.mockResolvedValueOnce(response)
+        },
+        mockRejectedValueOnce: (error) => {
+            mockRequest.mockRejectedValueOnce(error)
+        },
+        mockImplementation: (fn) => {
+            mockRequest.mockImplementation(fn)
+        },
+        mockImplementationOnce: (fn) => {
+            mockRequest.mockImplementationOnce(fn)
+        },
+        getLastConfig: () => mockRequest.mock.calls[mockRequest.mock.calls.length - 1]?.[0],
+    }
+}
+
+let mockClient
 
 const precognitionSuccessResponse = (payload) => merge({
     status: 204,
@@ -32,24 +58,9 @@ const assertPendingValidateDebounceAndClear = async () => {
 }
 
 beforeEach(() => {
-    vi.mock('axios', async () => {
-        const axios = await vi.importActual('axios')
-
-        const isAxiosError = (value) => typeof value === 'object' && typeof value.response === 'object' && value.response.status >= 400
-
-        return {
-            ...axios,
-            isAxiosError,
-            default: {
-                ...axios.default,
-                request: vi.fn(),
-                isAxiosError,
-            },
-        }
-    })
-
+    mockClient = createMockHttpClient()
+    client.useHttpClient(mockClient)
     vi.useFakeTimers()
-    client.use(axios)
 })
 
 afterEach(() => {
@@ -64,7 +75,7 @@ it('revalidates data when validate is called', async () => {
     expect.assertions(4)
 
     let requests = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         requests++
 
         return Promise.resolve(precognitionSuccessResponse())
@@ -94,7 +105,7 @@ it('does not revalidate data when data is unchanged', async () => {
     expect.assertions(4)
 
     let requests = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         requests++
 
         return Promise.resolve(precognitionSuccessResponse())
@@ -234,7 +245,7 @@ it('is not valid before it has been validated', async () => {
 
 it('does not validate if the field has not been changed', async () => {
     let requestMade = false
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         requestMade = true
         return Promise.resolve(precognitionSuccessResponse())
     })
@@ -249,7 +260,7 @@ it('does not validate if the field has not been changed', async () => {
 
 it('filters out files', async () => {
     let config
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
         return Promise.resolve(precognitionSuccessResponse())
     })
@@ -327,7 +338,7 @@ it('filters out files', async () => {
 
 it('doesnt filter data when file validation is enabled', async () => {
     let config
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
         return Promise.resolve(precognitionSuccessResponse())
     })
@@ -350,7 +361,7 @@ it('doesnt filter data when file validation is enabled', async () => {
 
 it('can disable file validation after enabling it', async () => {
     let config
-    axios.request.mockImplementationOnce((c) => {
+    mockClient.mockImplementationOnce((c) => {
         config = c
         return Promise.resolve(precognitionSuccessResponse())
     })
@@ -379,10 +390,10 @@ it('doesnt mark fields as validated while response is pending',  async () => {
     let resolver = null
     let rejector = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         return new Promise((resolve, reject) => {
             resolver = resolve
-            rejector = (response) => reject({ response: response })
+            rejector = (response) => reject(new HttpResponseError(response))
         })
     })
     let data = {}
@@ -420,9 +431,9 @@ it('doesnt mark fields as validated on error status', async () => {
 
     let rejector = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         return new Promise((_, reject) => {
-            rejector = (response) => reject({ response: response })
+            rejector = (response) => reject(new HttpResponseError(response))
         })
     })
     let data = {}
@@ -453,7 +464,7 @@ it('does mark fields as validated on success status', async () => {
     let resolver = null
     let promise = null
     let onValidatedChangedCalledTimes = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         promise = new Promise((resolve) => {
             resolver = resolve
         })
@@ -496,7 +507,7 @@ it('revalidates when touched changes', async () => {
     const resolvers = []
     const promises = []
     const configs = []
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         requests++
         configs.push(c)
 
@@ -523,7 +534,7 @@ it('validates touched fields when calling validate without specifying any fields
     expect.assertions(2)
 
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
         return Promise.resolve(precognitionSuccessResponse())
     })
@@ -540,7 +551,7 @@ it('marks fields as valid on precognition success', async () => {
     expect.assertions(5)
 
     let requests = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         requests++
 
         return Promise.resolve(precognitionSuccessResponse())
@@ -564,7 +575,7 @@ it('marks fields as valid on precognition success', async () => {
 
 it('calls locally configured onSuccess handler', async () => {
     let response = null
-    axios.request.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
+    mockClient.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
     const validator = createValidator((client) => client.post('/users', {}))
 
     validator.validate('name', 'Tim', {
@@ -577,7 +588,7 @@ it('calls locally configured onSuccess handler', async () => {
 
 it('calls globally configured onSuccess handler', async () => {
     let response = null
-    axios.request.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
+    mockClient.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
     const validator = createValidator((client) => client.post('/users', {}, {
         onSuccess: (r) => response = r,
     }))
@@ -590,7 +601,7 @@ it('calls globally configured onSuccess handler', async () => {
 
 it('local config overrides global config', async () => {
     let response
-    axios.request.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
+    mockClient.mockImplementation(async () => precognitionSuccessResponse({ data: 'response-data' }))
     const validator = createValidator((client) => client.post('/users', { name: 'Tim' }, {
         onPrecognitionSuccess: (r) => {
             r.data = r.data + ':global-handler'
@@ -611,9 +622,9 @@ it('local config overrides global config', async () => {
     expect(response.data).toBe('response-data:local-handler')
 })
 
-it('correctly merges axios config', async () => {
+it('correctly merges config', async () => {
     let config = null
-    axios.request.mockImplementation(async (c) => {
+    mockClient.mockImplementation(async (c) => {
         config = c
 
         return precognitionSuccessResponse()
@@ -621,14 +632,14 @@ it('correctly merges axios config', async () => {
     const validator = createValidator((client) => client.post('/users', {}, {
         headers: {
             'X-Global': '1',
-            'X-Both': ['global'],
+            'X-Both': 'global',
         },
     }))
 
     validator.validate('name', 'Tim', {
         headers: {
             'X-Local': '1',
-            'X-Both': ['local'],
+            'X-Both': 'local',
         },
     })
     await vi.advanceTimersByTimeAsync(1500)
@@ -636,7 +647,7 @@ it('correctly merges axios config', async () => {
     expect(config.headers).toEqual({
         'X-Global': '1',
         'X-Local': '1',
-        'X-Both': ['local'],
+        'X-Both': 'local',
         // others...
         'Content-Type': 'application/json',
         Precognition: true,
@@ -646,7 +657,7 @@ it('correctly merges axios config', async () => {
 
 it('uses the lastest config values', async () => {
     const config = []
-    axios.request.mockImplementation(async (c) => {
+    mockClient.mockImplementation(async (c) => {
         config.push(c)
 
         return precognitionSuccessResponse()
@@ -683,8 +694,8 @@ it('does not cancel submit requests', async () => {
     const data = {}
     let submitConfig
     let validateConfig
-    axios.request.mockImplementation((config) => {
-        if (config.precognitive) {
+    mockClient.mockImplementation((config) => {
+        if (config.headers.Precognition) {
             validateConfig = config
         } else {
             submitConfig = config
@@ -710,8 +721,8 @@ it('does not cancel submit requests with custom abort signal', async () => {
     let submitConfig
     let validateConfig
     const abortController = new AbortController
-    axios.request.mockImplementation((config) => {
-        if (config.precognitive) {
+    mockClient.mockImplementation((config) => {
+        if (config.headers.Precognition) {
             validateConfig = config
         } else {
             submitConfig = config
@@ -735,7 +746,7 @@ it('does not cancel submit requests with custom abort signal', async () => {
 
 it('supports async validate with only key for untouched values', async () => {
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
 
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
@@ -753,7 +764,7 @@ it('supports async validate with only key for untouched values', async () => {
 
 it('supports async validate with depricated validate key for untouched values', async () => {
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
 
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
@@ -771,7 +782,7 @@ it('supports async validate with depricated validate key for untouched values', 
 
 it('does not include already touched keys when specifying keys via only', async () => {
     let config
-    axios.request.mockImplementation((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
 
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
@@ -789,7 +800,7 @@ it('does not include already touched keys when specifying keys via only', async 
 })
 
 it('marks fields as touched when the input has been included in validation', async () => {
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: '' })
     })
     const validator = createValidator((client) => client.post('/foo', {}))
@@ -806,7 +817,7 @@ it('marks fields as touched when the input has been included in validation', asy
 
 it('can override the old data via the defaults function', () => {
     let requests = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         requests++
 
         return Promise.resolve(precognitionSuccessResponse())
@@ -827,7 +838,7 @@ it('can override the old data via the defaults function', () => {
 it('can override the initial data via the defaults function', async () => {
     expect.assertions(2)
     let requests = 0
-    axios.request.mockImplementation(() => {
+    mockClient.mockImplementation(() => {
         requests++
 
         return Promise.resolve(precognitionSuccessResponse())
