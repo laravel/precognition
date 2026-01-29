@@ -125,6 +125,72 @@ describe('axiosAdapter', () => {
 
         expect(adapter.getAxiosInstance()).toBe(mockAxios)
     })
+
+    it('uses axios.defaults.timeout when config.timeout is not provided', async () => {
+        mockAxios.defaults.timeout = 15000
+        mockAxios.request.mockResolvedValueOnce({
+            status: 200,
+            data: {},
+            headers: {},
+        })
+
+        const adapter = axiosAdapter(mockAxios)
+
+        await adapter.request({
+            method: 'get',
+            url: '/api/users',
+        })
+
+        expect(mockAxios.request).toHaveBeenCalledWith(
+            expect.objectContaining({
+                timeout: 15000,
+            }),
+        )
+    })
+
+    it('falls back to 30000ms timeout when no timeout is configured', async () => {
+        mockAxios.request.mockResolvedValueOnce({
+            status: 200,
+            data: {},
+            headers: {},
+        })
+
+        const adapter = axiosAdapter(mockAxios)
+
+        await adapter.request({
+            method: 'get',
+            url: '/api/users',
+        })
+
+        expect(mockAxios.request).toHaveBeenCalledWith(
+            expect.objectContaining({
+                timeout: 30000,
+            }),
+        )
+    })
+
+    it('config.timeout takes precedence over axios.defaults.timeout', async () => {
+        mockAxios.defaults.timeout = 15000
+        mockAxios.request.mockResolvedValueOnce({
+            status: 200,
+            data: {},
+            headers: {},
+        })
+
+        const adapter = axiosAdapter(mockAxios)
+
+        await adapter.request({
+            method: 'get',
+            url: '/api/users',
+            timeout: 5000,
+        })
+
+        expect(mockAxios.request).toHaveBeenCalledWith(
+            expect.objectContaining({
+                timeout: 5000,
+            }),
+        )
+    })
 })
 
 describe('axiosAdapter with real axios', () => {

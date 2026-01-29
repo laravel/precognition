@@ -143,12 +143,13 @@ export function createFetchClient(): HttpClient {
             // Handle timeout
             let signal = config.signal
             let timeoutId: ReturnType<typeof setTimeout> | undefined
+            const timeout = config.timeout ?? 30000
 
-            if (config.timeout && config.timeout > 0 && !signal) {
+            if (timeout > 0 && !signal) {
                 const controller = new AbortController()
 
                 signal = controller.signal
-                timeoutId = setTimeout(() => controller.abort(), config.timeout)
+                timeoutId = setTimeout(() => controller.abort(), timeout)
             }
 
             // Prepare body (only for non-GET/DELETE requests)

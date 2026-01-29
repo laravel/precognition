@@ -395,4 +395,55 @@ describe('fetchClient', () => {
 
         delete global.window
     })
+
+    it('uses config.timeout when provided', async () => {
+        vi.useFakeTimers()
+
+        const abortSpy = vi.fn()
+        global.AbortController = vi.fn().mockImplementation(() => ({
+            signal: { aborted: false },
+            abort: abortSpy,
+        }))
+
+        global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}))
+
+        fetchHttpClient.request({
+            method: 'get',
+            url: 'https://laravel.com/api/users',
+            timeout: 5000,
+        })
+
+        vi.advanceTimersByTime(4999)
+        expect(abortSpy).not.toHaveBeenCalled()
+
+        vi.advanceTimersByTime(1)
+        expect(abortSpy).toHaveBeenCalled()
+
+        vi.useRealTimers()
+    })
+
+    it('falls back to 30000ms timeout when no timeout is configured', async () => {
+        vi.useFakeTimers()
+
+        const abortSpy = vi.fn()
+        global.AbortController = vi.fn().mockImplementation(() => ({
+            signal: { aborted: false },
+            abort: abortSpy,
+        }))
+
+        global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}))
+
+        fetchHttpClient.request({
+            method: 'get',
+            url: 'https://laravel.com/api/users',
+        })
+
+        vi.advanceTimersByTime(29999)
+        expect(abortSpy).not.toHaveBeenCalled()
+
+        vi.advanceTimersByTime(1)
+        expect(abortSpy).toHaveBeenCalled()
+
+        vi.useRealTimers()
+    })
 })

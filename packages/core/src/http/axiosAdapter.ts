@@ -24,7 +24,7 @@ export function axiosAdapter(axios: AxiosInstance = Axios): AxiosHttpClient {
                     params: config.params,
                     headers: config.headers,
                     signal: config.signal,
-                    timeout: config.timeout,
+                    timeout: config.timeout ?? axios.defaults.timeout ?? 30000,
                     withCredentials: config.credentials === 'include',
                 })
 

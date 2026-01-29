@@ -170,7 +170,7 @@ const resolveConfig = (config: Config): Config => {
 
     return {
         ...config,
-        timeout: config.timeout ?? timeout ?? 30000,
+        timeout: config.timeout ?? timeout,
         precognitive: config.precognitive !== false,
         fingerprint: typeof config.fingerprint === 'undefined'
             ? requestFingerprintResolver(config, httpClient)
