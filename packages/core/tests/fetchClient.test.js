@@ -377,4 +377,43 @@ describe('fetchClient', () => {
         expect(callArgs.headers['Content-Type']).toBeUndefined()
         expect(callArgs.body).toBeInstanceOf(FormData)
     })
+
+    it('inherits X-Requested-With from Laravel bootstrap config', async () => {
+        global.window = {
+            axios: {
+                defaults: {
+                    headers: {
+                        common: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    },
+                },
+            },
+        }
+
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        const client = createFetchClient()
+
+        await client.request({
+            method: 'get',
+            url: 'https://laravel.com/api/users',
+        })
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    'X-Requested-With': 'XMLHttpRequest',
+                }),
+            }),
+        )
+
+        delete global.window
+    })
 })

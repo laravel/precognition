@@ -20,6 +20,18 @@ function getXsrfToken(): string | null {
 }
 
 /**
+ * Get the X-Requested-With header from Laravel's bootstrap config if available.
+ */
+function getAjaxHeader(): string | null {
+    if (typeof window === 'undefined') {
+        return null
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (window as any).axios?.defaults?.headers?.common?.['X-Requested-With'] ?? null
+}
+
+/**
  * Build a query string from params.
  */
 function buildQueryString(params: Record<string, unknown>): string {
@@ -146,6 +158,13 @@ export function createFetchClient(options: FetchClientOptions = {}): HttpClient 
             const method = config.method.toUpperCase()
 
             const headers: Record<string, string> = {}
+
+            // Inherit X-Requested-With from Laravel's bootstrap config if available
+            const ajaxHeader = getAjaxHeader()
+
+            if (ajaxHeader) {
+                headers['X-Requested-With'] = ajaxHeader
+            }
 
             // Set default Content-Type for non-GET/DELETE requests with data
             if (config.data !== undefined && !['GET', 'DELETE'].includes(method)) {
