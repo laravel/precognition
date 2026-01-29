@@ -54,32 +54,24 @@ export const client: Client = {
 
         return client
     },
-    getHttpClient() {
-        return httpClient
-    },
-    setBaseURL(url) {
+    withBaseURL(url) {
         baseURL = url
 
         return client
     },
-    getBaseURL() {
-        return baseURL
-    },
-    setTimeout(duration) {
+    withTimeout(duration) {
         timeout = duration
 
         return client
     },
-    getTimeout() {
-        return timeout
-    },
-    setCredentials(value) {
-        credentials = value
+    withCredentials(value) {
+        credentials = value === true
+            ? 'include'
+            : value === false
+                ? 'omit'
+                : value
 
         return client
-    },
-    getCredentials() {
-        return credentials
     },
     fingerprintRequestsUsing(callback) {
         requestFingerprintResolver = callback === null

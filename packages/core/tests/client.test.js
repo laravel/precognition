@@ -336,7 +336,7 @@ it('can set and use base URL', async () => {
         return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
 
-    client.setBaseURL('https://laravel.com')
+    client.withBaseURL('https://laravel.com')
 
     await client.get('/docs')
 
@@ -344,7 +344,7 @@ it('can set and use base URL', async () => {
     expect(config.baseURL).toBe('https://laravel.com')
 
     // Reset base URL
-    client.setBaseURL(undefined)
+    client.withBaseURL(undefined)
 })
 
 it('the config baseURL takes precedence over the global baseURL', async () => {
@@ -356,7 +356,7 @@ it('the config baseURL takes precedence over the global baseURL', async () => {
         return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
 
-    client.setBaseURL('https://laravel.com')
+    client.withBaseURL('https://laravel.com')
 
     await client.get('/docs', {}, {
         baseURL: 'https://forge.laravel.com',
@@ -366,7 +366,7 @@ it('the config baseURL takes precedence over the global baseURL', async () => {
     expect(config.baseURL).toBe('https://forge.laravel.com')
 
     // Reset base URL
-    client.setBaseURL(undefined)
+    client.withBaseURL(undefined)
 })
 
 it('can specify the abort controller via config', async () => {
@@ -520,20 +520,26 @@ it('merges request data with config params for get and delete requests', async (
     expect(config.data).toBeUndefined()
 })
 
-it('can get and set base URL', () => {
-    client.setBaseURL('https://example.com')
-    expect(client.getBaseURL()).toBe('https://example.com')
+it('can configure base URL', async () => {
+    mockClient.mockResolvedValueOnce({ headers: { precognition: 'true' }, status: 204, data: {} })
 
-    client.setBaseURL(undefined)
-    expect(client.getBaseURL()).toBeUndefined()
+    client.withBaseURL('https://example.com')
+    await client.get('/users')
+
+    expect(mockClient.getLastConfig().baseURL).toBe('https://example.com')
+
+    client.withBaseURL(undefined)
 })
 
-it('can get and set timeout', () => {
-    client.setTimeout(5000)
-    expect(client.getTimeout()).toBe(5000)
+it('can configure timeout', async () => {
+    mockClient.mockResolvedValueOnce({ headers: { precognition: 'true' }, status: 204, data: {} })
 
-    client.setTimeout(undefined)
-    expect(client.getTimeout()).toBeUndefined()
+    client.withTimeout(5000)
+    await client.get('https://laravel.com')
+
+    expect(mockClient.getLastConfig().timeout).toBe(5000)
+
+    client.withTimeout(undefined)
 })
 
 it('returns a cancelled request error via rejected promise', async () => {
