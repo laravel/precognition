@@ -156,10 +156,9 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             if (typeof name === 'undefined') {
                 validator.current!.validate(config)
             } else {
-                // @ts-expect-error
-                name = resolveName(name)
+                const resolvedName = resolveName(name)
 
-                validator.current!.validate(name, get(payload.current, name), config)
+                validator.current!.validate(resolvedName, get(payload.current, resolvedName), config)
             }
 
             return form

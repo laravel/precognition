@@ -1,5 +1,14 @@
 import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
+type FormDataValue = string | number | boolean | null | undefined | Date | Blob | File | FileList
+
+export type PrecognitionPath<Data> = 0 extends 1 & Data ? never : Data extends object ? {
+    [K in Extract<keyof Data, string>]: 0 extends 1 & Data[K] ? never
+        : Data[K] extends Array<infer U>
+            ? K | `${K}.*` | (U extends FormDataValue ? never : `${K}.*.${Extract<keyof U, string>}` | `${K}.*.*`)
+            : Data[K] extends FormDataValue ? K : K | `${K}.*` | `${K}.${PrecognitionPath<Data[K]>}`
+}[Extract<keyof Data, string>] : never
+
 export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
 
 export type ValidationErrors = Record<string, Array<string>>

@@ -24,7 +24,8 @@
         "build": "rm -rf dist && tsc",
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
-        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
+        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version",
+        "test": "vitest run"
     },
     "peerDependencies": {
         "vue": "^3.0.0"
@@ -35,6 +36,8 @@
     },
     "devDependencies": {
         "@types/lodash-es": "^4.17.12",
-        "typescript": "^5.0.0"
+        "@types/node": "^22.5.0",
+        "typescript": "^5.0.0",
+        "vitest": "^2.0.5"
     }
 }
