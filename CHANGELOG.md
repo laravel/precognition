@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v1.0.0...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v1.0.1...main)
+
+## [v1.0.1](https://github.com/laravel/precognition/compare/v1.0.0...v1.0.1) - 2026-01-30
+
+* Add TypeScript Support for Wildcard Validation Paths by [@messenjer](https://github.com/messenjer) in https://github.com/laravel/precognition/pull/137
 
 ## [v1.0.0](https://github.com/laravel/precognition/compare/v0.8.0...v1.0.0) - 2025-12-10
 
