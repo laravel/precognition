@@ -24,7 +24,6 @@ function getAjaxHeader(): string | null {
         return null
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (window as any).axios?.defaults?.headers?.common?.['X-Requested-With'] ?? null
 }
 
