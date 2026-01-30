@@ -446,4 +446,48 @@ describe('fetchClient', () => {
 
         vi.useRealTimers()
     })
+
+    it('extracts XSRF-TOKEN from cookies and adds X-XSRF-TOKEN header on POST requests', async () => {
+        global.document = { cookie: 'other=value; XSRF-TOKEN=test%2Btoken' }
+
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        const client = createFetchClient()
+        await client.request({ method: 'post', url: '/test', data: {} })
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/test',
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    'X-XSRF-TOKEN': 'test+token',
+                }),
+            }),
+        )
+
+        delete global.document
+    })
+
+    it('does not add X-XSRF-TOKEN header on GET requests', async () => {
+        global.document = { cookie: 'XSRF-TOKEN=test-token' }
+
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        const client = createFetchClient()
+        await client.request({ method: 'get', url: '/test' })
+
+        const callArgs = global.fetch.mock.calls[0][1]
+        expect(callArgs.headers['X-XSRF-TOKEN']).toBeUndefined()
+
+        delete global.document
+    })
 })
