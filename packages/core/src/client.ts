@@ -1,21 +1,39 @@
-import { isAxiosError, isCancel, AxiosInstance, AxiosResponse, default as Axios } from 'axios'
 import { merge } from 'lodash-es'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types.js'
+import { hasFiles } from './form.js'
+import { HttpClient, HttpResponse } from './http/types.js'
+import { HttpResponseError } from './http/errors.js'
+import { fetchHttpClient } from './http/fetchClient.js'
 
 /**
- * The configured axios client.
+ * The configured HTTP client.
  */
-let axiosClient: AxiosInstance = Axios.create()
+let httpClient: HttpClient = fetchHttpClient
+
+/**
+ * The configured base URL.
+ */
+let baseURL: string | undefined = undefined
+
+/**
+ * The configured default timeout.
+ */
+let timeout: number | undefined = undefined
+
+/**
+ * The configured credentials mode.
+ */
+let credentials: RequestCredentials = 'same-origin'
 
 /**
  * The request fingerprint resolver.
  */
-let requestFingerprintResolver: RequestFingerprintResolver = (config, axios) => `${config.method}:${config.baseURL ?? axios.defaults.baseURL ?? ''}${config.url}`
+let requestFingerprintResolver: RequestFingerprintResolver = (config) => `${config.method}:${config.baseURL ?? baseURL ?? ''}${config.url}`
 
 /**
  * The precognition success resolver.
  */
-let successResolver: SuccessResolver = (response: AxiosResponse) => response.status === 204 && response.headers['precognition-success'] === 'true'
+let successResolver: SuccessResolver = (response: HttpResponse) => response.status === 204 && response.headers['precognition-success'] === 'true'
 
 /**
  * The abort controller cache.
@@ -31,13 +49,25 @@ export const client: Client = {
     patch: (url, data = {}, config = {}) => request(mergeConfig('patch', url, data, config)),
     put: (url, data = {}, config = {}) => request(mergeConfig('put', url, data, config)),
     delete: (url, data = {}, config = {}) => request(mergeConfig('delete', url, data, config)),
-    use(axios) {
-        axiosClient = axios
+    useHttpClient(newHttpClient) {
+        httpClient = newHttpClient
 
         return client
     },
-    axios() {
-        return axiosClient
+    withBaseURL(url) {
+        baseURL = url
+
+        return client
+    },
+    withTimeout(duration) {
+        timeout = duration
+
+        return client
+    },
+    withCredentials(value) {
+        credentials = typeof value === 'string' ? value : (value ? 'include' : 'omit')
+
+        return client
     },
     fingerprintRequestsUsing(callback) {
         requestFingerprintResolver = callback === null
@@ -83,40 +113,52 @@ const request = (userConfig: Config = {}): Promise<unknown> => {
 
     (config.onStart ?? (() => null))()
 
-    return axiosClient.request(config).then(async (response) => {
+    return httpClient.request({
+        method: config.method!,
+        url: config.url!,
+        baseURL: config.baseURL ?? baseURL,
+        data: config.data,
+        params: config.params,
+        headers: config.headers as Record<string, string>,
+        signal: config.signal,
+        timeout: config.timeout,
+        credentials,
+    }).then(async (response) => {
         if (config.precognitive) {
             validatePrecognitionResponse(response)
         }
 
         const status = response.status
 
-        let payload: any = response
+        let payload: unknown = response
 
-        if (config.precognitive && config.onPrecognitionSuccess && successResolver(payload)) {
-            payload = await Promise.resolve(config.onPrecognitionSuccess(payload) ?? payload)
+        if (config.precognitive && config.onPrecognitionSuccess && successResolver(response)) {
+            payload = await Promise.resolve(config.onPrecognitionSuccess(response) ?? payload)
         }
 
         if (config.onSuccess && isSuccess(status)) {
-            payload = await Promise.resolve(config.onSuccess(payload) ?? payload)
+            payload = await Promise.resolve(config.onSuccess(payload as HttpResponse) ?? payload)
         }
 
         const statusHandler = resolveStatusHandler(config, status)
             ?? ((response) => response)
 
-        return statusHandler(payload) ?? payload
+        return statusHandler(payload as HttpResponse) ?? payload
     }, (error) => {
         if (isNotServerGeneratedError(error)) {
             return Promise.reject(error)
         }
 
+        const httpError = error as HttpResponseError
+
         if (config.precognitive) {
-            validatePrecognitionResponse(error.response)
+            validatePrecognitionResponse(httpError.response)
         }
 
-        const statusHandler = resolveStatusHandler(config, error.response.status)
+        const statusHandler = resolveStatusHandler(config, httpError.response.status)
             ?? ((_, error) => Promise.reject(error))
 
-        return statusHandler(error.response, error)
+        return statusHandler(httpError.response, httpError)
     }).finally(config.onFinish ?? (() => null))
 }
 
@@ -128,10 +170,10 @@ const resolveConfig = (config: Config): Config => {
 
     return {
         ...config,
-        timeout: config.timeout ?? axiosClient.defaults['timeout'] ?? 30000,
+        timeout: config.timeout ?? timeout,
         precognitive: config.precognitive !== false,
         fingerprint: typeof config.fingerprint === 'undefined'
-            ? requestFingerprintResolver(config, axiosClient)
+            ? requestFingerprintResolver(config, httpClient)
             : config.fingerprint,
         headers: {
             ...config.headers,
@@ -173,7 +215,6 @@ const refreshAbortController = (config: Config): Config => {
     if (
         typeof config.fingerprint !== 'string'
         || config.signal
-        || config.cancelToken
         || ! config.precognitive
     ) {
         return config
@@ -190,7 +231,7 @@ const refreshAbortController = (config: Config): Config => {
 /**
  * Ensure that the response is a Precognition response.
  */
-const validatePrecognitionResponse = (response: AxiosResponse): void => {
+const validatePrecognitionResponse = (response: HttpResponse): void => {
     if (response.headers?.precognition !== 'true') {
         throw Error('Did not receive a Precognition response. Ensure you have the Precognition middleware in place for the route.')
     }
@@ -200,7 +241,7 @@ const validatePrecognitionResponse = (response: AxiosResponse): void => {
  * Determine if the error was not triggered by a server response.
  */
 const isNotServerGeneratedError = (error: unknown): boolean => {
-    return ! isAxiosError(error) || typeof error.response?.status !== 'number' || isCancel(error)
+    return !(error instanceof HttpResponseError) || typeof error.response?.status !== 'number'
 }
 
 /**
@@ -218,25 +259,10 @@ const resolveStatusHandler = (config: Config, code: number): StatusHandler | und
 /**
  * Resolve the request's "Content-Type" header.
  */
-const resolveContentType = (config: Config): string => config.headers?.['Content-Type']
+const resolveContentType = (config: Config): string => (config.headers?.['Content-Type']
     ?? config.headers?.['Content-type']
     ?? config.headers?.['content-type']
-    ?? (hasFiles(config.data) ? 'multipart/form-data' : 'application/json')
-
-/**
- * Determine if the payload has any files.
- *
- * @see https://github.com/inertiajs/inertia/blob/master/packages/core/src/files.ts
- */
-const hasFiles = (data: unknown): boolean => isFile(data)
-    || (typeof data === 'object' && data !== null && Object.values(data).some((value) => hasFiles(value)))
-
-/**
- * Determine if the value is a file.
- */
-export const isFile = (value: unknown): boolean => (typeof File !== 'undefined' && value instanceof File)
-    || value instanceof Blob
-    || (typeof FileList !== 'undefined' && value instanceof FileList && value.length > 0)
+    ?? (hasFiles(config.data) ? 'multipart/form-data' : 'application/json')) as string
 
 /**
  * Resolve the url from a potential callback.

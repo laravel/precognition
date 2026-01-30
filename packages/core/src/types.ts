@@ -1,4 +1,8 @@
-import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+export * from './http/types.js'
+export * from './http/errors.js'
+
+import type { HttpClient, HttpResponse } from './http/types.js'
+import type { HttpResponseError } from './http/errors.js'
 
 type FormDataValue = string | number | boolean | null | undefined | Date | Blob | File | FileList
 
@@ -9,13 +13,21 @@ export type PrecognitionPath<Data> = 0 extends 1 & Data ? never : Data extends o
             : Data[K] extends FormDataValue ? K : K | `${K}.*` | `${K}.${PrecognitionPath<Data[K]>}`
 }[Extract<keyof Data, string>] : never
 
-export type StatusHandler = (response: AxiosResponse, axiosError?: AxiosError) => unknown
+export type StatusHandler = (response: HttpResponse, error?: HttpResponseError) => unknown
 
 export type ValidationErrors = Record<string, Array<string>>
 
 export type SimpleValidationErrors = Record<string, string>
 
-export type Config = AxiosRequestConfig & {
+export type Config = {
+    method?: 'get' | 'post' | 'put' | 'patch' | 'delete',
+    url?: string,
+    baseURL?: string,
+    data?: unknown,
+    params?: Record<string, unknown>,
+    headers?: Record<string, string | number | boolean | undefined>,
+    signal?: AbortSignal,
+    timeout?: number,
     precognitive?: boolean,
     /** @deprecated Use `only` instead */
     validate?: Iterable<string> | ArrayLike<string>,
@@ -23,8 +35,8 @@ export type Config = AxiosRequestConfig & {
     fingerprint?: string | null,
     onBefore?: () => boolean | undefined,
     onStart?: () => void,
-    onSuccess?: (response: AxiosResponse) => unknown,
-    onPrecognitionSuccess?: (response: AxiosResponse) => unknown,
+    onSuccess?: (response: HttpResponse) => unknown,
+    onPrecognitionSuccess?: (response: HttpResponse) => unknown,
     onValidationError?: StatusHandler,
     onUnauthorized?: StatusHandler,
     onForbidden?: StatusHandler,
@@ -43,9 +55,9 @@ export type ValidationConfig = Config & {
     onBeforeValidation?: (newRequest: RevalidatePayload, oldRequest: RevalidatePayload) => boolean | undefined,
 }
 
-export type RequestFingerprintResolver = (config: Config, axios: AxiosInstance) => string | null
+export type RequestFingerprintResolver = (config: Config, httpClient: HttpClient) => string | null
 
-export type SuccessResolver = (response: AxiosResponse) => boolean
+export type SuccessResolver = (response: HttpResponse) => boolean
 
 export interface Client {
     get(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
@@ -53,10 +65,12 @@ export interface Client {
     patch(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     put(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     delete(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
-    use(axios: AxiosInstance): Client,
+    useHttpClient(httpClient: HttpClient): Client,
+    withBaseURL(url: string): Client,
+    withTimeout(duration: number): Client,
+    withCredentials(credentials: RequestCredentials | boolean): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver | null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,
-    axios(): AxiosInstance,
 }
 
 export interface Validator {
@@ -100,8 +114,4 @@ interface NamedEventTarget extends EventTarget {
 
 export interface NamedInputEvent extends InputEvent {
     readonly target: NamedEventTarget;
-}
-
-declare module 'axios' {
-    export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestConfig): AxiosRequestConfig
 }
