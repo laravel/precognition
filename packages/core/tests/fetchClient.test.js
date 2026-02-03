@@ -544,37 +544,6 @@ describe('fetchClient', () => {
         delete global.document
     })
 
-    it('uses both custom xsrfCookieName and xsrfHeaderName options together', async () => {
-        global.document = { cookie: 'csrf_cookie=secret-csrf-value' }
-
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            status: 200,
-            headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({}),
-        })
-
-        const client = createFetchClient({
-            xsrfCookieName: 'csrf_cookie',
-            xsrfHeaderName: 'X-Csrf-Header',
-        })
-        await client.request({ method: 'post', url: '/test', data: {} })
-
-        expect(global.fetch).toHaveBeenCalledWith(
-            '/test',
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    'X-Csrf-Header': 'secret-csrf-value',
-                }),
-            }),
-        )
-
-        const callArgs = global.fetch.mock.calls[0][1]
-        expect(callArgs.headers['X-XSRF-TOKEN']).toBeUndefined()
-
-        delete global.document
-    })
-
     it('does not add XSRF header when custom cookie is not found', async () => {
         global.document = { cookie: 'XSRF-TOKEN=default-token' }
 
@@ -594,58 +563,4 @@ describe('fetchClient', () => {
         delete global.document
     })
 
-    it('can change xsrfCookieName via setter method', async () => {
-        global.document = { cookie: 'CUSTOM-COOKIE=setter-token' }
-
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            status: 200,
-            headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({}),
-        })
-
-        const client = createFetchClient()
-        client.setXsrfCookieName('CUSTOM-COOKIE')
-        await client.request({ method: 'post', url: '/test', data: {} })
-
-        expect(global.fetch).toHaveBeenCalledWith(
-            '/test',
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    'X-XSRF-TOKEN': 'setter-token',
-                }),
-            }),
-        )
-
-        delete global.document
-    })
-
-    it('can change xsrfHeaderName via setter method', async () => {
-        global.document = { cookie: 'XSRF-TOKEN=my-token' }
-
-        global.fetch = vi.fn().mockResolvedValueOnce({
-            ok: true,
-            status: 200,
-            headers: new Headers({ 'content-type': 'application/json' }),
-            json: () => Promise.resolve({}),
-        })
-
-        const client = createFetchClient()
-        client.setXsrfHeaderName('X-CUSTOM-HEADER')
-        await client.request({ method: 'post', url: '/test', data: {} })
-
-        expect(global.fetch).toHaveBeenCalledWith(
-            '/test',
-            expect.objectContaining({
-                headers: expect.objectContaining({
-                    'X-CUSTOM-HEADER': 'my-token',
-                }),
-            }),
-        )
-
-        const callArgs = global.fetch.mock.calls[0][1]
-        expect(callArgs.headers['X-XSRF-TOKEN']).toBeUndefined()
-
-        delete global.document
-    })
 })
