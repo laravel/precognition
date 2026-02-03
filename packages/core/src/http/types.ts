@@ -19,3 +19,8 @@ export interface HttpResponse {
     data: any
     headers: Record<string, string>
 }
+
+export interface FetchClientOptions {
+    xsrfCookieName?: string
+    xsrfHeaderName?: string
+}

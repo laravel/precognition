@@ -1,4 +1,4 @@
-import { HttpClient, HttpRequestConfig, HttpResponse } from './types.js'
+import { HttpClient, HttpRequestConfig, HttpResponse, FetchClientOptions } from './types.js'
 import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './errors.js'
 import { buildUrl } from './url.js'
 import { hasFiles } from '../form.js'
@@ -6,12 +6,12 @@ import { hasFiles } from '../form.js'
 /**
  * Read the XSRF token from cookies.
  */
-function getXsrfToken(): string | null {
+function getXsrfToken(cookieName: string): string | null {
     if (typeof document === 'undefined') {
         return null
     }
 
-    const match = document.cookie.match(new RegExp('(^|;\\s*)XSRF-TOKEN=([^;]*)'))
+    const match = document.cookie.match(new RegExp('(^|;\\s*)' + cookieName + '=([^;]*)'))
 
     return match ? decodeURIComponent(match[2]) : null
 }
@@ -101,7 +101,10 @@ function parseHeaders(headers: Headers): Record<string, string> {
 /**
  * Create a fetch-based HTTP client.
  */
-export function createFetchClient(): HttpClient {
+export function createFetchClient(options: FetchClientOptions = {}): HttpClient {
+    const xsrfCookieName = options.xsrfCookieName ?? 'XSRF-TOKEN'
+    const xsrfHeaderName = options.xsrfHeaderName ?? 'X-XSRF-TOKEN'
+
     return {
         async request(config: HttpRequestConfig): Promise<HttpResponse> {
             const url = buildUrl(config.url, config.baseURL, config.params)
@@ -133,10 +136,10 @@ export function createFetchClient(): HttpClient {
             }
 
             // Add XSRF token
-            const xsrfToken = getXsrfToken()
+            const xsrfToken = getXsrfToken(xsrfCookieName)
 
             if (xsrfToken && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-                headers['X-XSRF-TOKEN'] = xsrfToken
+                headers[xsrfHeaderName] = xsrfToken
             }
 
             // Handle timeout

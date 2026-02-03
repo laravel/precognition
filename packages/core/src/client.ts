@@ -1,9 +1,9 @@
 import { merge } from 'lodash-es'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types.js'
 import { hasFiles } from './form.js'
-import { HttpClient, HttpResponse } from './http/types.js'
+import { HttpClient, HttpResponse, FetchClientOptions } from './http/types.js'
 import { HttpResponseError } from './http/errors.js'
-import { fetchHttpClient } from './http/fetchClient.js'
+import { fetchHttpClient, createFetchClient } from './http/fetchClient.js'
 
 /**
  * The configured HTTP client.
@@ -24,6 +24,16 @@ let timeout: number | undefined = undefined
  * The configured credentials mode.
  */
 let credentials: RequestCredentials = 'same-origin'
+
+/**
+ * The configured XSRF cookie name.
+ */
+let xsrfCookieName: string | undefined = undefined
+
+/**
+ * The configured XSRF header name.
+ */
+let xsrfHeaderName: string | undefined = undefined
 
 /**
  * The request fingerprint resolver.
@@ -78,6 +88,18 @@ export const client: Client = {
     },
     determineSuccessUsing(callback) {
         successResolver = callback
+
+        return client
+    },
+    withXsrfCookieName(name) {
+        xsrfCookieName = name
+        httpClient = createFetchClient({ xsrfCookieName, xsrfHeaderName })
+
+        return client
+    },
+    withXsrfHeaderName(name) {
+        xsrfHeaderName = name
+        httpClient = createFetchClient({ xsrfCookieName, xsrfHeaderName })
 
         return client
     },
