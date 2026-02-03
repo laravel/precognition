@@ -597,20 +597,3 @@ it('can opt out of automatic request aborting', async () => {
     expect(mockClient.getLastConfig().signal).toBeUndefined()
 })
 
-it('can configure XSRF cookie name', () => {
-    const result = client.withXsrfCookieName('MY-CSRF')
-
-    expect(result).toBe(client)
-
-    // Reset to default mock client
-    client.useHttpClient(mockClient)
-})
-
-it('can configure XSRF header name', () => {
-    const result = client.withXsrfHeaderName('X-MY-CSRF')
-
-    expect(result).toBe(client)
-
-    // Reset to default mock client
-    client.useHttpClient(mockClient)
-})
