@@ -320,9 +320,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onBefore: () => {
                 // Wildcards are expanded to concrete paths using the current
                 // form data so that each field is individually tracked.
-                const expandedTouched = [...new Set(touched.flatMap((name) =>
-                    name.includes('*') ? expandWildcardPaths(name, data) : [name],
-                ))]
+                const hasWildcards = touched.some((name) => name.includes('*'))
+                const expandedTouched = hasWildcards
+                    ? [...new Set(touched.flatMap((name) => expandWildcardPaths(name, data)))]
+                    : touched
 
                 if (config.onBeforeValidation && config.onBeforeValidation({ data, touched: expandedTouched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
@@ -334,7 +335,9 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     return false
                 }
 
-                setTouched(expandedTouched).forEach((listener) => listener())
+                if (hasWildcards) {
+                    setTouched(expandedTouched).forEach((listener) => listener())
+                }
 
                 validatingTouched = touched
 
