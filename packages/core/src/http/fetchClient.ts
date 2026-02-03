@@ -1,4 +1,4 @@
-import { HttpClient, HttpRequestConfig, HttpResponse, FetchClientOptions } from './types.js'
+import { HttpRequestConfig, HttpResponse, FetchClientOptions } from './types.js'
 import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './errors.js'
 import { buildUrl } from './url.js'
 import { hasFiles } from '../form.js'
