@@ -1,20 +1,7 @@
-import { HttpClient, HttpRequestConfig, HttpResponse } from './types.js'
+import { HttpRequestConfig, HttpResponse, FetchClientOptions } from './types.js'
 import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './errors.js'
 import { buildUrl } from './url.js'
 import { hasFiles } from '../form.js'
-
-/**
- * Read the XSRF token from cookies.
- */
-function getXsrfToken(): string | null {
-    if (typeof document === 'undefined') {
-        return null
-    }
-
-    const match = document.cookie.match(new RegExp('(^|;\\s*)XSRF-TOKEN=([^;]*)'))
-
-    return match ? decodeURIComponent(match[2]) : null
-}
 
 /**
  * Get the X-Requested-With header from Laravel's bootstrap config if available.
@@ -101,8 +88,27 @@ function parseHeaders(headers: Headers): Record<string, string> {
 /**
  * Create a fetch-based HTTP client.
  */
-export function createFetchClient(): HttpClient {
+export function createFetchClient(options: FetchClientOptions = {}) {
+    let xsrfCookieName = options.xsrfCookieName ?? 'XSRF-TOKEN'
+    let xsrfHeaderName = options.xsrfHeaderName ?? 'X-XSRF-TOKEN'
+
+    function getXsrfToken(): string | null {
+        if (typeof document === 'undefined') {
+            return null
+        }
+
+        const match = document.cookie.match(new RegExp('(^|;\\s*)' + xsrfCookieName + '=([^;]*)'))
+
+        return match ? decodeURIComponent(match[2]) : null
+    }
+
     return {
+        setXsrfCookieName(name: string) {
+            xsrfCookieName = name
+        },
+        setXsrfHeaderName(name: string) {
+            xsrfHeaderName = name
+        },
         async request(config: HttpRequestConfig): Promise<HttpResponse> {
             const url = buildUrl(config.url, config.baseURL, config.params)
             const method = config.method.toUpperCase()
@@ -136,7 +142,7 @@ export function createFetchClient(): HttpClient {
             const xsrfToken = getXsrfToken()
 
             if (xsrfToken && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-                headers['X-XSRF-TOKEN'] = xsrfToken
+                headers[xsrfHeaderName] = xsrfToken
             }
 
             // Handle timeout
@@ -220,4 +226,4 @@ export function createFetchClient(): HttpClient {
 /**
  * Default fetch HTTP client instance.
  */
-export const fetchHttpClient: HttpClient = createFetchClient()
+export const fetchHttpClient = createFetchClient()

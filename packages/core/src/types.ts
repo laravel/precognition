@@ -69,6 +69,8 @@ export interface Client {
     withBaseURL(url: string): Client,
     withTimeout(duration: number): Client,
     withCredentials(credentials: RequestCredentials | boolean): Client,
+    withXsrfCookieName(name: string): Client,
+    withXsrfHeaderName(name: string): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver | null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,
 }

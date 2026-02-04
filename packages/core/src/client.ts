@@ -81,6 +81,16 @@ export const client: Client = {
 
         return client
     },
+    withXsrfCookieName(name) {
+        fetchHttpClient.setXsrfCookieName(name)
+
+        return client
+    },
+    withXsrfHeaderName(name) {
+        fetchHttpClient.setXsrfHeaderName(name)
+
+        return client
+    },
 }
 
 /**

@@ -1,6 +1,7 @@
 import { it, vi, expect, beforeEach, afterEach } from 'vitest'
 import { client } from '../src/index'
 import { HttpResponseError } from '../src/http/errors'
+import { fetchHttpClient } from '../src/http/fetchClient'
 
 /**
  * Create a mock HTTP client for testing.
@@ -596,3 +597,42 @@ it('can opt out of automatic request aborting', async () => {
 
     expect(mockClient.getLastConfig().signal).toBeUndefined()
 })
+
+it('can configure custom XSRF cookie and header names', async () => {
+    global.document = { cookie: 'MY-CSRF=custom-token' }
+
+    global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+        headers: new Headers({
+            'content-type': 'application/json',
+            'precognition': 'true',
+            'precognition-success': 'true',
+        }),
+        json: () => Promise.resolve({}),
+    })
+
+    // Reset to fetchHttpClient (beforeEach sets mockClient)
+    client.useHttpClient(fetchHttpClient)
+
+    client
+        .withXsrfCookieName('MY-CSRF')
+        .withXsrfHeaderName('X-MY-CSRF')
+
+    await client.post('/test', { name: 'test' })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+        '/test',
+        expect.objectContaining({
+            headers: expect.objectContaining({
+                'X-MY-CSRF': 'custom-token',
+            }),
+        }),
+    )
+
+    delete global.document
+    fetchHttpClient.setXsrfCookieName('XSRF-TOKEN')
+    fetchHttpClient.setXsrfHeaderName('X-XSRF-TOKEN')
+    client.useHttpClient(mockClient)
+})
+
