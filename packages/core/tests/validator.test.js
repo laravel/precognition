@@ -1,7 +1,7 @@
-import { it, vi, expect, beforeEach, afterEach } from 'vitest'
+import { it, vi, expect, beforeEach, afterEach, describe } from 'vitest'
 import axios from 'axios'
 import { client } from '../src/client'
-import { createValidator } from '../src/validator'
+import { createValidator, expandWildcardPaths } from '../src/validator'
 import { merge } from 'lodash-es'
 
 const precognitionSuccessResponse = (payload) => merge({
@@ -847,4 +847,274 @@ it('can override the initial data via the defaults function', async () => {
     validator.reset('name')
     validator.validate('name', 'Jess')
     expect(requests).toBe(1)
+})
+
+describe('expandWildcardPaths', () => {
+    it('returns the pattern unchanged when no wildcards present', () => {
+        const data = { users: [{ name: 'A' }] }
+        expect(expandWildcardPaths('users.0.name', data)).toEqual(['users.0.name'])
+    })
+
+    it('expands array wildcard to indices', () => {
+        const data = { users: [{ name: 'A' }, { name: 'B' }] }
+        expect(expandWildcardPaths('users.*', data)).toEqual(['users.0', 'users.1'])
+    })
+
+    it('expands array wildcard with property suffix', () => {
+        const data = { users: [{ name: 'A' }, { name: 'B' }] }
+        expect(expandWildcardPaths('users.*.name', data)).toEqual(['users.0.name', 'users.1.name'])
+    })
+
+    it('expands object wildcard to keys', () => {
+        const data = { author: { name: 'John', bio: 'Dev' } }
+        expect(expandWildcardPaths('author.*', data)).toEqual(['author.name', 'author.bio'])
+    })
+
+    it('expands nested array and object wildcards', () => {
+        const data = {
+            company: {
+                addresses: [
+                    { city: 'NYC', zip: '10001' },
+                    { city: 'LA', zip: '90001' },
+                ],
+            },
+        }
+        expect(expandWildcardPaths('company.addresses.*.*', data)).toEqual([
+            'company.addresses.0.city',
+            'company.addresses.0.zip',
+            'company.addresses.1.city',
+            'company.addresses.1.zip',
+        ])
+    })
+
+    it('expands specific property in nested array', () => {
+        const data = {
+            company: {
+                addresses: [
+                    { city: 'NYC', zip: '10001' },
+                    { city: 'LA', zip: '90001' },
+                ],
+            },
+        }
+        expect(expandWildcardPaths('company.addresses.*.city', data)).toEqual([
+            'company.addresses.0.city',
+            'company.addresses.1.city',
+        ])
+    })
+
+    it('returns empty array when wildcard matches nothing', () => {
+        const data = { users: [] }
+        expect(expandWildcardPaths('users.*.name', data)).toEqual([])
+    })
+
+    it('returns empty array when path does not exist', () => {
+        const data = { foo: 'bar' }
+        expect(expandWildcardPaths('users.*.name', data)).toEqual([])
+    })
+})
+
+describe('wildcard validation triggering', () => {
+    it('always triggers validation for wildcard paths', async () => {
+        let requests = 0
+        axios.request.mockImplementation(() => {
+            requests++
+            return Promise.resolve(precognitionSuccessResponse())
+        })
+
+        const validator = createValidator((client) => client.post('/foo', {}))
+
+        validator.validate('users.*')
+        expect(requests).toBe(1)
+
+        await vi.advanceTimersByTimeAsync(1500)
+
+        validator.validate('users.*')
+        expect(requests).toBe(2)
+
+        await vi.advanceTimersByTimeAsync(1500)
+    })
+
+    it('expands wildcards in touched during validation', async () => {
+        let config
+        axios.request.mockImplementation((c) => {
+            config = c
+            return Promise.resolve(precognitionSuccessResponse())
+        })
+
+        const data = { users: [{ name: 'A' }, { name: 'B' }] }
+        const validator = createValidator((client) => client.post('/foo', data))
+
+        validator.validate('users.*.name')
+
+        expect(config.headers['Precognition-Validate-Only']).toBe('users.*.name')
+
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.touched()).toEqual(['users.0.name', 'users.1.name'])
+    })
+
+    it('expands wildcards to empty when array is empty', async () => {
+        let config
+        axios.request.mockImplementation((c) => {
+            config = c
+            return Promise.resolve(precognitionSuccessResponse())
+        })
+
+        const data = { users: [] }
+        const validator = createValidator((client) => client.post('/foo', data))
+
+        validator.validate('users.*.name')
+
+        expect(config.headers['Precognition-Validate-Only']).toBe('users.*.name')
+
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.touched()).toEqual([])
+    })
+
+    it('mixes wildcard and non-wildcard paths correctly', async () => {
+        let config
+        axios.request.mockImplementation((c) => {
+            config = c
+            return Promise.resolve(precognitionSuccessResponse())
+        })
+
+        const data = { name: 'Test', users: [{ email: 'a@b.com' }, { email: 'c@d.com' }] }
+        const validator = createValidator((client) => client.post('/foo', data))
+
+        validator.touch('name').validate('users.*.email')
+
+        expect(config.headers['Precognition-Validate-Only']).toBe('users.*.email,name')
+
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.touched()).toEqual(['users.0.email', 'users.1.email', 'name'])
+    })
+})
+
+describe('wildcard error clearing', () => {
+    it('clears errors matching wildcard pattern on precognition success', async () => {
+        let resolver = null
+        axios.request.mockImplementation(() => {
+            return new Promise((resolve) => {
+                resolver = resolve
+            })
+        })
+
+        const validator = createValidator((client) => client.post('/foo', {}))
+        validator.setErrors({
+            'users.0.name': ['Required'],
+            'users.1.name': ['Required'],
+            'users.0.email': ['Invalid'],
+            'other': ['Some error'],
+        })
+
+        expect(validator.errors()).toEqual({
+            'users.0.name': ['Required'],
+            'users.1.name': ['Required'],
+            'users.0.email': ['Invalid'],
+            'other': ['Some error'],
+        })
+
+        validator.touch(['users.0.name', 'users.1.name']).validate({
+            only: ['users.*.name'],
+        })
+
+        resolver(precognitionSuccessResponse())
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.errors()).toEqual({
+            'users.0.email': ['Invalid'],
+            'other': ['Some error'],
+        })
+    })
+
+    it('clears errors matching wildcard pattern on validation error', async () => {
+        let resolver = null
+        axios.request.mockImplementation(() => {
+            return new Promise((_, reject) => {
+                resolver = (response) => reject({ response })
+            })
+        })
+
+        const validator = createValidator((client) => client.post('/foo', {}))
+        validator.setErrors({
+            'users.0.name': ['Old error'],
+            'users.1.name': ['Old error'],
+            'users.0.email': ['Invalid'],
+        })
+
+        validator.touch(['users.0.name', 'users.1.name']).validate({
+            only: ['users.*.name'],
+        })
+
+        resolver(precognitionFailedResponse({
+            data: {
+                errors: {
+                    'users.0.name': ['New error'],
+                },
+            },
+        }))
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.errors()).toEqual({
+            'users.0.name': ['New error'],
+            'users.0.email': ['Invalid'],
+        })
+    })
+
+    it('clears deeply nested wildcard errors', async () => {
+        let resolver = null
+        axios.request.mockImplementation(() => {
+            return new Promise((resolve) => {
+                resolver = resolve
+            })
+        })
+
+        const validator = createValidator((client) => client.post('/foo', {}))
+        validator.setErrors({
+            'company.addresses.0.city': ['Required'],
+            'company.addresses.1.city': ['Required'],
+            'company.addresses.0.zip': ['Invalid'],
+            'company.name': ['Required'],
+        })
+
+        validator.touch(['company.addresses.0.city', 'company.addresses.1.city']).validate({
+            only: ['company.addresses.*.city'],
+        })
+
+        resolver(precognitionSuccessResponse())
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.errors()).toEqual({
+            'company.addresses.0.zip': ['Invalid'],
+            'company.name': ['Required'],
+        })
+    })
+
+    it('handles non-wildcard patterns normally', async () => {
+        let resolver = null
+        axios.request.mockImplementation(() => {
+            return new Promise((resolve) => {
+                resolver = resolve
+            })
+        })
+
+        const validator = createValidator((client) => client.post('/foo', {}))
+        validator.setErrors({
+            'name': ['Required'],
+            'email': ['Invalid'],
+        })
+
+        validator.touch(['name']).validate({
+            only: ['name'],
+        })
+
+        resolver(precognitionSuccessResponse())
+        await vi.advanceTimersByTimeAsync(1500)
+
+        expect(validator.errors()).toEqual({
+            'email': ['Invalid'],
+        })
+    })
 })
