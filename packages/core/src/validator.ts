@@ -5,6 +5,11 @@ import { isAxiosError, isCancel, mergeConfig } from 'axios'
 
 /**
  * Expand a wildcard path to concrete paths using the given data.
+ *
+ * Examples:
+ * - 'users.*' with {users: [{name: 'A'}, {name: 'B'}]} => ['users.0', 'users.1']
+ * - 'users.*.name' with {users: [{name: 'A'}, {name: 'B'}]} => ['users.0.name', 'users.1.name']
+ * - 'author.*' with {author: {name: 'John', bio: 'Dev'}} => ['author.name', 'author.bio']
  */
 export const expandWildcardPaths = (pattern: string, data: Record<string, unknown>): string[] => {
     if (! pattern.includes('*')) {
@@ -22,18 +27,23 @@ export const expandWildcardPaths = (pattern: string, data: Record<string, unknow
                 const value = path ? get(data, path) : data
 
                 if (Array.isArray(value)) {
-                    value.forEach((_, index) => {
-                        expanded.push(path ? `${path}.${index}` : `${index}`)
-                    })
+                    // Expand array indices...
+                    for (let index = 0; index < value.length; index++) {
+                        expanded.push(path ? `${path}.${index}` : String(index))
+                    }
                 } else if (value !== null && typeof value === 'object') {
-                    Object.keys(value).forEach((key) => {
+                    // Expand object keys...
+                    for (const key of Object.keys(value)) {
                         expanded.push(path ? `${path}.${key}` : key)
-                    })
+                    }
                 }
+                // If value is null, undefined, or primitive, wildcard matches nothing.
+                // e.g., 'users.*' with {users: null} => []
             }
 
             paths = expanded
         } else {
+            // Append the literal part to all current paths
             paths = paths.map((path) => path ? `${path}.${part}` : part)
         }
     }
