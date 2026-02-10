@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-react",
-    "version": "1.0.2",
+    "version": "2.0.0-beta.0",
     "description": "Laravel Precognition (React).",
     "keywords": [
         "laravel",
@@ -30,7 +30,7 @@
         "react": "^18.0.0 || ^19.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "1.0.2",
+        "laravel-precognition": "2.0.0-beta.0",
         "lodash-es": "^4.17.21"
     },
     "devDependencies": {
