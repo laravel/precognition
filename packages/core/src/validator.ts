@@ -1,8 +1,82 @@
-import { debounce, isEqual, get, set, omit, merge } from 'lodash-es'
+import { debounce, isEqual, get, set, merge } from 'lodash-es'
 import { HttpResponseError, HttpCancelledError } from './http/errors.js'
 import { isFile } from './form.js'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
 import { client } from './client.js'
+
+/**
+ * Expand a wildcard path to concrete paths using the given data.
+ *
+ * Examples:
+ * - 'users.*' with {users: [{name: 'A'}, {name: 'B'}]} => ['users.0', 'users.1']
+ * - 'users.*.name' with {users: [{name: 'A'}, {name: 'B'}]} => ['users.0.name', 'users.1.name']
+ * - 'author.*' with {author: {name: 'John', bio: 'Dev'}} => ['author.name', 'author.bio']
+ */
+export const expandWildcardPaths = (pattern: string, data: Record<string, unknown>): string[] => {
+    if (! pattern.includes('*')) {
+        return [pattern]
+    }
+
+    const parts = pattern.split('.')
+    let paths: string[] = ['']
+
+    for (const part of parts) {
+        if (part === '*') {
+            const expanded: string[] = []
+
+            for (const path of paths) {
+                const value = path ? get(data, path) : data
+
+                if (Array.isArray(value)) {
+                    // Expand array indices...
+                    for (let index = 0; index < value.length; index++) {
+                        expanded.push(path ? `${path}.${index}` : String(index))
+                    }
+                } else if (value !== null && typeof value === 'object') {
+                    // Expand object keys...
+                    for (const key of Object.keys(value)) {
+                        expanded.push(path ? `${path}.${key}` : key)
+                    }
+                }
+                // If value is null, undefined, or primitive, wildcard matches nothing.
+                // e.g., 'users.*' with {users: null} => []
+            }
+
+            paths = expanded
+        } else {
+            // Append the literal part to all current paths
+            paths = paths.map((path) => path ? `${path}.${part}` : part)
+        }
+    }
+
+    return paths
+}
+
+/**
+ * Determine if a key matches the given pattern.
+ */
+const keyMatchesPattern = (key: string, pattern: string): boolean => {
+    if (! pattern.includes('*')) {
+        return key === pattern
+    }
+
+    const regex = new RegExp(
+        '^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '[^.]+') + '$',
+    )
+
+    return regex.test(key)
+}
+
+/**
+ * Omit entries from an object whose keys match the given patterns.
+ */
+const omitByPattern = (obj: ValidationErrors, patterns: string[]): ValidationErrors => {
+    return Object.fromEntries(
+        Object.entries(obj).filter(([key]) => {
+            return ! patterns.some((pattern) => keyMatchesPattern(key, pattern))
+        }),
+    )
+}
 
 export const createValidator = (callback: ValidationCallback, initialData: Record<string, unknown> = {}): TValidator => {
     /**
@@ -227,7 +301,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onValidationError: (response, error) => {
                 [
                     ...setValidated([...validated, ...only]),
-                    ...setErrors(merge(omit({ ...errors }, only), response.data.errors)),
+                    ...setErrors(merge(omitByPattern({ ...errors }, only), response.data.errors)),
                 ].forEach((listener) => listener())
 
                 return config.onValidationError
@@ -244,7 +318,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             onPrecognitionSuccess: (response) => {
                 [
                     ...setValidated([...validated, ...only]),
-                    ...setErrors(omit({ ...errors }, only)),
+                    ...setErrors(omitByPattern({ ...errors }, only)),
                 ].forEach((listener) => listener())
 
                 return config.onPrecognitionSuccess
@@ -252,7 +326,14 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
                     : response
             },
             onBefore: () => {
-                if (config.onBeforeValidation && config.onBeforeValidation({ data, touched }, { data: oldData, touched: oldTouched }) === false) {
+                // Wildcards are expanded to concrete paths using the current
+                // form data so that each field is individually tracked.
+                const hasWildcards = touched.some((name) => name.includes('*'))
+                const expandedTouched = hasWildcards
+                    ? [...new Set(touched.flatMap((name) => expandWildcardPaths(name, data)))]
+                    : touched
+
+                if (config.onBeforeValidation && config.onBeforeValidation({ data, touched: expandedTouched }, { data: oldData, touched: oldTouched }) === false) {
                     return false
                 }
 
@@ -260,6 +341,10 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
                 if (beforeResult === false) {
                     return false
+                }
+
+                if (hasWildcards) {
+                    setTouched(expandedTouched).forEach((listener) => listener())
                 }
 
                 validatingTouched = touched
@@ -309,7 +394,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
 
         name = resolveName(name)
 
-        if (get(oldData, name) !== value) {
+        if (name.includes('*') || get(oldData, name) !== value) {
             setTouched([name, ...touched]).forEach((listener) => listener())
 
             validator(config ?? {})
