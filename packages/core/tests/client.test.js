@@ -188,16 +188,20 @@ it('can handle a locked response via a config handler', async () => {
 })
 
 it('always sets the Accept header to application/json', async () => {
-    expect.assertions(1)
+    expect.assertions(2)
 
     let config
-    mockClient.mockImplementationOnce((c) => {
+    mockClient.mockImplementation((c) => {
         config = c
         return Promise.resolve({ headers: { precognition: 'true' }, status: 200, data: {} })
     })
 
     await client.get('https://laravel.com')
+    expect(config.headers['Accept']).toBe('application/json')
 
+    await client.get('https://laravel.com', {}, {
+        headers: { 'Accept': 'text/html' },
+    })
     expect(config.headers['Accept']).toBe('application/json')
 })
 
