@@ -264,6 +264,32 @@ describe('fetchClient', () => {
         expect(callArgs.headers['Content-Type']).toBeUndefined()
     })
 
+    it('forwards the Accept header when provided', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        await fetchHttpClient.request({
+            method: 'get',
+            url: 'https://laravel.com/api/users',
+            headers: {
+                'Accept': 'application/json',
+            },
+        })
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                headers: expect.objectContaining({
+                    'Accept': 'application/json',
+                }),
+            }),
+        )
+    })
+
     it('passes custom headers', async () => {
         global.fetch = vi.fn().mockResolvedValueOnce({
             ok: true,
