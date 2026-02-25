@@ -649,6 +649,7 @@ it('correctly merges config', async () => {
         'X-Local': '1',
         'X-Both': 'local',
         // others...
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
         Precognition: true,
         'Precognition-Validate-Only': 'name',
