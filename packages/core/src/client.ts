@@ -187,6 +187,7 @@ const resolveConfig = (config: Config): Config => {
             : config.fingerprint,
         headers: {
             ...config.headers,
+            'Accept': 'application/json',
             'Content-Type': resolveContentType(config),
             ...config.precognitive !== false ? {
                 Precognition: true,

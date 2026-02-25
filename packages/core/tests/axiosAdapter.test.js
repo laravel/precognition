@@ -100,6 +100,27 @@ describe('axiosAdapter', () => {
         })
     })
 
+    it('forwards the Accept header when provided', async () => {
+        mockAxios.request.mockResolvedValueOnce({
+            status: 200,
+            data: {},
+            headers: {},
+        })
+
+        const adapter = axiosAdapter(mockAxios)
+        await adapter.request({
+            method: 'get',
+            url: '/api/users',
+            headers: { 'Accept': 'application/json' },
+        })
+
+        expect(mockAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+            headers: expect.objectContaining({
+                'Accept': 'application/json',
+            }),
+        }))
+    })
+
     it('normalizes response headers to lowercase', async () => {
         mockAxios.request.mockResolvedValueOnce({
             status: 200,
