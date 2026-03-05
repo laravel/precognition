@@ -1,4 +1,3 @@
-export { axiosAdapter, type AxiosHttpClient } from './http/axiosAdapter.js'
 export { client, resolveUrl, resolveMethod } from './client.js'
 export { createValidator, toSimpleValidationErrors, resolveName } from './validator.js'
 export { isFile } from './form.js'

@@ -16,6 +16,16 @@
     "author": "Laravel",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./axios": {
+            "types": "./dist/http/axiosAdapter.d.ts",
+            "default": "./dist/http/axiosAdapter.js"
+        }
+    },
     "files": [
         "/dist"
     ],
