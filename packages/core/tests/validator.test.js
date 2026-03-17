@@ -2,7 +2,7 @@ import { it, vi, expect, beforeEach, afterEach, describe } from 'vitest'
 import { client } from '../src/index'
 import { HttpResponseError } from '../src/http/errors'
 import { createValidator, expandWildcardPaths } from '../src/validator'
-import { merge } from 'lodash-es'
+import { merge } from 'es-toolkit/compat'
 
 /**
  * Create a mock HTTP client for testing.

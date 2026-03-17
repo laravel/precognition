@@ -25,19 +25,20 @@
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version",
-        "test": "vitest run"
+        "test": "vitest run",
+        "es2022-check": "npm run build && es-check es2022 \"dist/index.js\" --checkFeatures --module --noCache --verbose"
     },
     "peerDependencies": {
         "vue": "^3.0.0"
     },
     "dependencies": {
         "laravel-precognition": "2.0.0-beta.3",
-        "lodash-es": "^4.17.21"
+        "es-toolkit": "^1.32.0"
     },
     "devDependencies": {
-        "@types/lodash-es": "^4.17.12",
         "@types/node": "^22.5.0",
         "typescript": "^5.0.0",
+        "es-check": "^9.6.1",
         "vitest": "^2.0.5"
     }
 }

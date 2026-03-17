@@ -34,10 +34,11 @@
         "build": "rm -rf dist && tsc",
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
-        "test": "vitest run"
+        "test": "vitest run",
+        "es2022-check": "npm run build && es-check es2022 \"dist/**/*.js\" --checkFeatures --module --noCache --verbose"
     },
     "dependencies": {
-        "lodash-es": "^4.17.21"
+        "es-toolkit": "^1.32.0"
     },
     "peerDependencies": {
         "axios": "^1.4.0"
@@ -48,10 +49,10 @@
         }
     },
     "devDependencies": {
-        "@types/lodash-es": "^4.17.12",
         "@types/node": "^22.5.0",
         "axios": "^1.4.0",
         "typescript": "^5.0.0",
+        "es-check": "^9.6.1",
         "vitest": "^2.0.5"
     }
 }

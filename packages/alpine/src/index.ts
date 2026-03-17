@@ -1,6 +1,7 @@
 import { Alpine as TAlpine } from 'alpinejs'
 import { client, Config, createValidator, RequestMethod, resolveName, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
-import { cloneDeep, get, set } from 'lodash-es'
+import { cloneDeep } from 'es-toolkit'
+import { get, set } from 'es-toolkit/compat'
 import { Form } from './types.js'
 
 export { client, Form }

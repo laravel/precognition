@@ -1,0 +1,37 @@
+name: es2022-compatibility
+
+on:
+  push:
+    branches:
+      - main
+      - '*.x'
+  pull_request:
+
+jobs:
+  es2022-compatibility:
+    name: ES2022 (${{ matrix.adapter }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        adapter: ['core', 'react', 'vue', 'alpine']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build core package
+        if: matrix.adapter != 'core'
+        run: npm run build --workspace=packages/core
+
+      - name: Validate ES2022 compatibility
+        run: npm run es2022-check --workspace=packages/${{ matrix.adapter }}

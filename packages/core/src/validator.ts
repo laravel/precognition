@@ -1,4 +1,5 @@
-import { debounce, isEqual, get, set, merge } from 'lodash-es'
+import { isEqual } from 'es-toolkit'
+import { debounce, get, set, merge } from 'es-toolkit/compat'
 import { HttpResponseError, HttpCancelledError } from './http/errors.js'
 import { isFile } from './form.js'
 import { ValidationCallback, Config, NamedInputEvent, SimpleValidationErrors, ValidationErrors, Validator as TValidator, ValidatorListeners, ValidationConfig } from './types.js'
