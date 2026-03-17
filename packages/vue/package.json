@@ -25,8 +25,7 @@
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version",
-        "test": "vitest run",
-        "es2022-check": "npm run build && es-check es2022 \"dist/index.js\" --checkFeatures --module --noCache --verbose"
+        "test": "vitest run"
     },
     "peerDependencies": {
         "vue": "^3.0.0"
@@ -38,7 +37,6 @@
     "devDependencies": {
         "@types/node": "^22.5.0",
         "typescript": "^5.0.0",
-        "es-check": "^9.6.1",
         "vitest": "^2.0.5"
     }
 }

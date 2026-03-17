@@ -25,7 +25,6 @@
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
         "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version",
-        "es2022-check": "npm run build && es-check es2022 \"dist/index.js\" --checkFeatures --module --noCache --verbose"
     },
     "peerDependencies": {
         "alpinejs": "^3.12.1"
@@ -36,7 +35,6 @@
     },
     "devDependencies": {
         "@types/alpinejs": "^3.7.1",
-        "es-check": "^9.6.1",
         "typescript": "^5.0.0"
     }
 }
