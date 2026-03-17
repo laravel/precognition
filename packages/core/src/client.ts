@@ -1,4 +1,4 @@
-import { merge } from 'lodash-es'
+import { merge } from 'es-toolkit/compat'
 import { Config, Client, RequestFingerprintResolver, StatusHandler, SuccessResolver, RequestMethod } from './types.js'
 import { hasFiles } from './form.js'
 import { HttpClient, HttpResponse } from './http/types.js'
