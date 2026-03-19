@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-react",
-    "version": "2.0.0-beta.3",
+    "version": "2.0.0-beta.5",
     "description": "Laravel Precognition (React).",
     "keywords": [
         "laravel",
@@ -30,8 +30,8 @@
         "react": "^18.0.0 || ^19.0.0"
     },
     "dependencies": {
-        "laravel-precognition": "2.0.0-beta.3",
-        "es-toolkit": "^1.32.0"
+        "es-toolkit": "^1.32.0",
+        "laravel-precognition": "2.0.0-beta.5"
     },
     "devDependencies": {
         "@types/react": "^18.2.6 || ^19.0.0",
