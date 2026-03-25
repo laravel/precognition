@@ -1,6 +1,6 @@
 {
     "name": "laravel-precognition-vue",
-    "version": "2.0.0-beta.5",
+    "version": "2.0.0",
     "description": "Laravel Precognition (Vue).",
     "keywords": [
         "laravel",
@@ -32,7 +32,7 @@
     },
     "dependencies": {
         "es-toolkit": "^1.32.0",
-        "laravel-precognition": "2.0.0-beta.5"
+        "laravel-precognition": "2.0.0"
     },
     "devDependencies": {
         "@types/node": "^22.5.0",
