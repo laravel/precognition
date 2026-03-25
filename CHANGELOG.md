@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v1.0.1...main)
+## [Unreleased](https://github.com/laravel/precognition/compare/v2.0.0...2.x)
+
+## [v2.0.0](https://github.com/laravel/precognition/compare/v1.0.1...v2.0.0) - 2026-03-25
+
+* [2.x] Replace Axios with built-in `fetch` client by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/138
+* [2.x] Configurable XSRF cookie and header by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/139
+* [2.x] Set `Accept` header to `application/json` by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/141
+* Move axios adapter to a separate export by [@skryukov](https://github.com/skryukov) in https://github.com/laravel/precognition/pull/142
+* [2.x] Migrate `lodash-es` to `es-toolkit` and target ES2022 by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/143
 
 ## [v1.0.1](https://github.com/laravel/precognition/compare/v1.0.0...v1.0.1) - 2026-01-30
 
