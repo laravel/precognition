@@ -35,3 +35,22 @@ updates:
       interval: "daily"
     # Only open pull requests for security updates...
     open-pull-requests-limit: 0
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "1.x"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
