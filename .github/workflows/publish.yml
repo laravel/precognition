@@ -1,0 +1,66 @@
+name: Publish Packages
+
+on:
+    release:
+        types: [released]
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    publish-core:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  persist-credentials: false
+
+            - name: Use Node.js 22.x
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+              with:
+                  node-version: 22.x
+                  registry-url: "https://registry.npmjs.org"
+
+            - name: Update npm
+              run: npm install -g npm@latest
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Publish core to npm
+              run: cd ./packages/core && npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    publish-adapters:
+        runs-on: ubuntu-latest
+        needs: publish-core
+        strategy:
+            matrix:
+                adapter: ["react", "vue", "alpine"]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  persist-credentials: false
+
+            - name: Use Node.js 22.x
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+              with:
+                  node-version: 22.x
+                  registry-url: "https://registry.npmjs.org"
+
+            - name: Update npm
+              run: npm install -g npm@latest
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: "Publish ${{ matrix.adapter }} to npm"
+              run: cd ./packages/${{ matrix.adapter }} && npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
