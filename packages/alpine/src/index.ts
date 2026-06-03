@@ -1,10 +1,11 @@
 import { Alpine as TAlpine } from 'alpinejs'
 import { client, Config, createValidator, RequestMethod, resolveName, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
+import { axiosAdapter } from 'laravel-precognition/axios'
 import { cloneDeep } from 'es-toolkit'
 import { get, set } from 'es-toolkit/compat'
 import { Form } from './types.js'
 
-export { client, Form }
+export { client, Form, axiosAdapter }
 
 export default function (Alpine: TAlpine) {
     Alpine.magic('form', (el) => <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), inputs: Data, config: ValidationConfig = {}): Data & Form<Data> => {
