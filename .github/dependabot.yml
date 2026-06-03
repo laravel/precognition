@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 5
     # Only open pull requests for security updates...
     open-pull-requests-limit: 0
 
@@ -12,6 +14,8 @@ updates:
     directory: "/packages/core"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 5
     # Only open pull requests for security updates...
     open-pull-requests-limit: 0
 
@@ -19,6 +23,8 @@ updates:
     directory: "/packages/alpine"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 5
     # Only open pull requests for security updates...
     open-pull-requests-limit: 0
 
@@ -26,6 +32,8 @@ updates:
     directory: "/packages/react"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 5
     # Only open pull requests for security updates...
     open-pull-requests-limit: 0
 
@@ -33,6 +41,8 @@ updates:
     directory: "/packages/vue"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 5
     # Only open pull requests for security updates...
     open-pull-requests-limit: 0
 
@@ -40,6 +50,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
     groups:
       github-actions:
         patterns:
@@ -49,6 +61,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 5
     target-branch: "1.x"
     groups:
       github-actions:
