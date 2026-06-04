@@ -4,14 +4,49 @@ export * from './http/errors.js'
 import type { HttpClient, HttpResponse } from './http/types.js'
 import type { HttpResponseError } from './http/errors.js'
 
-type FormDataValue = string | number | boolean | null | undefined | Date | Blob | File | FileList
+type FormDataValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Date
+  | Blob
+  | File
+  | FileList;
 
-export type PrecognitionPath<Data> = 0 extends 1 & Data ? never : Data extends object ? {
-    [K in Extract<keyof Data, string>]: 0 extends 1 & Data[K] ? never
-        : Data[K] extends Array<infer U>
-            ? K | `${K}.*` | (U extends FormDataValue ? never : `${K}.*.${Extract<keyof U, string>}` | `${K}.*.*`)
-            : Data[K] extends FormDataValue ? K : K | `${K}.*` | `${K}.${PrecognitionPath<Data[K]>}`
-}[Extract<keyof Data, string>] : never
+type OwnKeys<T> =
+  T extends Array<unknown>
+      ? Exclude<keyof T, keyof Array<unknown> | number>
+      : T extends object
+          ? {
+              [K in keyof T]: T[K] extends (...args: unknown[]) => unknown
+                  ? never
+                  : K;
+          }[keyof T]
+          : never;
+
+export type PrecognitionPath<Data> = 0 extends 1 & Data
+    ? never
+    : Data extends object
+        ? {
+            [K in Extract<OwnKeys<Data>, string>]: 0 extends 1 & Data[K]
+                ? never
+                : NonNullable<Data[K]> extends Array<infer U>
+                    ? // array: the key, plus a wildcard or numeric index
+                | K
+                | `${K}.${'*' | number}`
+                // recurse into the element only when it is not a leaf value;
+                // "*" as the trailing segment matches every property (users.*.*)
+                | (U extends FormDataValue
+                    ? never
+                    : `${K}.${'*' | number}.${'*' | PrecognitionPath<U>}`)
+                    : NonNullable<Data[K]> extends FormDataValue
+                        ? K // leaf value: the key on its own
+                        : // nested object: the key, a one-level wildcard (profile.*), or each sub-path
+                K | `${K}.${'*' | PrecognitionPath<NonNullable<Data[K]>>}`;
+        }[Extract<OwnKeys<Data>, string>]
+        : never;
 
 export type StatusHandler = (response: HttpResponse, error?: HttpResponseError) => unknown
 
