@@ -2,7 +2,8 @@
     "compilerOptions": {
         "outDir": "./dist",
         "target": "ES2022",
-        "module": "nodenext",
+        "module": "ES2022",
+        "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "strict": true,
         "declaration": true,
