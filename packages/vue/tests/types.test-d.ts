@@ -33,6 +33,8 @@ describe('PrecognitionPath type safety', () => {
         expectTypeOf<'users.*.email'>().toExtend<ValidateParam>()
         expectTypeOf<'users.*.name'>().toExtend<ValidateParam>()
         expectTypeOf<'users.*.*'>().toExtend<ValidateParam>()
+        expectTypeOf<'users.0.name'>().toExtend<ValidateParam>()
+        expectTypeOf<'users.0'>().toExtend<ValidateParam>()
     })
 
     it('accepts valid object field paths', () => {
@@ -51,6 +53,7 @@ describe('PrecognitionPath type safety', () => {
         expectTypeOf<'nested.companies.*.name'>().toExtend<ValidateParam>()
         expectTypeOf<'nested.companies.*.addresses'>().toExtend<ValidateParam>()
         expectTypeOf<'nested.companies.*.*'>().toExtend<ValidateParam>()
+        expectTypeOf<'nested.companies.0.name'>().toExtend<ValidateParam>()
     })
 
     it('rejects invalid paths', () => {
