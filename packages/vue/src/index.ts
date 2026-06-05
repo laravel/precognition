@@ -21,12 +21,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * Reactive valid state.
      */
-    const valid = ref<(keyof Data)[]>([])
+    const valid = ref<string[]>([])
 
     /**
      * Reactive touched state.
      */
-    const touched = ref<(keyof Partial<Data>)[]>([])
+    const touched = ref<string[]>([])
 
     /**
      * The validator instance.
@@ -98,7 +98,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         touched(name) {
             if (typeof name === 'string') {
-                // @ts-expect-error
                 return touched.value.includes(name)
             } else {
                 return touched.value.length > 0
@@ -127,7 +126,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
         },
         validating: false,
         valid(name) {
-            // @ts-expect-error
             return valid.value.includes(name)
         },
         invalid(name) {
@@ -142,7 +140,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         forgetError(name) {
-            // @ts-expect-error
             validator.forgetError(name)
 
             return form
@@ -157,7 +154,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 names.forEach((name) => set(form, name, get(original, name)))
             }
 
-            // @ts-expect-error
             validator.reset(...names)
 
             return form
