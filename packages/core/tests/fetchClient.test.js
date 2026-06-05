@@ -426,10 +426,9 @@ describe('fetchClient', () => {
         vi.useFakeTimers()
 
         const abortSpy = vi.fn()
-        global.AbortController = vi.fn().mockImplementation(() => ({
-            signal: { aborted: false },
-            abort: abortSpy,
-        }))
+        global.AbortController = vi.fn().mockImplementation(function () {
+            return { signal: { aborted: false }, abort: abortSpy }
+        })
 
         global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}))
 
@@ -452,10 +451,9 @@ describe('fetchClient', () => {
         vi.useFakeTimers()
 
         const abortSpy = vi.fn()
-        global.AbortController = vi.fn().mockImplementation(() => ({
-            signal: { aborted: false },
-            abort: abortSpy,
-        }))
+        global.AbortController = vi.fn().mockImplementation(function () {
+            return { signal: { aborted: false }, abort: abortSpy }
+        })
 
         global.fetch = vi.fn().mockImplementation(() => new Promise(() => {}))
 
