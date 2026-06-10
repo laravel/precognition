@@ -26,9 +26,7 @@ type OwnKeys<T> =
           }[keyof T]
           : never;
 
-// Paths for a value indexable by number — an array or a `Record<number, U>`:
-// the key itself, a wildcard or numeric index, then (for non-leaf elements)
-// each sub-path, with "*" as the trailing segment matching every property.
+// Paths for an array or a numeric-keyed record (Record<number, U>)
 type IndexedPath<K extends string, U> =
   | K
   | `${K}.${'*' | number}`
@@ -36,10 +34,10 @@ type IndexedPath<K extends string, U> =
       ? never
       : `${K}.${'*' | number}.${'*' | PrecognitionPath<U>}`);
 
-// Paths for a value indexable by string — a `Record<string, U>`. Keys are
-// unknown at compile time, so any string key is allowed (`${string}` also
-// covers the "*" wildcard). Sub-paths of the value stay typed, though a
-// `${string}` segment matches dots too, so deeper paths aren't fully checked.
+// Paths for a string-keyed record (Record<string, U>). Keys are unknown at
+// compile time, so any string key is allowed and `${string}` covers the "*"
+// wildcard. Sub-paths stay typed, but a `${string}` segment matches dots too,
+// so deeper paths aren't fully checked.
 type StringIndexedPath<K extends string, U> =
   | K
   | `${K}.${string}`
@@ -47,25 +45,25 @@ type StringIndexedPath<K extends string, U> =
       ? never
       : `${K}.${string}.${'*' | PrecognitionPath<U>}`);
 
+// Build every valid path for a form data object
 export type PrecognitionPath<Data> = 0 extends 1 & Data
     ? never
     : Data extends object
         ? {
             [K in Extract<OwnKeys<Data>, string>]: 0 extends 1 & Data[K]
                 ? never
-                : // leaf value first: `string` is numerically indexable (keyof string
-            // includes number), so it must be caught before the index checks
-                NonNullable<Data[K]> extends FormDataValue
+                // Leaf value first. A `string` is numerically indexable (keyof
+                // string includes number), so we catch it before the index checks.
+                : NonNullable<Data[K]> extends FormDataValue
                     ? K
-                    : // string-keyed record (Record<string, U>) — checked before the
-                // numeric one, which it also satisfies
-                    string extends keyof NonNullable<Data[K]>
+                    // String-keyed record, checked before the numeric one it also satisfies
+                    : string extends keyof NonNullable<Data[K]>
                         ? StringIndexedPath<K, NonNullable<Data[K]>[string]>
-                        : // array or numeric-keyed record (Record<number, U>)
-                        number extends keyof NonNullable<Data[K]>
+                        // Array or numeric-keyed record
+                        : number extends keyof NonNullable<Data[K]>
                             ? IndexedPath<K, NonNullable<Data[K]>[number]>
-                            : // nested object: the key, a one-level wildcard (profile.*), or each sub-path
-                    K | `${K}.${'*' | PrecognitionPath<NonNullable<Data[K]>>}`;
+                            // Nested object: the key, a one-level wildcard (profile.*), or each sub-path
+                            : K | `${K}.${'*' | PrecognitionPath<NonNullable<Data[K]>>}`;
         }[Extract<OwnKeys<Data>, string>]
         : never;
 
