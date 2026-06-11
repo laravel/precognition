@@ -1,0 +1,49 @@
+name: continuous releases
+
+on:
+  push:
+    branches:
+      - main
+      - '*.x'
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: pkg-pr-new-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    # Runs automatically on the canonical repository. To use it on a fork,
+    # install the pkg.pr.new GitHub App on the fork and add a repository
+    # variable named PKG_PR_NEW set to "true". Other forks stay opted out,
+    # so they don't get failing runs.
+    if: github.repository == 'laravel/precognition' || vars.PKG_PR_NEW == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: 22.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Publish preview packages
+        run: >
+          npx pkg-pr-new publish --packageManager=npm
+          './packages/core'
+          './packages/react'
+          './packages/vue'
+          './packages/alpine'
