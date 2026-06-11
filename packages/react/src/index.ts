@@ -34,12 +34,12 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The reactive valid state.
      */
-    const [valid, setValid] = useState<(keyof Partial<Data>)[]>([])
+    const [valid, setValid] = useState<string[]>([])
 
     /**
      * The reactive touched state.
      */
-    const [touched, setTouched] = useState<(keyof Partial<Data>)[]>([])
+    const [touched, setTouched] = useState<string[]>([])
 
     /**
      * The reactive validating state.
@@ -54,7 +54,7 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
     /**
      * The reactive errors state.
      */
-    const [errors, setErrors] = useState<Partial<Record<keyof Data, string>>>({})
+    const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
 
     /**
      * The reactive hasErrors state.
@@ -85,7 +85,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             .on('errorsChanged', () => {
                 setHasErrors(validator.current!.hasErrors())
 
-                // @ts-expect-error
                 setErrors(toSimpleValidationErrors(validator.current!.errors()))
 
                 setValid(validator.current!.valid())
@@ -181,7 +180,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
             return form
         },
         forgetError(name) {
-            // @ts-expect-error
             validator.current!.forgetError(name)
 
             return form
@@ -199,7 +197,6 @@ export const useForm = <Data extends Record<string, unknown>>(method: RequestMet
                 setData(payload.current)
             }
 
-            // @ts-expect-error
             validator.current!.reset(...names)
 
             return form

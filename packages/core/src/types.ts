@@ -4,14 +4,77 @@ export * from './http/errors.js'
 import type { HttpClient, HttpResponse } from './http/types.js'
 import type { HttpResponseError } from './http/errors.js'
 
-type FormDataValue = string | number | boolean | null | undefined | Date | Blob | File | FileList
+type FormDataValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Date
+  | Blob
+  | File
+  | FileList;
 
-export type PrecognitionPath<Data> = 0 extends 1 & Data ? never : Data extends object ? {
-    [K in Extract<keyof Data, string>]: 0 extends 1 & Data[K] ? never
-        : Data[K] extends Array<infer U>
-            ? K | `${K}.*` | (U extends FormDataValue ? never : `${K}.*.${Extract<keyof U, string>}` | `${K}.*.*`)
-            : Data[K] extends FormDataValue ? K : K | `${K}.*` | `${K}.${PrecognitionPath<Data[K]>}`
-}[Extract<keyof Data, string>] : never
+type OwnKeys<T> =
+  T extends Array<unknown>
+      ? Exclude<keyof T, keyof Array<unknown> | number>
+      : T extends object
+          ? {
+              [K in keyof T]: T[K] extends (...args: unknown[]) => unknown
+                  ? never
+                  : K;
+          }[keyof T]
+          : never;
+
+// Paths for an array or a numeric-keyed record (Record<number, U>)
+// e.g. "users", "users.*", "users.0", "users.*.name", "users.0.name"
+type IndexedPath<K extends string, U> =
+  | K
+  | `${K}.${'*' | number}`
+  | (U extends FormDataValue
+      ? never
+      : `${K}.${'*' | number}.${'*' | PrecognitionPath<U>}`);
+
+// Paths for a string-keyed record (Record<string, U>). Keys are unknown at
+// compile time, so any string key is allowed and `${string}` covers the "*"
+// wildcard. Sub-paths stay typed, but a `${string}` segment matches dots too,
+// so deeper paths aren't fully checked.
+// e.g. "meta", "meta.locale", "meta.*.label"
+type StringIndexedPath<K extends string, U> =
+  | K
+  | `${K}.${string}`
+  | (U extends FormDataValue
+      ? never
+      : `${K}.${string}.${'*' | PrecognitionPath<U>}`);
+
+// Build every valid path for a form data object, e.g. for
+// { name: string; profile: { bio: string }; users: { name: string }[] }
+// this yields "name", "profile", "profile.bio", "users", "users.*.name", etc.
+export type PrecognitionPath<Data> = 0 extends 1 & Data
+    ? never
+    : Data extends object
+        ? {
+            [K in Extract<OwnKeys<Data>, string>]: 0 extends 1 & Data[K]
+                ? never
+                // Leaf value first. A `string` is numerically indexable (keyof
+                // string includes number), so we catch it before the index checks.
+                // e.g. "name", "email"
+                : NonNullable<Data[K]> extends FormDataValue
+                    ? K
+                    // String-keyed record, checked before the numeric one it also satisfies
+                    // e.g. "meta.locale", "meta.*.label"
+                    : string extends keyof NonNullable<Data[K]>
+                        ? StringIndexedPath<K, NonNullable<Data[K]>[string]>
+                        // Array or numeric-keyed record
+                        // e.g. "users.*", "users.0.name"
+                        : number extends keyof NonNullable<Data[K]>
+                            ? IndexedPath<K, NonNullable<Data[K]>[number]>
+                            // Nested object: the key, a one-level wildcard, or each sub-path
+                            // e.g. "profile", "profile.*", "profile.name"
+                            : K | `${K}.${'*' | PrecognitionPath<NonNullable<Data[K]>>}`;
+        }[Extract<OwnKeys<Data>, string>]
+        : never;
+
 
 export type StatusHandler = (response: HttpResponse, error?: HttpResponseError) => unknown
 
