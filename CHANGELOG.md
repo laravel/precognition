@@ -1,6 +1,16 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/precognition/compare/v2.0.0...2.x)
+## [Unreleased](https://github.com/laravel/precognition/compare/v2.1.0...2.x)
+
+## [v2.1.0](https://github.com/laravel/precognition/compare/v2.0.0...v2.1.0) - 2026-09-16
+
+* feat: export `axiosAdapter` from framework packages by [@xerox0213](https://github.com/xerox0213) in https://github.com/laravel/precognition/pull/150
+* Type every form field-name method with `PrecognitionPath` (+ indexed & record paths) by [@xerox0213](https://github.com/xerox0213) in https://github.com/laravel/precognition/pull/156
+* Bump Vitest to v4 by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/157
+* Add `withSerializer()` to configure request body serialization by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/171
+* Append `BigInt` values to `FormData` as strings by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/173
+* Bump CI to Node 24 by [@pascalbaljet](https://github.com/pascalbaljet) in https://github.com/laravel/precognition/pull/172
+* CI maintenance: pin GitHub Actions to commit SHAs, add the publish workflow, and enable Dependabot grouping, cooldown and auto-merge in https://github.com/laravel/precognition/pull/144, https://github.com/laravel/precognition/pull/147, https://github.com/laravel/precognition/pull/152 and https://github.com/laravel/precognition/pull/154
 
 ## [v2.0.0](https://github.com/laravel/precognition/compare/v1.0.1...v2.0.0) - 2026-03-25
 
