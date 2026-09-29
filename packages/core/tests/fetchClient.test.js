@@ -383,6 +383,34 @@ describe('fetchClient', () => {
         expect(callArgs.body).toBeInstanceOf(FormData)
     })
 
+    it('appends big integers to FormData as digits', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        await fetchHttpClient.request({
+            method: 'post',
+            url: 'https://laravel.com/api/upload',
+            data: {
+                account_id: 900719925474099988n,
+                nested: { id: -900719925474099988n },
+                ids: [1n, 2n],
+                file: new Blob(['test'], { type: 'text/plain' }),
+            },
+        })
+
+        const body = global.fetch.mock.calls[0][1].body
+
+        expect(body).toBeInstanceOf(FormData)
+        expect(body.get('account_id')).toBe('900719925474099988')
+        expect(body.get('nested[id]')).toBe('-900719925474099988')
+        expect(body.get('ids[0]')).toBe('1')
+        expect(body.get('ids[1]')).toBe('2')
+    })
+
     it('inherits X-Requested-With from Laravel bootstrap config', async () => {
         global.window = {
             axios: {
