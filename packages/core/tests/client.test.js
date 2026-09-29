@@ -38,6 +38,10 @@ beforeEach(() => {
 afterEach(() => {
     vi.restoreAllMocks()
     vi.runAllTimers()
+    delete global.document
+    fetchHttpClient.setXsrfCookieName('XSRF-TOKEN')
+    fetchHttpClient.setXsrfHeaderName('X-XSRF-TOKEN')
+    fetchHttpClient.setSerializer(JSON.stringify)
 })
 
 it('can handle a successful precognition response via config handler', async () => {
@@ -647,13 +651,7 @@ it('can configure custom XSRF cookie and header names', async () => {
             }),
         }),
     )
-
-    delete global.document
-    fetchHttpClient.setXsrfCookieName('XSRF-TOKEN')
-    fetchHttpClient.setXsrfHeaderName('X-XSRF-TOKEN')
-    client.useHttpClient(mockClient)
 })
-
 
 it('can configure a custom serializer', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
@@ -680,7 +678,4 @@ it('can configure a custom serializer', async () => {
             body: '{"account_id":"900719925474099988"}',
         }),
     )
-
-    fetchHttpClient.setSerializer(JSON.stringify)
-    client.useHttpClient(mockClient)
 })
