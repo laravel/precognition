@@ -42,6 +42,8 @@ function appendToFormData(formData: FormData, key: string, value: unknown): void
         return formData.append(key, value)
     } else if (typeof value === 'number') {
         return formData.append(key, `${value}`)
+    } else if (typeof value === 'bigint') {
+        return formData.append(key, value.toString())
     } else if (value === null || value === undefined) {
         return formData.append(key, '')
     }
