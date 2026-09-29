@@ -38,6 +38,10 @@ beforeEach(() => {
 afterEach(() => {
     vi.restoreAllMocks()
     vi.runAllTimers()
+    delete global.document
+    fetchHttpClient.setXsrfCookieName('XSRF-TOKEN')
+    fetchHttpClient.setXsrfHeaderName('X-XSRF-TOKEN')
+    fetchHttpClient.setSerializer(JSON.stringify)
 })
 
 it('can handle a successful precognition response via config handler', async () => {
@@ -647,10 +651,31 @@ it('can configure custom XSRF cookie and header names', async () => {
             }),
         }),
     )
-
-    delete global.document
-    fetchHttpClient.setXsrfCookieName('XSRF-TOKEN')
-    fetchHttpClient.setXsrfHeaderName('X-XSRF-TOKEN')
-    client.useHttpClient(mockClient)
 })
 
+it('can configure a custom serializer', async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+        headers: new Headers({
+            'content-type': 'application/json',
+            'precognition': 'true',
+            'precognition-success': 'true',
+        }),
+        json: () => Promise.resolve({}),
+    })
+
+    // Reset to fetchHttpClient (beforeEach sets mockClient)
+    client.useHttpClient(fetchHttpClient)
+
+    client.withSerializer((data) => JSON.stringify(data, (_key, value) => (typeof value === 'bigint' ? value.toString() : value)))
+
+    await client.post('/test', { account_id: 900719925474099988n })
+
+    expect(global.fetch).toHaveBeenCalledWith(
+        '/test',
+        expect.objectContaining({
+            body: '{"account_id":"900719925474099988"}',
+        }),
+    )
+})

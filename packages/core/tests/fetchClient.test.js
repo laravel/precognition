@@ -615,4 +615,43 @@ describe('fetchClient', () => {
         delete global.document
     })
 
+    it('uses custom serializer option', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        const client = createFetchClient({ serializer: () => '{"replaced":true}' })
+        await client.request({ method: 'post', url: '/test', data: { name: 'test' } })
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/test',
+            expect.objectContaining({
+                body: '{"replaced":true}',
+            }),
+        )
+    })
+
+    it('can change the serializer after creation', async () => {
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        const client = createFetchClient()
+        client.setSerializer((data) => JSON.stringify(data, (_key, value) => (typeof value === 'bigint' ? value.toString() : value)))
+        await client.request({ method: 'post', url: '/test', data: { account_id: 900719925474099988n } })
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/test',
+            expect.objectContaining({
+                body: '{"account_id":"900719925474099988"}',
+            }),
+        )
+    })
+
 })

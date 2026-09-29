@@ -91,6 +91,11 @@ export const client: Client = {
 
         return client
     },
+    withSerializer(callback) {
+        fetchHttpClient.setSerializer(callback)
+
+        return client
+    },
 }
 
 /**

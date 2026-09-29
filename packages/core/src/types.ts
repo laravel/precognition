@@ -1,7 +1,7 @@
 export * from './http/types.js'
 export * from './http/errors.js'
 
-import type { HttpClient, HttpResponse } from './http/types.js'
+import type { HttpClient, HttpResponse, Serializer } from './http/types.js'
 import type { HttpResponseError } from './http/errors.js'
 
 type FormDataValue =
@@ -134,6 +134,7 @@ export interface Client {
     withCredentials(credentials: RequestCredentials | boolean): Client,
     withXsrfCookieName(name: string): Client,
     withXsrfHeaderName(name: string): Client,
+    withSerializer(callback: Serializer): Client,
     fingerprintRequestsUsing(callback: RequestFingerprintResolver | null): Client,
     determineSuccessUsing(callback: SuccessResolver): Client,
 }

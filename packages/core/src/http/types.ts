@@ -23,4 +23,7 @@ export interface HttpResponse {
 export interface FetchClientOptions {
     xsrfCookieName?: string
     xsrfHeaderName?: string
+    serializer?: Serializer
 }
+
+export type Serializer = (data: unknown) => string

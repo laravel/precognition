@@ -1,4 +1,4 @@
-import { HttpRequestConfig, HttpResponse, FetchClientOptions } from './types.js'
+import { HttpRequestConfig, HttpResponse, FetchClientOptions, Serializer } from './types.js'
 import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './errors.js'
 import { buildUrl } from './url.js'
 import { hasFiles } from '../form.js'
@@ -54,7 +54,7 @@ function appendToFormData(formData: FormData, key: string, value: unknown): void
 /**
  * Prepare the request body.
  */
-function prepareBody(data: unknown, headers: Record<string, string>): BodyInit | undefined {
+function prepareBody(data: unknown, headers: Record<string, string>, serialize: Serializer): BodyInit | undefined {
     if (data === undefined || data === null) {
         return undefined
     }
@@ -68,7 +68,7 @@ function prepareBody(data: unknown, headers: Record<string, string>): BodyInit |
     }
 
     if (typeof data === 'object' || headers['Content-Type']?.includes('application/json')) {
-        return JSON.stringify(data)
+        return serialize(data)
     }
 
     return String(data)
@@ -93,6 +93,7 @@ function parseHeaders(headers: Headers): Record<string, string> {
 export function createFetchClient(options: FetchClientOptions = {}) {
     let xsrfCookieName = options.xsrfCookieName ?? 'XSRF-TOKEN'
     let xsrfHeaderName = options.xsrfHeaderName ?? 'X-XSRF-TOKEN'
+    let serializer: Serializer = options.serializer ?? JSON.stringify
 
     function getXsrfToken(): string | null {
         if (typeof document === 'undefined') {
@@ -110,6 +111,9 @@ export function createFetchClient(options: FetchClientOptions = {}) {
         },
         setXsrfHeaderName(name: string) {
             xsrfHeaderName = name
+        },
+        setSerializer(callback: Serializer) {
+            serializer = callback
         },
         async request(config: HttpRequestConfig): Promise<HttpResponse> {
             const url = buildUrl(config.url, config.baseURL, config.params)
@@ -162,7 +166,7 @@ export function createFetchClient(options: FetchClientOptions = {}) {
             // Prepare body (only for non-GET/DELETE requests)
             const body = ['GET', 'DELETE'].includes(method)
                 ? undefined
-                : prepareBody(config.data, headers)
+                : prepareBody(config.data, headers, serializer)
 
             if (body instanceof FormData) {
                 delete headers['Content-Type']
