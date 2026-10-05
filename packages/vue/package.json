@@ -16,6 +16,17 @@
     "license": "MIT",
     "author": "Laravel",
     "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./axios": {
+            "types": "./dist/axios.d.ts",
+            "default": "./dist/axios.js"
+        }
+    },
     "files": [
         "/dist"
     ],

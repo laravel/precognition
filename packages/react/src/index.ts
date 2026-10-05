@@ -1,11 +1,10 @@
 import { resolveName, client, createValidator, Config, RequestMethod, Validator, toSimpleValidationErrors, ValidationConfig, resolveUrl, resolveMethod } from 'laravel-precognition'
-import { axiosAdapter } from 'laravel-precognition/axios'
 import { cloneDeep } from 'es-toolkit'
 import { get, set } from 'es-toolkit/compat'
 import { useRef, useState } from 'react'
 import { Form } from './types.js'
 
-export { client, axiosAdapter, Form }
+export { client, Form }
 
 export const useForm = <Data extends Record<string, unknown>>(method: RequestMethod | (() => RequestMethod), url: string | (() => string), input: Data, config: ValidationConfig = {}): Form<Data> => {
     /**

@@ -16,6 +16,17 @@
     "license": "MIT",
     "author": "Laravel",
     "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./axios": {
+            "types": "./dist/axios.d.ts",
+            "default": "./dist/axios.js"
+        }
+    },
     "files": [
         "/dist"
     ],
@@ -24,7 +35,8 @@
         "build": "rm -rf dist && tsc",
         "typeCheck": "tsc --noEmit",
         "prepublishOnly": "npm run build",
-        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version"
+        "version": "npm pkg set dependencies.laravel-precognition=$npm_package_version",
+        "test": "vitest run"
     },
     "peerDependencies": {
         "alpinejs": "^3.12.1"
@@ -35,6 +47,7 @@
     },
     "devDependencies": {
         "@types/alpinejs": "^3.7.1",
-        "typescript": "^5.0.0"
+        "typescript": "^5.0.0",
+        "vitest": "^4.1.8"
     }
 }
