@@ -1,4 +1,4 @@
-import { AxiosInstance, isAxiosError, isCancel, default as Axios } from 'axios'
+import Axios, { AxiosInstance } from 'axios'
 import { HttpClient, HttpRequestConfig, HttpResponse } from './types.js'
 import { HttpResponseError, HttpCancelledError, HttpNetworkError } from './errors.js'
 
@@ -34,11 +34,11 @@ export function axiosAdapter(axios: AxiosInstance = Axios): AxiosHttpClient {
                     headers: normalizeHeaders(response.headers),
                 }
             } catch (error) {
-                if (isCancel(error)) {
+                if (Axios.isCancel(error)) {
                     throw new HttpCancelledError()
                 }
 
-                if (isAxiosError(error) && error.response) {
+                if (Axios.isAxiosError(error) && error.response) {
                     throw new HttpResponseError({
                         status: error.response.status,
                         data: error.response.data,
