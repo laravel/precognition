@@ -70,6 +70,37 @@ describe('fetchClient', () => {
         )
     })
 
+    it('makes a QUERY request with JSON data and the XSRF header', async () => {
+        global.document = { cookie: 'XSRF-TOKEN=test-token' }
+
+        global.fetch = vi.fn().mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            headers: new Headers({ 'content-type': 'application/json' }),
+            json: () => Promise.resolve({}),
+        })
+
+        await fetchHttpClient.request({
+            method: 'query',
+            url: '/api/users/search',
+            data: { name: 'John' },
+        })
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/api/users/search',
+            expect.objectContaining({
+                method: 'QUERY',
+                body: JSON.stringify({ name: 'John' }),
+                headers: expect.objectContaining({
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': 'test-token',
+                }),
+            }),
+        )
+
+        delete global.document
+    })
+
     it('builds URL with base URL', async () => {
         const client = createFetchClient()
 

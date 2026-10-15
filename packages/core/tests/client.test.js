@@ -521,6 +521,23 @@ it('merges request data with config data', async () => {
     expect(config.params).toEqual({ request: true })
 })
 
+it('sends request data as the body for query requests', async () => {
+    expect.assertions(3)
+
+    let config
+    mockClient.mockImplementation((c) => {
+        config = c
+        return Promise.resolve({ headers: { precognition: 'true', 'precognition-success': 'true' }, status: 204, data: 'data' })
+    })
+
+    await client.query('https://laravel.com', { request: true }, {
+        data: { config: true },
+    })
+    expect(config.method).toBe('query')
+    expect(config.data).toEqual({ request: true, config: true })
+    expect(config.params).toBeUndefined()
+})
+
 it('merges request data with config params for get and delete requests', async () => {
     expect.assertions(4)
 

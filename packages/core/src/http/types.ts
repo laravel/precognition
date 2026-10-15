@@ -3,7 +3,7 @@ export interface HttpClient {
 }
 
 export interface HttpRequestConfig {
-    method: 'get' | 'post' | 'put' | 'patch' | 'delete'
+    method: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'query'
     url: string
     baseURL?: string
     data?: unknown

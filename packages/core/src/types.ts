@@ -83,7 +83,7 @@ export type ValidationErrors = Record<string, Array<string>>
 export type SimpleValidationErrors = Record<string, string>
 
 export type Config = {
-    method?: 'get' | 'post' | 'put' | 'patch' | 'delete',
+    method?: 'get' | 'post' | 'put' | 'patch' | 'delete' | 'query',
     url?: string,
     baseURL?: string,
     data?: unknown,
@@ -128,6 +128,7 @@ export interface Client {
     patch(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     put(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     delete(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
+    query(url: string, data?: Record<string, unknown>, config?: Config): Promise<unknown>,
     useHttpClient(httpClient: HttpClient): Client,
     withBaseURL(url: string): Client,
     withTimeout(duration: number): Client,
@@ -164,7 +165,7 @@ export interface ValidatorListeners {
     validatedChanged: Array<() => void>,
 }
 
-export type RequestMethod = 'get' | 'post' | 'patch' | 'put' | 'delete'
+export type RequestMethod = 'get' | 'post' | 'patch' | 'put' | 'delete' | 'query'
 
 export type ValidationCallback = (client: {
     get(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
@@ -172,6 +173,7 @@ export type ValidationCallback = (client: {
     patch(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
     put(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
     delete(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
+    query(url: string, data?: Record<string, unknown>, config?: ValidationConfig): Promise<unknown>,
 }) => Promise<unknown>
 
 interface NamedEventTarget extends EventTarget {

@@ -67,6 +67,27 @@ describe('axiosAdapter', () => {
         }))
     })
 
+    it('sends QUERY request data as a serialized body', async () => {
+        let sentConfig
+        const instance = axios.create({
+            adapter: (config) => {
+                sentConfig = config
+
+                return Promise.resolve({ status: 200, statusText: 'OK', data: {}, headers: {}, config })
+            },
+        })
+
+        await axiosAdapter(instance).request({
+            method: 'query',
+            url: '/api/users/search',
+            data: { name: 'John' },
+        })
+
+        expect(sentConfig.method).toBe('query')
+        expect(sentConfig.data).toBe(JSON.stringify({ name: 'John' }))
+        expect(sentConfig.params).toBeUndefined()
+    })
+
     it('passes all config options to axios', async () => {
         mockAxios.request.mockResolvedValueOnce({
             status: 200,
