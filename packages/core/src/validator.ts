@@ -252,6 +252,7 @@ export const createValidator = (callback: ValidationCallback, initialData: Recor
             patch: (url, data = {}, globalConfig = {}) => client.patch(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             put: (url, data = {}, globalConfig = {}) => client.put(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
             delete: (url, data = {}, globalConfig = {}) => client.delete(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
+            query: (url, data = {}, globalConfig = {}) => client.query(url, parseData(data), resolveConfig(globalConfig, instanceConfig, data)),
         }).catch((error) => {
             // Precognition can often cancel in-flight requests. Instead of
             // throwing an exception for this expected behaviour, we silently
